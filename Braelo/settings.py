@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     'users',
 ]
 
+AUTH_USER_MODEL = 'users.User'
+
 # JWT settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (

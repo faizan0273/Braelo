@@ -11,7 +11,7 @@ class UserManager(BaseUserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
-        user.save(using=self._db)
+        user.save()
         print("user created")
         return user
 
@@ -19,6 +19,10 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(email, password, **extra_fields)
 
 
@@ -28,7 +32,7 @@ class User(AbstractBaseUser):
         ("Client", "Client"),
     )
 
-    email = models.EmailField(unique=True)
+    email = models.EmailField(null=True, blank=True)
     password = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     name = models.CharField(max_length=50, null=True, blank=True)
@@ -36,7 +40,7 @@ class User(AbstractBaseUser):
     last_name = models.CharField(max_length=50, null=True, blank=True)
     google_id = models.CharField(max_length=255, null=True, blank=True)
     apple_id = models.CharField(max_length=255, null=True, blank=True)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
     is_email_verified = models.BooleanField(default=False)
@@ -45,7 +49,7 @@ class User(AbstractBaseUser):
 
     objects = UserManager()
 
-    USERNAME_FIELD = 'email'
+    USERNAME_FIELD = 'phone'
 
     # REQUIRED_FIELDS = ['phone_number', 'name', 'first_name', 'last_name']
 

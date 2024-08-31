@@ -6,6 +6,7 @@ from . import views
 from .views import (
     SignUpWithEmailView,
     LoginWithEmailView,
+    SignUpWithPhone,
 )
 
 urlpatterns = [
@@ -15,4 +16,7 @@ urlpatterns = [
     path(
         'signup/email', SignUpWithEmailView.as_view(), name='sign_up_with_email'
     ),
+    path('signup/phone', SignUpWithPhone.as_view(), name='sign_up_with_phone'),
+    path('verify-jwt/', views.verify_jwt, name='verify-jwt'),
+    path('verify-me/', views.verify_me, name='verify-jwt'),
 ]
