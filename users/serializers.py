@@ -189,14 +189,14 @@ class GoogleSignup(serializers.Serializer):
             # return True
         return False
 
-    def update(self, user, google_user):
+    def update(self, google_user):
         """
         Update the user details if any of the provided updated_user_data
         differ from the existing data in the user object.
-        :param user: User document from MongoDB
         :param google_user: Dictionary containing updated user data from Google.(dict)
         :return:
         """
+        user = User.objects.filter(email=google_user['email']).first()
         is_updated = (
             user.name != google_user['name']
             or user.first_name != google_user['first_name']
@@ -205,10 +205,14 @@ class GoogleSignup(serializers.Serializer):
             or user.google_id != google_user['google_id']
         )
         if is_updated:
-            google_user['updated_at'] = datetime.now()
-            if user.update(**google_user):
-                return True
-        return False
+            user.name = google_user['name']
+            user.first_name = google_user['first_name']
+            user.last_name = google_user['last_name']
+            user.is_email_verified = google_user['is_email_verified']
+            user.google_id = google_user['google_id']
+            user.updated_at = datetime.now()
+            user.save()
+        return user
 
 
 ############################################################################
