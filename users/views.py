@@ -2,17 +2,15 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
-from rest_framework.decorators import permission_classes, api_view
-from rest_framework.exceptions import ValidationError, AuthenticationFailed
-from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError
 
 from .helpers.google import google_auth
 
 
-from .helpers.helper import response, get_error_details
+from .helpers.helper import get_error_details, get_token
 from .models import User
 from .serializers import (
     EmailSignup,
@@ -23,7 +21,7 @@ from .serializers import (
 from django.db import DatabaseError as SQLITE_ERROR
 
 
-class SignUpWithEmailView(generics.CreateAPIView):
+class SignUpWithEmail(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = EmailSignup
     permission_classes = [AllowAny]
@@ -39,13 +37,9 @@ class SignUpWithEmailView(generics.CreateAPIView):
             # user = user.save()  # Save the user instance
             if user:
                 # Generate JWT token after user creation
-                refresh = RefreshToken.for_user(user)
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
+                token = get_token(user)
                 # Combine user data with token data
-                response_data = {'email': user.email, 'token': token_data}
+                response_data = {'email': user.email, 'token': token}
                 return Response(response_data, status=status.HTTP_201_CREATED)
         except ValidationError as err:
             error = get_error_details(err.detail)
@@ -85,15 +79,11 @@ class SignUpWithPhone(generics.CreateAPIView):
             user = user.create(user.validated_data)
             if user:
                 # Generate JWT token after user creation
-                refresh = RefreshToken.for_user(user)
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
+                token = get_token(user)
                 # Combine user data with token data
                 response_data = {
                     'phone': user.phone_number,
-                    'token': token_data,
+                    'token': token,
                 }
                 return Response(response_data, status=status.HTTP_201_CREATED)
         except ValidationError as err:
@@ -115,7 +105,7 @@ class SignUpWithPhone(generics.CreateAPIView):
             )
 
 
-class GoogleCallbackView(generics.CreateAPIView):
+class GoogleCallback(generics.CreateAPIView):
     permission_classes = [AllowAny]
     queryset = User.objects.all()
     serializer_class = GoogleSignup
@@ -135,13 +125,9 @@ class GoogleCallbackView(generics.CreateAPIView):
             # No user is available for this email create new user to our db
             if _user:
                 # Generate JWT token after user creation
-                refresh = RefreshToken.for_user(_user)
-                token_data = {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                }
+                token = get_token(_user)
                 # Combine user data with token data
-                response_data = {'email': _user.email, 'token': token_data}
+                response_data = {'email': _user.email, 'token': token}
                 return Response(response_data, status=status.HTTP_201_CREATED)
 
         except ValidationError as err:
@@ -154,12 +140,8 @@ class GoogleCallbackView(generics.CreateAPIView):
 
             # Email already exists
             _user = _user.update(g_user)
-            refresh = RefreshToken.for_user(_user)
-            token_data = {
-                'refresh': str(refresh),
-                'access': str(refresh.access_token),
-            }
-            response_data = {'email': _user.email, 'token': token_data}
+            token = get_token(_user)
+            response_data = {'email': _user.email, 'token': token}
             return Response(response_data, status=status.HTTP_200_OK)
         except SQLITE_ERROR as err:
             return Response(
@@ -174,7 +156,7 @@ class GoogleCallbackView(generics.CreateAPIView):
 
 
 # login part
-class LoginWithEmailView(generics.CreateAPIView):
+class LoginWithEmail(generics.CreateAPIView):
     serializer_class = EmailLogin
     permission_classes = []  # Ensure the user is authenticated
 
@@ -186,19 +168,15 @@ class LoginWithEmailView(generics.CreateAPIView):
             user = self.get_serializer(data=data)
             user.is_valid(raise_exception=True)
             user = user.validated_data
-            refresh = RefreshToken.for_user(user)
-
+            token = get_token(user)
+            response_data = {'email': user.email, 'token': token}
             return Response(
-                {
-                    'refresh': str(refresh),
-                    'access': str(refresh.access_token),
-                    'role': user.role,  # Include the role in the response if needed
-                },
+                response_data,
                 status=status.HTTP_200_OK,
             )
         except ValidationError as err:
             error = get_error_details(err.detail)
-            # Email already exists
+            # Incorrect email & password
             return Response(
                 {'detail': 'Validation Error', 'errors': error},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -213,6 +191,17 @@ class LoginWithEmailView(generics.CreateAPIView):
                 {'detail': 'Exception', 'errors': str(err)},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+# Logout
+@api_view(['POST'])
+def logout_user(request):
+    # todo
+    data = request.data
+    return Response(
+        data,
+        status=status.HTTP_200_OK,
+    )
 
 
 # testing

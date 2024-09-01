@@ -2,11 +2,8 @@
 Users helper functions
 """
 
-from datetime import datetime
-
 from django.http import JsonResponse
-
-from ..models import User
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def get_error_details(error_info):
@@ -39,3 +36,13 @@ def response(status, message, data, error=None):
         'data': data,
     }
     return JsonResponse(resp)
+
+
+def get_token(user):
+    # Generate JWT token after user creation
+    refresh = RefreshToken.for_user(user)
+    token_data = {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+    return token_data

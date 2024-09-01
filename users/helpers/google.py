@@ -36,12 +36,7 @@ def google_auth(token):
             token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']
         )
         return google_user_payload(resp)
-    except ValueError as exc:
-        return Response(
-            {'detail': 'Value Error', 'errors': str(exc)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    except GoogleAuthError as exc:
+    except (ValueError, GoogleAuthError) as exc:
         return Response(
             {'detail': 'GoogleAuthError', 'errors': str(exc)},
             status=status.HTTP_400_BAD_REQUEST,

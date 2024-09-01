@@ -4,28 +4,20 @@ from django.urls import path
 from . import views
 
 from .views import (
-    SignUpWithEmailView,
-    LoginWithEmailView,
+    SignUpWithEmail,
+    LoginWithEmail,
     SignUpWithPhone,
-    GoogleCallbackView,
+    GoogleCallback,
 )
 
 urlpatterns = [
     # Testing
     path('', views.sign_in, name='sign_in'),
     # Login end points
-    path('login/email', LoginWithEmailView.as_view(), name='login_with_email'),
-    path(
-        'login/google', GoogleCallbackView.as_view(), name='login_with_google'
-    ),
+    path('login/email', LoginWithEmail.as_view(), name='email_login'),
+    path('login/google', GoogleCallback.as_view(), name='google_login'),
     # Sign up endpoints
-    path(
-        'signup/email', SignUpWithEmailView.as_view(), name='sign_up_with_email'
-    ),
-    path(
-        'signup/google',
-        GoogleCallbackView.as_view(),
-        name='sign_up_with_google',
-    ),
-    path('signup/phone', SignUpWithPhone.as_view(), name='sign_up_with_phone'),
+    path('signup/email', SignUpWithEmail.as_view(), name='email_signup'),
+    path('signup/phone', SignUpWithPhone.as_view(), name='phone_signup'),
+    path('signup/google', GoogleCallback.as_view(), name='google_signup'),
 ]
