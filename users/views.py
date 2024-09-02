@@ -1,3 +1,6 @@
+from datetime import datetime
+
+import pyotp
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
@@ -17,6 +20,7 @@ from .serializers import (
     EmailLogin,
     PhoneSignup,
     GoogleSignup,
+    PhoneLogin,
 )
 from django.db import DatabaseError as SQLITE_ERROR
 
@@ -72,6 +76,14 @@ class SignUpWithPhone(generics.CreateAPIView):
         try:
             user = self.get_serializer(data=data)
             user.is_valid(raise_exception=True)
+            # Generate the OTP
+            secret = pyotp.random_base32()
+            totp = pyotp.TOTP(secret, digits=6)
+            otp = totp.now()
+            user.validated_data['otp'] = otp
+            user.validated_data['otp_created_at'] = datetime.now()
+            # todo Send OTP to user's phone
+            # send_otp_to_phone(user.phone_number, otp)
             # add username to the validated data
             user.validated_data['username'] = user.validated_data[
                 'phone_number'
@@ -143,6 +155,44 @@ class GoogleCallback(generics.CreateAPIView):
             token = get_token(_user)
             response_data = {'email': _user.email, 'token': token}
             return Response(response_data, status=status.HTTP_200_OK)
+        except SQLITE_ERROR as err:
+            return Response(
+                {'detail': 'Database failure', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as err:
+            return Response(
+                {'detail': 'Exception', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class LoginWithPhone(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = User.objects.all()
+    serializer_class = PhoneLogin
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        phone_number = request.data.get('phone_number')
+        otp = request.data.get('otp')
+        try:
+            user = self.get_serializer(data=data)
+            user.is_valid(raise_exception=True)
+            user = user.validated_data
+            token = get_token(user)
+            response_data = {'phone_number': user.phone_number, 'token': token}
+            return Response(
+                response_data,
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError as err:
+            error = get_error_details(err.detail)
+            # Incorrect email & password
+            return Response(
+                {'detail': 'Validation Error', 'errors': error},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         except SQLITE_ERROR as err:
             return Response(
                 {'detail': 'Database failure', 'errors': str(err)},

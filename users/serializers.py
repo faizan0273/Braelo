@@ -1,5 +1,7 @@
 # users/serializers.py
-from datetime import datetime
+from datetime import timedelta
+from django.utils import timezone
+
 
 import phonenumbers
 
@@ -71,8 +73,8 @@ class EmailSignup(serializers.Serializer):
 
     def create(self, validated_data):
         if validated_data:
-            validated_data['created_at'] = datetime.now()
-            validated_data['updated_at'] = datetime.now()
+            validated_data['created_at'] = timezone.now()
+            validated_data['updated_at'] = timezone.now()
             validated_data['is_active'] = True
             validated_data['is_email_verified'] = True
             validated_data['password'] = make_password(
@@ -103,8 +105,8 @@ class PhoneSignup(serializers.Serializer):
 
     def create(self, validated_data):
         if validated_data:
-            validated_data['created_at'] = datetime.now()
-            validated_data['updated_at'] = datetime.now()
+            validated_data['created_at'] = timezone.now()
+            validated_data['updated_at'] = timezone.now()
             validated_data['is_active'] = True
             validated_data['is_phone_verified'] = True
             user = User.objects.create_user(**validated_data)
@@ -181,8 +183,8 @@ class GoogleSignup(serializers.Serializer):
 
     def create(self, validated_data):
         if validated_data:
-            validated_data['created_at'] = datetime.now()
-            validated_data['updated_at'] = datetime.now()
+            validated_data['created_at'] = timezone.now()
+            validated_data['updated_at'] = timezone.now()
             validated_data['is_active'] = True
             user = User.objects.create_user(**validated_data)
             return user
@@ -210,7 +212,7 @@ class GoogleSignup(serializers.Serializer):
             user.last_name = google_user['last_name']
             user.is_email_verified = google_user['is_email_verified']
             user.google_id = google_user['google_id']
-            user.updated_at = datetime.now()
+            user.updated_at = timezone.now()
             user.save()
         return user
 
@@ -220,6 +222,46 @@ class GoogleSignup(serializers.Serializer):
 #                                   Login                                  #
 #                                                                          #
 ############################################################################
+
+
+class PhoneLogin(serializers.Serializer):
+    phone_number = serializers.CharField(
+        min_length=11, max_length=15, required=True
+    )
+    otp = serializers.CharField(min_length=6, max_length=6, required=True)
+
+    class Meta:
+        model = User
+        fields = ['phone_number']
+
+    def validate(self, data):
+        otp = data.get('otp')
+        phone_number = data.get('phone_number')
+        # Check if the user with the provided email exists
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user is None:
+            raise serializers.ValidationError(
+                {"Phone number": "No user found with this Phone Number."}
+            )
+        if not self.is_otp_valid(phone_number, otp):
+            raise serializers.ValidationError(
+                {"otp": "The OTP is invalid or has expired."}
+            )
+        return user
+
+    def is_otp_valid(self, phone, otp):
+        """
+        Validates otp and phone number
+        :param phone: phone number. (string)
+        :param otp: otp code. (int)
+        :return: True if validates, otherwise false.(boolean)
+        """
+        user = User.objects.filter(phone_number=phone, otp=otp).first()
+        if not user:
+            return False
+        # Temporary adding day 1 limit for testing
+        expiry_time = user.otp_created_at + timedelta(days=1)
+        return timezone.now() < expiry_time
 
 
 class EmailLogin(serializers.Serializer):

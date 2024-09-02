@@ -60,7 +60,9 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)
     role = models.CharField(max_length=255, choices=USER_ROLES)
-
+    # New field for storing OTP
+    otp = models.CharField(max_length=6, null=True, blank=True)
+    otp_created_at = models.DateTimeField(auto_now=True)
     username = models.CharField(
         max_length=255,
         verbose_name='username',
