@@ -9,6 +9,11 @@ from .views import (
     SignUpWithPhone,
     GoogleCallback,
     LoginWithPhone,
+    TokenRefresh,
+    ResetPassword,
+    ForgotPassword,
+    ChangePassword,
+    Logout,
 )
 
 urlpatterns = [
@@ -22,4 +27,14 @@ urlpatterns = [
     path('signup/email', SignUpWithEmail.as_view(), name='email_signup'),
     path('signup/phone', SignUpWithPhone.as_view(), name='phone_signup'),
     path('signup/google', GoogleCallback.as_view(), name='google_signup'),
+    # Refresh token
+    path('token/refresh', TokenRefresh.as_view(), name='token_refresh'),
+    # Reset password
+    path('reset/password', ResetPassword.as_view(), name='reset_password'),
+    # Forgot password
+    path('forgot/password', ForgotPassword.as_view(), name='forgot_password'),
+    # Change password
+    path('change/password', ChangePassword.as_view(), name='change_password'),
+    # Logout
+    path('api/logout/', Logout.as_view(), name='logout'),
 ]

@@ -7,7 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
 from .helpers.google import google_auth
@@ -21,6 +21,9 @@ from .serializers import (
     PhoneSignup,
     GoogleSignup,
     PhoneLogin,
+    AppleSignup,
+    ForgotPasswordSerializer,
+    ChangePasswordSerializer,
 )
 from django.db import DatabaseError as SQLITE_ERROR
 
@@ -167,6 +170,17 @@ class GoogleCallback(generics.CreateAPIView):
             )
 
 
+class AppleCallback(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = User.objects.all()
+    serializer_class = AppleSignup
+
+    @csrf_exempt
+    def post(self, request):
+        pass
+
+
+# login part
 class LoginWithPhone(generics.CreateAPIView):
     permission_classes = [AllowAny]
     queryset = User.objects.all()
@@ -205,7 +219,7 @@ class LoginWithPhone(generics.CreateAPIView):
             )
 
 
-# login part
+# login part-
 class LoginWithEmail(generics.CreateAPIView):
     serializer_class = EmailLogin
     permission_classes = []  # Ensure the user is authenticated
@@ -243,20 +257,105 @@ class LoginWithEmail(generics.CreateAPIView):
             )
 
 
-# Logout
-@api_view(['POST'])
-def logout_user(request):
-    # todo
-    data = request.data
-    return Response(
-        data,
-        status=status.HTTP_200_OK,
-    )
+class TokenRefresh(generics.CreateAPIView):
+    pass
+
+
+class ResetPassword(generics.CreateAPIView):
+    pass
+
+
+class ForgotPassword(generics.CreateAPIView):
+    serializer_class = ForgotPasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        try:
+            user = self.get_serializer(data=data)
+            user.is_valid(raise_exception=True)
+            user.save()
+            return Response(
+                {'message': 'Password changed successfully.'},
+                status=status.HTTP_200_OK,
+            )
+        except ValidationError as err:
+            error = get_error_details(err.detail)
+            # Email already exists
+            return Response(
+                {'detail': 'Validation Error', 'errors': error},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except SQLITE_ERROR as err:
+            return Response(
+                {'detail': 'Database failure', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as err:
+            return Response(
+                {'detail': 'Exception', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class ChangePassword(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChangePasswordSerializer
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        try:
+            user = self.get_serializer(data=data)
+            user.is_valid(raise_exception=True)
+            # our logic
+            # Generate password reset token
+            # token = default_token_generator.make_token(user)
+            # uid = urlsafe_base64_encode(force_bytes(user.pk))
+            #
+            # # Construct password reset URL (You should implement the frontend link handling)
+            # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
+            #
+            # # Send email (You can replace `send_mail` with your custom email service)
+            # send_mail(
+            #     subject='Password Reset',
+            #     message=f'Click the link to reset your password: {reset_url}',
+            #     from_email='noreply@yourdomain.com',
+            #     recipient_list=[email],
+            # )
+            #
+            # return Response(
+            #     {'message': 'Password reset link has been sent to your email.'},
+            #     status=status.HTTP_200_OK,
+            # )
+        except ValidationError as err:
+            error = get_error_details(err.detail)
+            # Email already exists
+            return Response(
+                {'detail': 'Validation Error', 'errors': error},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except SQLITE_ERROR as err:
+            return Response(
+                {'detail': 'Database failure', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        except Exception as err:
+            return Response(
+                {'detail': 'Exception', 'errors': str(err)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
+class Logout(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Blacklist the user's token (if using JWT with a blacklist) or handle session invalidation
+        return Response(
+            {'message': 'Logged out successfully.'}, status=status.HTTP_200_OK
+        )
 
 
 # testing
-
-
 @csrf_exempt
 def sign_in(request):
     return render(request, 'sign_in.html')
