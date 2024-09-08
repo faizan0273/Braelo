@@ -9,11 +9,11 @@ from rest_framework.response import Response
 
 
 def google_user_payload(record):
-    """
+    '''
     Creates our schema payload of Google user.
     :param record: google api information. (dict)
     :return: parsed payload. (dict)
-    """
+    '''
     user = {
         'name': record['name'],
         'email': record['email'],
@@ -26,11 +26,11 @@ def google_user_payload(record):
 
 
 def google_auth(token):
-    """
+    '''
     Verify google credentials.
     :param token: token information from front-end. (string)
     :return: google api response. (dict)
-    """
+    '''
     try:
         resp = id_token.verify_oauth2_token(
             token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']

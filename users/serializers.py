@@ -1,5 +1,7 @@
 # users/serializers.py
 from datetime import timedelta
+
+from django.contrib.auth.tokens import default_token_generator
 from django.utils import timezone
 
 
@@ -8,28 +10,10 @@ import phonenumbers
 from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import validate_email
+from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
 
 from .models import User
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = [
-            'email',
-            'password',
-            'phone_number',
-            'name',
-            'last_name',
-            'role',
-        ]
-        extra_kwargs = {'password': {'write_only': True}}
-
-    def create(self, validated_data):
-        user = User.objects.create_user(**validated_data)
-        return user
-
 
 ############################################################################
 #                                                                          #
@@ -191,7 +175,7 @@ class GoogleSignup(serializers.Serializer):
             # return True
         return False
 
-    def update(self, google_user):
+    def update(self, google_user, **kwargs):
         '''
         Update the user details if any of the provided updated_user_data
         differ from the existing data in the user object.
@@ -264,7 +248,7 @@ class AppleSignup(serializers.Serializer):
             # return True
         return False
 
-    def update(self, google_user):
+    def update(self, google_user, **kwargs):
         '''
         Update the user details if any of the provided updated_user_data
         differ from the existing data in the user object.
@@ -418,4 +402,37 @@ class ForgotPasswordSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 'No user found with this email address.'
             )
+        return user
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    new_password = serializers.CharField(write_only=True)
+    token = serializers.CharField()  # Reset token
+
+    def validate(self, data):
+        '''
+        Validate the token and UID, and check if they match.
+        '''
+        user = User.objects.get(email=data.get('email'))
+        if not user:
+            raise serializers.ValidationError(
+                'Invalid email or user does not exist.'
+            )
+
+        # Check the token validity
+        if not default_token_generator.check_token(user, data.get('token')):
+            raise serializers.ValidationError('Invalid or expired token.')
+
+        return data
+
+    def save(self):
+        '''
+        Set the new password for the user.
+        '''
+        uid = urlsafe_base64_decode(self.validated_data.get('uidb64')).decode()
+        user = User.objects.get(pk=uid)
+        new_password = self.validated_data.get('new_password')
+        user.set_password(new_password)
+        user.save()
         return user

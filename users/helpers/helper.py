@@ -1,6 +1,6 @@
-"""
+'''
 Users helper functions
-"""
+'''
 
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -18,14 +18,14 @@ def get_error_details(error_info):
 
 
 def response(status, message, data, error=None):
-    """
+    '''
     Returns a structured response with validation errors.
     :param status: Status code information. (dict)
     :param error: Error information. (dict)
     :param data: User information. (dict)
     :param message: Information about response. (dict)
     :return: Response object with formatted error details.
-    """
+    '''
     if isinstance(data, dict) and not data:
         if data.get('password'):
             data['password'] = '********'

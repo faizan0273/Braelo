@@ -6,11 +6,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
 
-from .helpers.google import google_auth
+from .helpers.google_auth import google_auth
 
 
 from .helpers.helper import get_error_details, get_token
@@ -24,6 +23,7 @@ from .serializers import (
     AppleSignup,
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
+    ResetPasswordSerializer,
 )
 from django.db import DatabaseError as SQLITE_ERROR
 
@@ -262,7 +262,17 @@ class TokenRefresh(generics.CreateAPIView):
 
 
 class ResetPassword(generics.CreateAPIView):
-    pass
+    def post(self, request, *args, **kwargs):
+        serializer = ResetPasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(
+                {'message': 'Password reset successful.'},
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ForgotPassword(generics.CreateAPIView):
@@ -348,7 +358,7 @@ class ChangePassword(generics.CreateAPIView):
 class Logout(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
+    def post(self, request, **kwargs):
         # Blacklist the user's token (if using JWT with a blacklist) or handle session invalidation
         return Response(
             {'message': 'Logged out successfully.'}, status=status.HTTP_200_OK

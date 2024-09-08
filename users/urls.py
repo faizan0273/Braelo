@@ -16,6 +16,8 @@ from .views import (
     Logout,
 )
 
+# todo import from separate files.
+
 urlpatterns = [
     # Testing
     path('', views.sign_in, name='sign_in'),
