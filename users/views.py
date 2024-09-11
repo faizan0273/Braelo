@@ -276,6 +276,7 @@ class ResetPassword(generics.CreateAPIView):
 
 
 class ForgotPassword(generics.CreateAPIView):
+    permission_classes = [AllowAny]  # Ensure the user is authenticated
     serializer_class = ForgotPasswordSerializer
 
     def post(self, request, *args, **kwargs):
