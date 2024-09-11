@@ -222,7 +222,7 @@ class LoginWithPhone(generics.CreateAPIView):
 # login part-
 class LoginWithEmail(generics.CreateAPIView):
     serializer_class = EmailLogin
-    permission_classes = []  # Ensure the user is authenticated
+    permission_classes = [AllowAny]  # Ensure the user is authenticated
 
     def post(self, request, *args, **kwargs):
         data = request.data
