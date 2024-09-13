@@ -15,6 +15,7 @@ from pathlib import Path
 
 
 from dotenv import load_dotenv
+from mongoengine import connect
 
 load_dotenv()
 
@@ -60,6 +61,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',  # Add this app
     'users',
 ]
 
@@ -79,6 +81,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
+    'BLACKLIST_AFTER_ROTATION': True,
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
@@ -126,7 +129,15 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+connect(
+    db='braelo',  # Name of your MongoDB database
+    host='localhost',  # Host where MongoDB is running
+    port=27017,  # Default MongoDB port
+    # username='your_username',  # MongoDB username if authentication is enabled
+    # password='your_password',  # MongoDB password
+    authentication_source='admin',  # Authentication source, usually 'admin'
+    # authentication_mechanism='SCRAM-SHA-1',  # Authentication mechanism
+)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

@@ -1,19 +1,20 @@
 # users/serializers.py
-from datetime import timedelta
 
-from django.contrib.auth.tokens import default_token_generator
+from datetime import timedelta
 from django.utils import timezone
+from django.contrib.auth.tokens import default_token_generator
 
 
 import phonenumbers
+from .models import User, Interest
 
-from django.contrib.auth.hashers import make_password, check_password
-from django.core.exceptions import ValidationError as DjangoValidationError
-from django.core.validators import validate_email
-from django.utils.http import urlsafe_base64_decode
 from rest_framework import serializers
+from django.core.validators import validate_email
+from rest_framework import serializers
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.hashers import check_password
+from django.core.exceptions import ValidationError as DjangoValidationError
 
-from .models import User
 
 ############################################################################
 #                                                                          #
@@ -61,9 +62,6 @@ class EmailSignup(serializers.Serializer):
             validated_data['updated_at'] = timezone.now()
             validated_data['is_active'] = True
             validated_data['is_email_verified'] = True
-            validated_data['password'] = make_password(
-                validated_data['password']
-            )
             user = User.objects.create_user(**validated_data)
             return user
             # user = User(**validated_data)
@@ -436,3 +434,37 @@ class ResetPasswordSerializer(serializers.Serializer):
         user.set_password(new_password)
         user.save()
         return user
+
+
+class InterestSerializer(serializers.Serializer):
+    class Meta:
+        model = Interest
+        fields = '__all__'
+
+    meta = {
+        'collection': 'interests',
+        # 'indexes': [
+        #     {'fields': ['email'], 'unique': True},
+        #     {'fields': ['phone_number'], 'unique': True},
+        #     {'fields': ['google_id'], 'unique': True},
+        #     {'fields': ['apple_id'], 'unique': True},
+        #     {'fields': ['profile'], 'unique': True},
+        # ],
+    }
+    user_id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(allow_blank=True)
+    tags = serializers.ListField(child=serializers.CharField())
+
+    def create(self, validated_data):
+        return Interest.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.name = validated_data.get('user_id', instance.user_id)
+        instance.name = validated_data.get('name', instance.name)
+        instance.description = validated_data.get(
+            'description', instance.description
+        )
+        instance.tags = validated_data.get('tags', instance.tags)
+        instance.save()
+        return instance

@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
 
+# from mongoengine import Document, StringField, ListField, IntField
+
 
 # Create your models here.
 
@@ -37,7 +39,8 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('Superuser must have is_staff=True.')
         if extra_fields.get('is_superuser') is not True:
             raise ValueError('Superuser must have is_superuser=True.')
-        return self.create_user(username, password, **extra_fields)
+        extra_fields['password'] = password
+        return self.create_user(username, **extra_fields)
 
 
 class User(AbstractUser):
@@ -76,3 +79,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.id}: {self.username}'
+
+
+#
+class Interest:
+    pass
+
+
+#     user_id = IntField()
+#     description = StringField()
+#     tags = ListField(StringField())
+#     name = StringField(required=True, max_length=100)

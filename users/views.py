@@ -1,19 +1,19 @@
-from datetime import datetime
-
 import pyotp
+from datetime import datetime
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.exceptions import ValidationError
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from .models import User, Interest
 from .helpers.google_auth import google_auth
-
-
-from .helpers.helper import get_error_details, get_token
-from .models import User
+from django.db import DatabaseError as SQLITE_ERROR
+from .helpers.helper import get_error_details, get_token, response
 from .serializers import (
     EmailSignup,
     EmailLogin,
@@ -24,8 +24,8 @@ from .serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
     ResetPasswordSerializer,
+    InterestSerializer,
 )
-from django.db import DatabaseError as SQLITE_ERROR
 
 
 class SignUpWithEmail(generics.CreateAPIView):
@@ -47,23 +47,34 @@ class SignUpWithEmail(generics.CreateAPIView):
                 token = get_token(user)
                 # Combine user data with token data
                 response_data = {'email': user.email, 'token': token}
-                return Response(response_data, status=status.HTTP_201_CREATED)
+                return response(
+                    status=status.HTTP_201_CREATED,
+                    message='User Signed Up',
+                    data=response_data,
+                )
         except ValidationError as err:
             error = get_error_details(err.detail)
             # Email already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data=request.data,
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data=request.data,
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data=request.data,
+                error=str(err),
             )
 
 
@@ -100,23 +111,33 @@ class SignUpWithPhone(generics.CreateAPIView):
                     'phone': user.phone_number,
                     'token': token,
                 }
-                return Response(response_data, status=status.HTTP_201_CREATED)
+                return response(
+                    status=status.HTTP_201_CREATED,
+                    message='User Signed Up',
+                    data=response_data,
+                )
         except ValidationError as err:
             error = get_error_details(err.detail)
-            # Phone already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            # Email already exists
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data=request.data,
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data=request.data,
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data=request.data,
             )
 
 
@@ -143,8 +164,12 @@ class GoogleCallback(generics.CreateAPIView):
                 token = get_token(_user)
                 # Combine user data with token data
                 response_data = {'email': _user.email, 'token': token}
-                return Response(response_data, status=status.HTTP_201_CREATED)
-
+                # return Response(response_data, status=status.HTTP_201_CREATED)
+                return response(
+                    status=status.HTTP_201_CREATED,
+                    message='User Signed Up',
+                    data=response_data,
+                )
         except ValidationError as err:
             error = get_error_details(err.detail)
             if not g_user:
@@ -157,16 +182,27 @@ class GoogleCallback(generics.CreateAPIView):
             _user = _user.update(g_user)
             token = get_token(_user)
             response_data = {'email': _user.email, 'token': token}
-            return Response(response_data, status=status.HTTP_200_OK)
-        except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
+            return response(
+                status=status.HTTP_200_OK,
+                message='user logged in',
+                data=response_data,
+                error=error,
             )
-        except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            # return Response(response_data, status=status.HTTP_200_OK)
+        except SQLITE_ERROR as err:
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data=request.data,
+                error=str(err),
+            )
+
+        except Exception as err:
+            return response(
+                status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data=request.data,
+                error=str(err),
             )
 
 
@@ -202,20 +238,27 @@ class LoginWithPhone(generics.CreateAPIView):
             )
         except ValidationError as err:
             error = get_error_details(err.detail)
-            # Incorrect email & password
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            # Email already exists
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data=request.data,
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data=request.data,
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data=request.data,
+                error=str(err),
             )
 
 
@@ -234,26 +277,34 @@ class LoginWithEmail(generics.CreateAPIView):
             user = user.validated_data
             token = get_token(user)
             response_data = {'email': user.email, 'token': token}
-            return Response(
-                response_data,
+            return response(
                 status=status.HTTP_200_OK,
+                message='user Logged in',
+                data=response_data,
             )
         except ValidationError as err:
             error = get_error_details(err.detail)
-            # Incorrect email & password
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            # Email already exists
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data=request.data,
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data=request.data,
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data=request.data,
+                error=str(err),
             )
 
 
@@ -292,19 +343,26 @@ class ForgotPassword(generics.CreateAPIView):
         except ValidationError as err:
             error = get_error_details(err.detail)
             # Email already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data='',
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data='',
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data='',
+                error=str(err),
             )
 
 
@@ -340,19 +398,26 @@ class ChangePassword(generics.CreateAPIView):
         except ValidationError as err:
             error = get_error_details(err.detail)
             # Email already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Validation Error',
+                data='',
+                error=error,
             )
         except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Database failure',
+                data='',
+                error=str(err),
             )
+
         except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
+            return response(
                 status=status.HTTP_400_BAD_REQUEST,
+                message='Exception',
+                data='',
+                error=str(err),
             )
 
 
@@ -360,10 +425,53 @@ class Logout(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request, **kwargs):
-        # Blacklist the user's token (if using JWT with a blacklist) or handle session invalidation
-        return Response(
-            {'message': 'Logged out successfully.'}, status=status.HTTP_200_OK
-        )
+        try:
+            # Extract the refresh token from request data
+            refresh_token = request.data.get('refresh')
+            if refresh_token:
+                # Blacklist the refresh token
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            return response(
+                status=status.HTTP_200_OK,
+                message='Logged out successfully.',
+                data={'refresh_token': refresh_token},
+                error='',
+            )
+        except TokenError as err:
+            # Email already exists
+            return response(
+                status=status.HTTP_400_BAD_REQUEST,
+                message='Token Error',
+                data='',
+                error=str(err),
+            )
+
+
+#
+# # List and Create Interest API
+# class InterestListCreateView(generics.ListCreateAPIView):
+#     permission_classes = [IsAuthenticated]
+#     serializer_class = InterestSerializer
+#     queryset = Interest.objects.all()
+#
+#     def post(self, request, *args, **kwargs):
+#         data = request.data
+#         data['user_id'] = request.user.id
+#         serializer = self.get_serializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save()
+#         return Response(serializer.data, status=status.HTTP_201_CREATED)
+#
+#
+# # Retrieve, Update, and Delete Interest API
+# class InterestDetailView(generics.RetrieveUpdateDestroyAPIView):
+#     serializer_class = InterestSerializer
+#     queryset = Interest.objects.all()
+#     lookup_field = (
+#         'id'  # Use 'id' or '_id' depending on how you're accessing the document
+#     )
+#
 
 
 # testing

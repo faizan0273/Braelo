@@ -14,6 +14,8 @@ from .views import (
     ForgotPassword,
     ChangePassword,
     Logout,
+    # InterestListCreateView,
+    # InterestDetailView,
 )
 
 # todo import from separate files.
@@ -39,4 +41,14 @@ urlpatterns = [
     path('change/password', ChangePassword.as_view(), name='change_password'),
     # Logout
     path('api/logout/', Logout.as_view(), name='logout'),
+    # path(
+    #     'interests/',
+    #     InterestListCreateView.as_view(),
+    #     name='interest-list-create',
+    # ),
+    # path(
+    #     'interests/<str:id>/',
+    #     InterestDetailView.as_view(),
+    #     name='interest-detail',
+    # ),
 ]
