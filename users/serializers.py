@@ -306,7 +306,7 @@ class PhoneLogin(serializers.Serializer):
 
     def is_otp_valid(self, phone, otp):
         '''
-        Validates otp and phone number
+        Validates otp and phone number.
         :param phone: phone number. (string)
         :param otp: otp code. (int)
         :return: True if validates, otherwise false.(boolean)

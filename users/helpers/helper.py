@@ -7,6 +7,11 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def get_error_details(error_info):
+    '''
+    gets Error message through exceptions.
+    :param error_info: exception error. (dict)
+    :return: error information. (string)
+    '''
     error_message = None
     for key, errors in error_info.items():
         if isinstance(errors, list):
@@ -26,9 +31,6 @@ def response(status, message, data, error=None):
     :param message: Information about response. (dict)
     :return: Response object with formatted error details.
     '''
-    if isinstance(data, dict) and not data:
-        if data.get('password'):
-            data['password'] = '********'
     resp = {
         'status': status,
         'message': message,
@@ -39,6 +41,11 @@ def response(status, message, data, error=None):
 
 
 def get_token(user):
+    '''
+    Generates JWT token for user.
+    :param user: user information. (dict)
+    :return: JWT token. (dict)
+    '''
     # Generate JWT token after user creation
     refresh = RefreshToken.for_user(user)
     token_data = {
