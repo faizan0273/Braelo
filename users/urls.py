@@ -1,22 +1,31 @@
-# users/urls.py
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
 
-from django.urls import path
+Description:
+End points registry file.
+---------------------------------------------------
+'''
+
 from . import views
-
-from .views import (
-    SignUpWithEmail,
+from django.urls import path
+from .api.user_interest import InterestListCreateView
+from .api import (
     LoginWithEmail,
-    SignUpWithPhone,
-    GoogleCallback,
     LoginWithPhone,
+    GoogleCallback,
+    SignUpWithEmail,
+    SignUpWithPhone,
     TokenRefresh,
     ResetPassword,
     ForgotPassword,
     ChangePassword,
     Logout,
-    # InterestListCreateView,
-    # InterestDetailView,
 )
+
 
 # todo import from separate files.
 
@@ -40,15 +49,6 @@ urlpatterns = [
     # Change password
     path('change/password', ChangePassword.as_view(), name='change_password'),
     # Logout
-    path('api/logout/', Logout.as_view(), name='logout'),
-    # path(
-    #     'interests/',
-    #     InterestListCreateView.as_view(),
-    #     name='interest-list-create',
-    # ),
-    # path(
-    #     'interests/<str:id>/',
-    #     InterestDetailView.as_view(),
-    #     name='interest-detail',
-    # ),
+    path('api/logout', Logout.as_view(), name='logout'),
+    path('interests', InterestListCreateView.as_view(), name='interest'),
 ]

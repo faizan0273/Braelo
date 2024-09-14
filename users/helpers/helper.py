@@ -1,5 +1,13 @@
 '''
-Users helper functions
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Helper functions file.
+---------------------------------------------------
 '''
 
 from django.http import JsonResponse

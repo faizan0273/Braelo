@@ -1,8 +1,18 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+User model sql based.
+---------------------------------------------------
+'''
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
-
-# from mongoengine import Document, StringField, ListField, IntField
 
 
 # Create your models here.
@@ -79,14 +89,3 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.id}: {self.username}'
-
-
-#
-class Interest:
-    pass
-
-
-#     user_id = IntField()
-#     description = StringField()
-#     tags = ListField(StringField())
-#     name = StringField(required=True, max_length=100)

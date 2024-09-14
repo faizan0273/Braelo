@@ -1,16 +1,27 @@
-# users/serializers.py
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Serializer file for users based endpoints
+---------------------------------------------------
+'''
 
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.tokens import default_token_generator
+from mongoengine import DoesNotExist
 
+from .helpers import INTERESTS
+from .models.interests import Interest
+from .models.models import User
 
 import phonenumbers
-from .models import User, Interest
-
 from rest_framework import serializers
 from django.core.validators import validate_email
-from rest_framework import serializers
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -437,34 +448,61 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class InterestSerializer(serializers.Serializer):
-    class Meta:
-        model = Interest
-        fields = '__all__'
+    user_id = serializers.IntegerField(required=True)
+    tags = serializers.ListField(
+        child=serializers.CharField(),
+        required=False,
+        default=list,
+    )
 
-    meta = {
-        'collection': 'interests',
-        # 'indexes': [
-        #     {'fields': ['email'], 'unique': True},
-        #     {'fields': ['phone_number'], 'unique': True},
-        #     {'fields': ['google_id'], 'unique': True},
-        #     {'fields': ['apple_id'], 'unique': True},
-        #     {'fields': ['profile'], 'unique': True},
-        # ],
-    }
-    user_id = serializers.IntegerField()
-    name = serializers.CharField(max_length=100)
-    description = serializers.CharField(allow_blank=True)
-    tags = serializers.ListField(child=serializers.CharField())
+    def validate_tags(self, tags):
+        '''
+        Check if the provided tags are correct.
+        :param tags: tags from request. (list)
+        :return: return tags If it exists | exception. (list)
+        '''
+        for tag in tags:
+            if tag not in INTERESTS:
+                raise serializers.ValidationError({'tags': 'Incorrect tag.'})
+        return tags
+
+    def validate_user_id(self, user_id):
+        '''
+        Check if the user_id already exists.
+        :param user_id: id of user from mysql db. (int)
+        :return: If it exists, return the existing object for update | user_id.
+        '''
+        try:
+            # If user_id exists, return the corresponding Interest object (for updating)
+            interest = Interest.objects.get(user_id=user_id)
+            return interest
+        except DoesNotExist:
+            # If user_id does not exist, return the user_id (for creating a new entry)
+            return user_id
 
     def create(self, validated_data):
+        '''
+        Create a new interest record for a user if it doesn't already exist.
+        '''
         return Interest.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('user_id', instance.user_id)
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get(
-            'description', instance.description
-        )
+        '''
+        Update the existing interest record for a user.
+        '''
         instance.tags = validated_data.get('tags', instance.tags)
         instance.save()
         return instance
+
+    def save(self, **kwargs):
+        '''
+        Save or update the user interest based on whether the user_id exists.
+        '''
+        interest = self.validated_data.get('user_id')
+
+        if isinstance(interest, Interest):
+            # If the validate_user_id returned an existing object, update it
+            return self.update(interest, self.validated_data)
+        else:
+            # Otherwise, create a new interest
+            return self.create(self.validated_data)

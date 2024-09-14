@@ -1,27 +1,29 @@
 '''
-@author: Hamid
-Date: 14 Aug, 2024
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+User password management end-points module.
+---------------------------------------------------
 '''
 
 from rest_framework import generics, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from Braelo.users.helpers.helper import get_error_details
+from Braelo.users.helpers import handle_exceptions
 from Braelo.users.serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
     ResetPasswordSerializer,
 )
-from django.db import DatabaseError as SQLITE_ERROR
 
 
 class ResetPassword(generics.CreateAPIView):
-    '''
-    Reset password Api.
-    '''
-
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
         serializer = ResetPasswordSerializer(data=request.data)
 
@@ -36,88 +38,57 @@ class ResetPassword(generics.CreateAPIView):
 
 
 class ForgotPassword(generics.CreateAPIView):
-    '''
-    Forgot password Api
-    '''
-
+    permission_classes = [AllowAny]  # Ensure the user is authenticated
     serializer_class = ForgotPasswordSerializer
 
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle forgotten password.
+        :param request: request object. (dict)
+        :return: user's password status. (json)
+        '''
         data = request.data
-        try:
-            user = self.get_serializer(data=data)
-            user.is_valid(raise_exception=True)
-            user.save()
-            return Response(
-                {'message': 'Password changed successfully.'},
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as err:
-            error = get_error_details(err.detail)
-            # Email already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = self.get_serializer(data=data)
+        user.is_valid(raise_exception=True)
+        user.save()
+        return Response(
+            {'message': 'Password changed successfully.'},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ChangePassword(generics.CreateAPIView):
-    '''
-    Change password Api
-    '''
-
     permission_classes = [IsAuthenticated]
     serializer_class = ChangePasswordSerializer
 
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle user change password on applications.
+        :param request: request object. (dict)
+        :return: user's password status. (json)
+        '''
         data = request.data
-        try:
-            user = self.get_serializer(data=data)
-            user.is_valid(raise_exception=True)
-            # our logic
-            # Generate password reset token
-            # token = default_token_generator.make_token(user)
-            # uid = urlsafe_base64_encode(force_bytes(user.pk))
-            #
-            # # Construct password reset URL (You should implement the frontend link handling)
-            # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
-            #
-            # # Send email (You can replace `send_mail` with your custom email service)
-            # send_mail(
-            #     subject='Password Reset',
-            #     message=f'Click the link to reset your password: {reset_url}',
-            #     from_email='noreply@yourdomain.com',
-            #     recipient_list=[email],
-            # )
-            #
-            return Response(
-                {'message': 'Password reset link has been sent to your email.'},
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as err:
-            error = get_error_details(err.detail)
-            # Email already exists
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = self.get_serializer(data=data)
+        user.is_valid(raise_exception=True)
+        # our logic
+        # Generate password reset token
+        # token = default_token_generator.make_token(user)
+        # uid = urlsafe_base64_encode(force_bytes(user.pk))
+        #
+        # # Construct password reset URL (You should implement the frontend link handling)
+        # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
+        #
+        # # Send email (You can replace `send_mail` with your custom email service)
+        # send_mail(
+        #     subject='Password Reset',
+        #     message=f'Click the link to reset your password: {reset_url}',
+        #     from_email='noreply@yourdomain.com',
+        #     recipient_list=[email],
+        # )
+        #
+        # return Response(
+        #     {'message': 'Password reset link has been sent to your email.'},
+        #     status=status.HTTP_200_OK,
+        # )

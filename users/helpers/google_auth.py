@@ -1,3 +1,15 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+google auth helper functions file.
+---------------------------------------------------
+'''
+
 import os
 
 from google.auth.exceptions import GoogleAuthError

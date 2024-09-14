@@ -6,12 +6,11 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-admin file.
+__init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from django.contrib import admin
-from .models import User
-
-# Register your models here.
-admin.site.register(User)
+from .login import *
+from .signup import *
+from .password import *
+from .user_interest import *

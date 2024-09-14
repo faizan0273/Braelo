@@ -1,18 +1,23 @@
 '''
-@author: Hamid
-Date: 14 Aug, 2024
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+User Login end-points module.
+---------------------------------------------------
 '''
 
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.exceptions import ValidationError
 
 from ..models import User
+from ..helpers import handle_exceptions
 from ..serializers import EmailLogin, PhoneLogin
-from ..helpers.helper import get_error_details, get_token
-
-from django.db import DatabaseError as SQLITE_ERROR
+from ..helpers.helper import get_token, response
 
 
 # login part
@@ -21,75 +26,50 @@ class LoginWithPhone(generics.CreateAPIView):
     queryset = User.objects.all()
     serializer_class = PhoneLogin
 
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle user login in on applications.
+        :param request: request object. (dict)
+        :return: user's signed up status. (json)
+        '''
         data = request.data
         phone_number = request.data.get('phone_number')
         otp = request.data.get('otp')
-        try:
-            user = self.get_serializer(data=data)
-            user.is_valid(raise_exception=True)
-            user = user.validated_data
-            token = get_token(user)
-            response_data = {'phone_number': user.phone_number, 'token': token}
-            return Response(
-                response_data,
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as err:
-            error = get_error_details(err.detail)
-            # Incorrect email & password
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = self.get_serializer(data=data)
+        user.is_valid(raise_exception=True)
+        user = user.validated_data
+        token = get_token(user)
+        response_data = {'phone_number': user.phone_number, 'token': token}
+        return response(
+            status=status.HTTP_200_OK,
+            message='user Logged in',
+            data=response_data,
+        )
 
 
-# login part-
 class LoginWithEmail(generics.CreateAPIView):
     serializer_class = EmailLogin
-    permission_classes = []  # Ensure the user is authenticated
+    permission_classes = [AllowAny]  # Ensure the user is authenticated
 
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle user login on applications.
+        :param request: request object. (dict)
+        :return: user's signed up status. (json)
+        '''
         data = request.data
-        email = data.get('email', None)
-        password = data.get('password', None)
-        try:
-            user = self.get_serializer(data=data)
-            user.is_valid(raise_exception=True)
-            user = user.validated_data
-            token = get_token(user)
-            response_data = {'email': user.email, 'token': token}
-            return Response(
-                response_data,
-                status=status.HTTP_200_OK,
-            )
-        except ValidationError as err:
-            error = get_error_details(err.detail)
-            # Incorrect email & password
-            return Response(
-                {'detail': 'Validation Error', 'errors': error},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except SQLITE_ERROR as err:
-            return Response(
-                {'detail': 'Database failure', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        except Exception as err:
-            return Response(
-                {'detail': 'Exception', 'errors': str(err)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        user = self.get_serializer(data=data)
+        user.is_valid(raise_exception=True)
+        user = user.validated_data
+        token = get_token(user)
+        response_data = {'email': user.email, 'token': token}
+        return response(
+            status=status.HTTP_200_OK,
+            message='user Logged in',
+            data=response_data,
+        )
 
 
 class TokenRefresh(generics.CreateAPIView):
