@@ -14,8 +14,8 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from Braelo.users.helpers import handle_exceptions
-from Braelo.users.serializers import (
+from ..helpers import handle_exceptions, response
+from ..serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
     ResetPasswordSerializer,
@@ -25,16 +25,27 @@ from Braelo.users.serializers import (
 class ResetPassword(generics.CreateAPIView):
     @handle_exceptions
     def post(self, request, *args, **kwargs):
-        serializer = ResetPasswordSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Password reset successful.'},
-                status=status.HTTP_200_OK,
-            )
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        pass
+        # our logic
+        # Generate password reset token
+        # token = default_token_generator.make_token(user)
+        # uid = urlsafe_base64_encode(force_bytes(user.pk))
+        #
+        # # Construct password reset URL (You should implement the frontend link handling)
+        # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
+        #
+        # # Send email (You can replace `send_mail` with your custom email service)
+        # send_mail(
+        #     subject='Password Reset',
+        #     message=f'Click the link to reset your password: {reset_url}',
+        #     from_email='noreply@yourdomain.com',
+        #     recipient_list=[email],
+        # )
+        #
+        # return Response(
+        #     {'message': 'Password reset link has been sent to your email.'},
+        #     status=status.HTTP_200_OK,
+        # )
 
 
 class ForgotPassword(generics.CreateAPIView):
@@ -69,26 +80,14 @@ class ChangePassword(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: user's password status. (json)
         '''
-        data = request.data
-        user = self.get_serializer(data=data)
-        user.is_valid(raise_exception=True)
-        # our logic
-        # Generate password reset token
-        # token = default_token_generator.make_token(user)
-        # uid = urlsafe_base64_encode(force_bytes(user.pk))
-        #
-        # # Construct password reset URL (You should implement the frontend link handling)
-        # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
-        #
-        # # Send email (You can replace `send_mail` with your custom email service)
-        # send_mail(
-        #     subject='Password Reset',
-        #     message=f'Click the link to reset your password: {reset_url}',
-        #     from_email='noreply@yourdomain.com',
-        #     recipient_list=[email],
-        # )
-        #
-        # return Response(
-        #     {'message': 'Password reset link has been sent to your email.'},
-        #     status=status.HTTP_200_OK,
-        # )
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        resp = serializer.save()
+        if not resp:
+            # todo: needs better logic
+            raise Exception('Cannot Add user to Database')
+        return response(
+            status=status.HTTP_201_CREATED,
+            message='Password updated successfully',
+            data=resp,
+        )

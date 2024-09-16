@@ -14,7 +14,7 @@ from mongoengine import Document, fields
 
 
 class Interest(Document):
-    user_id = fields.IntField()
+    user_id = fields.IntField(required=True)
     tags = fields.ListField(field=fields.StringField())
 
     meta = {

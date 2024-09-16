@@ -11,6 +11,8 @@ Serializer file for users based endpoints
 '''
 
 from datetime import timedelta
+
+from django.db import transaction
 from django.utils import timezone
 from django.contrib.auth.tokens import default_token_generator
 from mongoengine import DoesNotExist
@@ -24,6 +26,7 @@ from rest_framework import serializers
 from django.core.validators import validate_email
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 
 
@@ -384,18 +387,21 @@ class ChangePasswordSerializer(serializers.Serializer):
                     'new_password': 'New password cannot be the same as the old password.'
                 }
             )
-        return User
+        # todo: Apply this check
+        #  validate_password(new_password, user=user)
+
+        return data
 
     def save(self, **kwargs):
         email = self.validated_data.get('email')
         new_password = self.validated_data.get('new_password')
+        with transaction.atomic():
+            # Fetch the user and set the new password
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
 
-        # Fetch the user and set the new password
-        user = User.objects.get(email=email)
-        user.set_password(new_password)
-        user.save()
-
-        return user
+            return {'email': user.email}
 
 
 class ForgotPasswordSerializer(serializers.Serializer):
@@ -419,21 +425,21 @@ class ResetPasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(write_only=True)
     token = serializers.CharField()  # Reset token
 
-    def validate(self, data):
-        '''
-        Validate the token and UID, and check if they match.
-        '''
-        user = User.objects.get(email=data.get('email'))
-        if not user:
-            raise serializers.ValidationError(
-                'Invalid email or user does not exist.'
-            )
-
-        # Check the token validity
-        if not default_token_generator.check_token(user, data.get('token')):
-            raise serializers.ValidationError('Invalid or expired token.')
-
-        return data
+    # def validate(self, data):
+    #     '''
+    #     Validate the token and UID, and check if they match.
+    #     '''
+    #     user = User.objects.get(email=data.get('email'))
+    #     if not user:
+    #         raise serializers.ValidationError(
+    #             'Invalid email or user does not exist.'
+    #         )
+    #
+    #     # Check the token validity
+    #     if not default_token_generator.check_token(user, data.get('token')):
+    #         raise serializers.ValidationError('Invalid or expired token.')
+    #
+    #     return data
 
     def save(self):
         '''
