@@ -6,9 +6,12 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-__init__ file.
+Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from Braeloo.listings.models.listing import Listing
-from Braeloo.listings.models.category import Category
+from mongoengine import Document, fields
+
+
+class Listing(Document):
+    pass

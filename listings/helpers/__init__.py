@@ -6,9 +6,8 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-__init__ file.
+__init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from Braeloo.listings.models.listing import Listing
-from Braeloo.listings.models.category import Category
+from Braeloo.listings.helpers.constants import *
