@@ -10,6 +10,7 @@ Serializer file for Listings based endpoints
 ---------------------------------------------------
 '''
 
+from .models import Listing
 from .models.category import Category
 from .models.category import Subcategory
 
@@ -66,3 +67,27 @@ class CategorySerializer(serializers.DocumentSerializer):
 
         instance.save()
         return instance
+
+
+class ListingSerializer(serializers.DocumentSerializer):
+    # category = serializers.S
+    # Category can be passed as a string (name) for simplicity
+
+    class Meta:
+        model = Listing
+        fields = [
+            'id',
+            'category',
+            'subcategory',
+            'picture',
+            'ad_title',
+            'description',
+            'location',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        listing = Listing.objects.create(**validated_data)
+        return listing

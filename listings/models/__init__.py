@@ -10,5 +10,5 @@ __init__ file.
 ---------------------------------------------------
 '''
 
-from Braeloo.listings.models.listing import Listing
-from Braeloo.listings.models.category import Category
+from Braelo.listings.models.listing import Listing
+from Braelo.listings.models.category import Category

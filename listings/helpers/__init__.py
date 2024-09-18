@@ -10,4 +10,4 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from Braeloo.listings.helpers.constants import *
+from Braelo.listings.helpers.constants import *
