@@ -14,8 +14,8 @@ from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 
-from Braelo.listings.models import Category
-from Braelo.users.helpers import response
+from ..helpers import response
+from ..models import Category
 
 
 class Categories(APIView):

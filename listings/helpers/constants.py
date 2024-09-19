@@ -6,7 +6,7 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-constants file for Listing endpoints imports.
+Braelo constants.
 ---------------------------------------------------
 '''
 

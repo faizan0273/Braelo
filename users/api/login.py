@@ -17,9 +17,8 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from ..models import User
-from ..helpers import handle_exceptions
 from ..serializers import EmailLogin, PhoneLogin
-from ..helpers.helper import get_token, response
+from ..helpers import handle_exceptions
 
 
 # login part

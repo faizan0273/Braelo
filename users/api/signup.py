@@ -20,14 +20,19 @@ from django.views.decorators.csrf import csrf_exempt
 
 
 from ..models import User
-from ..helpers import handle_exceptions
-from ..helpers.google_auth import google_auth
-from ..helpers.helper import get_error_details, get_token, response
+
 from ..serializers import (
     EmailSignup,
     PhoneSignup,
     GoogleSignup,
     AppleSignup,
+)
+from ..helpers import (
+    handle_exceptions,
+    get_token,
+    response,
+    google_auth,
+    get_error_details,
 )
 
 

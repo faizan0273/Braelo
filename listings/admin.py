@@ -9,3 +9,5 @@ Description:
 admin file.
 ---------------------------------------------------
 '''
+
+from django.contrib import admin

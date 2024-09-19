@@ -17,7 +17,6 @@ from django.utils import timezone
 from django.contrib.auth.tokens import default_token_generator
 from mongoengine import DoesNotExist
 
-from .helpers import INTERESTS
 from .models.interests import Interest
 from .models.models import User
 

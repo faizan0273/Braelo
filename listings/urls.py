@@ -12,8 +12,8 @@ End points registry file.
 
 from django.urls import path
 
-from Braelo.listings.api.listing import Listing
-from Braelo.listings.api.category import Categories
+from .api.listing import Listing
+from .api.category import Categories
 
 urlpatterns = [
     path('meta', Categories.as_view(), name='categories-list'),

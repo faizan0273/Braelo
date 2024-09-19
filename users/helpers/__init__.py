@@ -13,4 +13,4 @@ __init__.py file for endpoints imports.
 from .helper import *
 from .decorators import *
 from .google_auth import *
-from .constants import *
+from .constants import INTERESTS
