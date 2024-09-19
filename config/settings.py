@@ -22,7 +22,7 @@ from mongoengine import connect
 load_dotenv()
 
 
-GOOGLE_OAUTH_CLIENT_ID =221272028067-cnm21hi90qmfp0jggj62148fetbv8qbn.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_ID ="221272028067-cnm21hi90qmfp0jggj62148fetbv8qbn.apps.googleusercontent.com"
 print(GOOGLE_OAUTH_CLIENT_ID)
 # GOOGLE_OAUTH_CLIENT_ID = os.environ.get('GOOGLE_OAUTH_CLIENT_ID')
 # print(GOOGLE_OAUTH_CLIENT_ID)
