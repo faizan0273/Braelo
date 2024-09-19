@@ -132,12 +132,17 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+username = 'braelofl'
+password = '83PsPZiwdBsgEJNT'
+db_name = 'braelo'
+connection_string = f"mongodb+srv://{username}:{password}@braelo.karg4.mongodb.net/{db_name}?retryWrites=true&w=majority"
+
 connect(
     db='braelo',  # Name of your MongoDB database
-    host='localhost',  # Host where MongoDB is running
+    host=connection_string,
     port=27017,  # Default MongoDB port
-    # username='your_username',  # MongoDB username if authentication is enabled
-    # password='your_password',  # MongoDB password
+    username=username,  # MongoDB username if authentication is enabled
+    password=password,  # MongoDB password
     authentication_source='admin',  # Authentication source, usually 'admin'
     # authentication_mechanism='SCRAM-SHA-1',  # Authentication mechanism
 )
