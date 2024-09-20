@@ -50,9 +50,16 @@ SECRET_KEY = (
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['192.168.18.4', 'localhost', '127.0.0.1','braelo-fug5gcb6c0hpbpdn.canadacentral-01.azurewebsites.net']
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://braelo-fug5gcb6c0hpbpdn.canadacentral-01.azurewebsites.net',
+    'http://localhost',
+    'http://127.0.0.1',
+    'http://192.168.18.4'
+]
 
 
 # Application definition
