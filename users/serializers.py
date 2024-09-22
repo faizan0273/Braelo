@@ -14,16 +14,17 @@ from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
-from django.contrib.auth.tokens import default_token_generator
 from mongoengine import DoesNotExist
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+from rest_framework_simplejwt.tokens import RefreshToken
 
+from .helpers import INTERESTS
 from .models.interests import Interest
-from .models.models import User
+from .models.models import User, OTP
 
 import phonenumbers
 from rest_framework import serializers
 from django.core.validators import validate_email
-from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -40,11 +41,12 @@ from django.core.exceptions import ValidationError as DjangoValidationError
 
 class EmailSignup(serializers.Serializer):
     email = serializers.EmailField(required=True)
+    name = serializers.CharField(required=True)
     password = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
-        fields = ['email', 'password', 'role']
+        fields = ['name', 'email', 'password', 'role']
         extra_kwargs = {'password': {'write_only': True}}
 
     def validate(self, data):
@@ -83,6 +85,7 @@ class EmailSignup(serializers.Serializer):
         return None
 
     def update(self, instance, validated_data):
+        instance.name = validated_data.get('name', instance.name)
         instance.email = validated_data.get('email', instance.email)
         instance.password = validated_data.get('password', instance.password)
         instance.save()
@@ -364,26 +367,35 @@ class ChangePasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
     old_password = serializers.CharField(required=True, write_only=True)
     new_password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
 
     def validate(self, data):
         '''
         Check that the old password still exists.
         '''
-        old_password = data.get('old_password')
+        current_password = data.get('old_password')
         new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+
         user = User.objects.filter(email=data['email']).first()
         if user is None:
             raise serializers.ValidationError(
                 {'email': 'No user found with this email address.'}
             )
-        if not user.check_password(old_password):
+        if not user.check_password(current_password):
             raise serializers.ValidationError(
                 {'old_password': ['Incorrect password.']}
             )
-        if old_password == new_password:
+        if current_password == new_password:
             raise serializers.ValidationError(
                 {
                     'new_password': 'New password cannot be the same as the old password.'
+                }
+            )
+        if new_password != confirm_password:
+            raise serializers.ValidationError(
+                {
+                    'new_password': 'The new password and confirmation password do not match.'
                 }
             )
         # todo: Apply this check
@@ -403,6 +415,71 @@ class ChangePasswordSerializer(serializers.Serializer):
             return {'email': user.email}
 
 
+class CreatePasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+    confirm_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, data):
+        '''
+        Check that the old password still exists.
+        '''
+        email = data.get('email')
+        new_password = data.get('new_password')
+        confirm_password = data.get('confirm_password')
+
+        user = User.objects.filter(email=email).first()
+
+        if user is None:
+            raise serializers.ValidationError(
+                {'email': 'No user found with this email address.'}
+            )
+        if user.check_password(new_password):
+            raise serializers.ValidationError(
+                {
+                    'new_password': 'The new password cannot be the same as the current password.'
+                }
+            )
+        if new_password != confirm_password:
+            raise serializers.ValidationError(
+                {
+                    'new_password': 'The new password and confirmation password do not match.'
+                }
+            )
+        # todo: Apply this check
+        #  validate_password(new_password, user=user)
+
+        return data
+
+    def save(self, **kwargs):
+        email = self.validated_data.get('email')
+        new_password = self.validated_data.get('new_password')
+        with transaction.atomic():
+            # Fetch the user and set the new password
+            user = User.objects.get(email=email)
+            user.set_password(new_password)
+            user.save()
+
+            return {'email': user.email}
+
+
+class VerifyOtpSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    otp = serializers.CharField(required=True, max_length=6)
+
+    def validate(self, data):
+        otp = data.get('otp')
+        email = data.get('email')
+        try:
+            otp_record = OTP.objects.get(user__email=email, otp=otp)
+        except OTP.DoesNotExist:
+            raise serializers.ValidationError('Invalid OTP or email.')
+        if otp_record.has_expired():
+            raise serializers.ValidationError('This OTP has expired.')
+        data['otp_record'] = otp_record
+        return data
+
+
 class ForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
@@ -411,45 +488,37 @@ class ForgotPasswordSerializer(serializers.Serializer):
         Validate that the email exists in the database.
         '''
         email = data.get('email')
-        user = User.objects.filter(email=email).exists()
+        user = User.objects.filter(email=email).first()
         if not user:
             raise serializers.ValidationError(
                 'No user found with this email address.'
             )
-        return user
+        data['user'] = user
+        return data
 
 
-class ResetPasswordSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    new_password = serializers.CharField(write_only=True)
-    token = serializers.CharField()  # Reset token
+class TokenBlacklistSerializer(serializers.Serializer):
+    refresh = serializers.CharField(required=True)
 
-    # def validate(self, data):
-    #     '''
-    #     Validate the token and UID, and check if they match.
-    #     '''
-    #     user = User.objects.get(email=data.get('email'))
-    #     if not user:
-    #         raise serializers.ValidationError(
-    #             'Invalid email or user does not exist.'
-    #         )
-    #
-    #     # Check the token validity
-    #     if not default_token_generator.check_token(user, data.get('token')):
-    #         raise serializers.ValidationError('Invalid or expired token.')
-    #
-    #     return data
-
-    def save(self):
+    def validate_refresh(self, value):
         '''
-        Set the new password for the user.
+        Check if the refresh token has already been blacklisted.
         '''
-        uid = urlsafe_base64_decode(self.validated_data.get('uidb64')).decode()
-        user = User.objects.get(pk=uid)
-        new_password = self.validated_data.get('new_password')
-        user.set_password(new_password)
-        user.save()
-        return user
+        try:
+            # Try to retrieve the refresh token
+            token = RefreshToken(value)
+
+            # Check if the token is already blacklisted
+            if BlacklistedToken.objects.filter(
+                token__jti=token['jti']
+            ).exists():
+                raise serializers.ValidationError(
+                    'This token has already been blacklisted.'
+                )
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc))
+
+        return value
 
 
 class InterestSerializer(serializers.Serializer):

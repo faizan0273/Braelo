@@ -74,16 +74,6 @@ class SignUpWithPhone(generics.CreateAPIView):
     serializer_class = PhoneSignup
     permission_classes = [AllowAny]
 
-    def _generate_otp(self):
-        '''
-        generates 6-digits otp code.
-        :return: otp code. (int)
-        '''
-        # Generate the OTP
-        secret = pyotp.random_base32()
-        totp = pyotp.TOTP(secret, digits=6)
-        return totp.now()
-
     @handle_exceptions
     def post(self, request, *args, **kwargs):
         '''
@@ -96,12 +86,6 @@ class SignUpWithPhone(generics.CreateAPIView):
         resp = request.data
         user = self.get_serializer(data=resp)
         user.is_valid(raise_exception=True)
-        otp = self._generate_otp()
-        user.validated_data['otp'] = otp
-        user.validated_data['otp_created_at'] = datetime.now()
-        # todo Send OTP to user's phone
-        # send_otp_to_phone(user.phone_number, otp)
-        # add username to the validated data
         user.validated_data['username'] = user.validated_data['phone_number']
         user = user.create(user.validated_data)
         if not user:

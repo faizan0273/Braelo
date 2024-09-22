@@ -10,9 +10,12 @@ User model sql based.
 ---------------------------------------------------
 '''
 
+from datetime import timedelta
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.utils import timezone
 
 
 # Create your models here.
@@ -89,3 +92,22 @@ class User(AbstractUser):
 
     def __str__(self):
         return f'{self.id}: {self.username}'
+
+
+class OTP(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='otps'
+    )
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    secret = models.CharField(max_length=32)
+    expires_at = models.DateTimeField(
+        default=timezone.now() + timedelta(minutes=10)
+    )
+    # Store the OTP secret for validation
+
+    def has_expired(self):
+        return timezone.now() > self.expires_at
+
+    def __str__(self):
+        return f"{self.user.email} - {self.otp}"

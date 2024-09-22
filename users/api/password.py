@@ -10,47 +10,35 @@ User password management end-points module.
 ---------------------------------------------------
 '''
 
+import pyotp
+from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
+from ..models.models import OTP, User
 from ..serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
-    ResetPasswordSerializer,
+    VerifyOtpSerializer,
+    CreatePasswordSerializer,
 )
 from ..helpers import handle_exceptions, response
-
-
-class ResetPassword(generics.CreateAPIView):
-    @handle_exceptions
-    def post(self, request, *args, **kwargs):
-        pass
-        # our logic
-        # Generate password reset token
-        # token = default_token_generator.make_token(user)
-        # uid = urlsafe_base64_encode(force_bytes(user.pk))
-        #
-        # # Construct password reset URL (You should implement the frontend link handling)
-        # reset_url = f'http://yourfrontend.com/reset-password/{uid}/{token}/'
-        #
-        # # Send email (You can replace `send_mail` with your custom email service)
-        # send_mail(
-        #     subject='Password Reset',
-        #     message=f'Click the link to reset your password: {reset_url}',
-        #     from_email='noreply@yourdomain.com',
-        #     recipient_list=[email],
-        # )
-        #
-        # return Response(
-        #     {'message': 'Password reset link has been sent to your email.'},
-        #     status=status.HTTP_200_OK,
-        # )
 
 
 class ForgotPassword(generics.CreateAPIView):
     permission_classes = [AllowAny]  # Ensure the user is authenticated
     serializer_class = ForgotPasswordSerializer
+
+    def _generate_otp(self):
+        '''
+        generates 6-digits otp code.
+        :return: otp code. (int)
+        '''
+        # Generate the OTP
+        secret = pyotp.random_base32()
+        totp = pyotp.TOTP(secret, digits=6, interval=300)
+        return totp.now()
 
     @handle_exceptions
     def post(self, request, *args, **kwargs):
@@ -62,10 +50,68 @@ class ForgotPassword(generics.CreateAPIView):
         data = request.data
         user = self.get_serializer(data=data)
         user.is_valid(raise_exception=True)
-        user.save()
+        otp = self._generate_otp()
+        email = user.validated_data['email']
+        user = user.validated_data['user']
+        OTP.objects.create(user=user, otp=otp)
+        # Send OTP to email
+        send_mail(
+            subject='Password Reset OTP',
+            message=f'Your OTP for password reset is {otp}.Do not give this to anyone.',
+            from_email='braelo.fl@gmail.com',
+            recipient_list=[email],
+        )
         return Response(
-            {'message': 'Password changed successfully.'},
+            {'message': 'OTP sent to your email.'},
             status=status.HTTP_200_OK,
+        )
+
+
+class VerifyOTP(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    queryset = User.objects.all()
+    serializer_class = VerifyOtpSerializer
+
+    @handle_exceptions
+    def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle user login in on applications.
+        :param request: request object. (dict)
+        :return: user's signed up status. (json)
+        '''
+        data = request.data
+        user = self.get_serializer(data=data)
+        user.is_valid(raise_exception=True)
+        otp_rec = user.validated_data['otp_record']
+        otp_rec.delete()
+        return response(
+            status=status.HTTP_200_OK,
+            message='OTP verified successfully.',
+            data={},
+        )
+
+
+class CreatePassword(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+    serializer_class = CreatePasswordSerializer
+
+    @handle_exceptions
+    def post(self, request, *args, **kwargs):
+        '''
+        POST method to handle user change password on applications.
+        :param request: request object. (dict)
+        :return: user's password status. (json)
+        '''
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        resp = serializer.save()
+        if not resp:
+            # todo: needs better logic
+            raise Exception('Cannot Add user to Database')
+        return response(
+            status=status.HTTP_201_CREATED,
+            message='Password updated successfully',
+            data=resp,
         )
 
 

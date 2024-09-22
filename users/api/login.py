@@ -11,40 +11,14 @@ User Login end-points module.
 '''
 
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.views import TokenRefreshView
 
-from ..models import User
-from ..serializers import EmailLogin, PhoneLogin
+from ..serializers import EmailLogin, TokenBlacklistSerializer
 from ..helpers import handle_exceptions, get_token, response
 
-
 # login part
-class VerifyOTP(generics.CreateAPIView):
-    permission_classes = [AllowAny]
-    queryset = User.objects.all()
-    serializer_class = PhoneLogin
-
-    @handle_exceptions
-    def post(self, request, *args, **kwargs):
-        '''
-        POST method to handle user login in on applications.
-        :param request: request object. (dict)
-        :return: user's signed up status. (json)
-        '''
-        data = request.data
-        user = self.get_serializer(data=data)
-        user.is_valid(raise_exception=True)
-        user = user.validated_data
-        token = get_token(user)
-        response_data = {'phone_number': user.phone_number, 'token': token}
-        return response(
-            status=status.HTTP_200_OK,
-            message='user Logged in',
-            data=response_data,
-        )
 
 
 class LoginWithEmail(generics.CreateAPIView):
@@ -71,9 +45,8 @@ class LoginWithEmail(generics.CreateAPIView):
         )
 
 
-class TokenRefresh(generics.CreateAPIView):
+class TokenRefresh(TokenRefreshView):
     permission_classes = [AllowAny]
-    serializer_class = TokenRefreshSerializer
 
     def post(self, request, *args, **kwargs):
         '''
@@ -86,6 +59,7 @@ class TokenRefresh(generics.CreateAPIView):
 
 class Logout(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = TokenBlacklistSerializer
 
     @handle_exceptions
     def post(self, request, **kwargs):
@@ -94,12 +68,12 @@ class Logout(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: user's signed up status. (json)
         '''
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         # Extract the refresh token from request data
         refresh_token = request.data.get('refresh')
-        if refresh_token:
-            # Blacklist the refresh token
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+        token = RefreshToken(refresh_token)
+        token.blacklist()
         return response(
             status=status.HTTP_200_OK,
             message='Logged out successfully.',
