@@ -10,8 +10,6 @@ End points registry file.
 ---------------------------------------------------
 '''
 
-from tkinter.font import names
-
 from . import views
 from django.urls import path
 from .api.user_interest import InterestListCreateView
