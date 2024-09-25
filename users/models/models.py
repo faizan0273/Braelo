@@ -101,9 +101,7 @@ class OTP(models.Model):
     otp = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     secret = models.CharField(max_length=32)
-    expires_at = models.DateTimeField(
-        default=timezone.now() + timedelta(minutes=10)
-    )
+    expires_at = models.DateTimeField(blank=True)
     # Store the OTP secret for validation
 
     def save(self, *args, **kwargs):
