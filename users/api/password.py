@@ -13,7 +13,6 @@ User password management end-points module.
 import pyotp
 from django.core.mail import send_mail
 from rest_framework import generics, status
-from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from ..models.models import OTP, User
@@ -61,9 +60,10 @@ class ForgotPassword(generics.CreateAPIView):
             from_email='braelo.fl@gmail.com',
             recipient_list=[email],
         )
-        return Response(
-            {'message': 'OTP sent to your email.'},
+        return response(
             status=status.HTTP_200_OK,
+            message='OTP sent to your email.',
+            data={},
         )
 
 

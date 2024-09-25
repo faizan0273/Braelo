@@ -106,6 +106,11 @@ class OTP(models.Model):
     )
     # Store the OTP secret for validation
 
+    def save(self, *args, **kwargs):
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
     def has_expired(self):
         return timezone.now() > self.expires_at
 

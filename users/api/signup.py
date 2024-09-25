@@ -10,9 +10,6 @@ User sign up end-points module.
 ---------------------------------------------------
 '''
 
-from datetime import datetime
-
-import pyotp
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
 from rest_framework.exceptions import ValidationError

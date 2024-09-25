@@ -54,7 +54,16 @@ class TokenRefresh(TokenRefreshView):
         :param request: request object containing refresh token.
         :return: new access token if refresh token is valid.
         '''
-        return super().post(request, *args, **kwargs)
+        refresh = super().post(request, *args, **kwargs)
+        data = {
+            'refresh': request.data['refresh'],
+            'access': refresh.data['access'],
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='Refreshed Token succesfully',
+            data=data,
+        )
 
 
 class Logout(generics.CreateAPIView):
