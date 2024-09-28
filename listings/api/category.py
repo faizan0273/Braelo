@@ -11,14 +11,14 @@ Listing categories endpoints.
 '''
 
 from rest_framework import status
-from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
+from rest_framework_mongoengine import generics
 
 from ..helpers import response
-from ..models import Category
+from ..helpers.constants import CATEGORIES
 
 
-class Categories(APIView):
+class Categories(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
@@ -27,24 +27,8 @@ class Categories(APIView):
         :return: categories and sub-categories. (json)
         '''
 
-        records = Category.objects.all()
-        categories = {}
-        # Categories
-        for category in records:
-            categories[category.name] = {
-                'id': str(category['id']),
-                'subcategories': [],
-            }
-            # subcategories
-            for subcategory in category['subcategories']:
-                categories[category.name]['subcategories'].append(
-                    {
-                        'id': str(subcategory.id),
-                        'name': subcategory.name,
-                    }
-                )
         return response(
             status=status.HTTP_200_OK,
             message='Categories Meta',
-            data=categories,
+            data=CATEGORIES,
         )
