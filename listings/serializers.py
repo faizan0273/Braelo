@@ -24,7 +24,8 @@ from .helpers.constants import (
     FOR_SALE,
 )
 from .models import Listing
-from .models.vehicle_listing import VehicleListing
+from .models.real_estate import RealEstateListing
+from .models.vehicle import VehicleListing
 
 
 class ListingSerializer(serializers.DocumentSerializer):
@@ -137,4 +138,45 @@ class VehicleListingSerializer(serializers.DocumentSerializer):
                 raise ValidationError(
                     {field: f'{field} should be in {options}'}
                 )
+        return data
+
+
+class RealEstateListingSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = RealEstateListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        """
+        Override the create method to handle VehicleListing creation.
+        """
+        pictures = validated_data.pop('pictures', [])
+        real_estate_listing = RealEstateListing.objects.create(**validated_data)
+        if pictures:
+            real_estate_listing.pictures = pictures
+
+        real_estate_listing.save()
+        return real_estate_listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        # year = data.get('year')
+
+        if category not in CATEGORIES:
+            raise ValidationError(
+                {'category': f'categories should be {CATEGORIES.keys()}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        # current_year = timezone.now().year
+        # if year < 1886 or year > current_year:
+        #     raise ValidationError(
+        #         {'year': f'Year must be between 1886 and {current_year}.'}
+        #     )
+
         return data

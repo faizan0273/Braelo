@@ -13,10 +13,13 @@ End points registry file.
 from django.urls import path
 
 from .api.category import Categories
-from .api.listing import Listing, VehicleListingAPI
+from .api.listing import Listing, VehicleListingAPI, RealEstateListingAPI
 
 urlpatterns = [
     path('meta', Categories.as_view(), name='categories-list'),
     path('create', Listing.as_view(), name='create-listing'),
     path('vehicle', VehicleListingAPI.as_view(), name='vehicle-listing'),
+    path(
+        'realestate', RealEstateListingAPI.as_view(), name='realestate-listing'
+    ),
 ]
