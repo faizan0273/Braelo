@@ -25,9 +25,9 @@ from ..serializers import (
 
 
 class Listing(generics.CreateAPIView):
-    """
+    '''
     API endpoint to create a new listing.
-    """
+    '''
 
     permission_classes = [AllowAny]
     serializer_class = ListingSerializer

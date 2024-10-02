@@ -13,6 +13,14 @@ Vehicle Listing model mongo based.
 from django.utils import timezone
 from mongoengine import fields, Document
 
+from ..helpers.constants import (
+    TRANSMISSION,
+    CONDITION,
+    NUMBER_OF_DOORS,
+    PURPOSE,
+    NEGOTIABLE,
+)
+
 
 class VehicleListing(Document):
     '''
@@ -36,17 +44,23 @@ class VehicleListing(Document):
     mileage = fields.IntField(required=False)
     fuel = fields.FloatField(required=False)
     price = fields.DecimalField(required=True)
-    transmission = fields.ListField(max_length=2, required=False, default=None)
-    condition = fields.ListField(max_length=2, default=None)
-    number_of_doors = fields.ListField(
-        max_length=2, required=False, default=None
+    transmission = fields.StringField(
+        choices=TRANSMISSION, required=False, default=None
     )
-    purpose = fields.ListField(max_length=2, required=False, default=None)
-    negotiable = fields.ListField(max_length=2, required=False, default=None)
+    condition = fields.ListField(choices=CONDITION, max_length=2, default=None)
+    number_of_doors = fields.StringField(
+        choices=NUMBER_OF_DOORS, required=False, default=None
+    )
+    purpose = fields.StringField(choices=PURPOSE, required=False, default=None)
+    negotiable = fields.StringField(
+        choices=NEGOTIABLE, required=False, default=None
+    )
     Load_capacity = fields.IntField(required=False)
     type = fields.IntField(required=False)
     length = fields.IntField(required=False)
     passenger_capacity = fields.IntField(required=False)
+    vehicle_type = fields.StringField(required=False)
+    rental_duration = fields.StringField(required=False)
 
     meta = {
         'collection': 'vehicle_listing',

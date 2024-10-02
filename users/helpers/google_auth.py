@@ -19,6 +19,10 @@ from google.auth.exceptions import GoogleAuthError
 
 from rest_framework.response import Response
 
+GOOGLE_OAUTH_CLIENT_ID = (
+    "221272028067-cnm21hi90qmfp0jggj62148fetbv8qbn.apps.googleusercontent.com"
+)
+
 
 def google_user_payload(record):
     '''
@@ -45,7 +49,7 @@ def google_auth(token):
     '''
     try:
         resp = id_token.verify_oauth2_token(
-            token, requests.Request(), os.environ['GOOGLE_OAUTH_CLIENT_ID']
+            token, requests.Request(), GOOGLE_OAUTH_CLIENT_ID
         )
         return google_user_payload(resp)
     except (ValueError, GoogleAuthError) as exc:
