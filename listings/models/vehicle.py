@@ -33,8 +33,6 @@ class VehicleListing(Document):
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
 
     # category based
     make = fields.StringField(required=True)
@@ -61,6 +59,10 @@ class VehicleListing(Document):
     passenger_capacity = fields.IntField(required=False)
     vehicle_type = fields.StringField(required=False)
     rental_duration = fields.StringField(required=False)
+
+    # Timestamps
+    created_at = fields.DateTimeField(default=timezone.now())
+    updated_at = fields.DateTimeField(default=timezone.now())
 
     meta = {
         'collection': 'vehicle_listing',

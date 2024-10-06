@@ -10,5 +10,13 @@ __init__ file.
 ---------------------------------------------------
 '''
 
-from ..models.listing import Listing
-from ..models.category import Category
+from .jobs import JobsListing
+from .kids import KidsListing
+from .events import EventsListing
+from .fashion import FashionListing
+from .vehicle import VehicleListing
+from .services import ServicesListing
+from .furniture import FurnitureListing
+from .real_estate import RealEstateListing
+from .electronics import ElectronicsListing
+from .sports_hobby import SportsHobbyListing

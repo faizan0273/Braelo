@@ -13,10 +13,18 @@ Vehicle Listing model mongo based.
 from django.utils import timezone
 from mongoengine import fields, Document
 
+from ..helpers.constants import (
+    HELPER_TOOLS,
+    HELPER_CAR,
+    HELPER_PAY,
+    WORK_PERMIT,
+    NEGOTIABLE,
+)
+
 
 class JobsListing(Document):
     '''
-    Vehicle category listings.
+    Jobs category listings.
     '''
 
     category = fields.StringField(required=True)
@@ -25,28 +33,40 @@ class JobsListing(Document):
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
 
     # category based
-    make = fields.StringField(required=True)
-    model = fields.StringField(required=True)
-    year = fields.IntField(required=True)
-    color = fields.StringField(required=True)
-    mileage = fields.IntField(required=False)
-    fuel = fields.FloatField(required=False)
-    price = fields.DecimalField(required=True)
-    transmission = fields.ListField(max_length=2, required=False, default=None)
-    condition = fields.ListField(max_length=2, default=None)
-    number_of_doors = fields.ListField(
-        max_length=2, required=False, default=None
-    )
-    purpose = fields.ListField(max_length=2, required=False, default=None)
-    negotiable = fields.ListField(max_length=2, required=False, default=None)
-    Load_capacity = fields.IntField(required=False)
-    type = fields.IntField(required=False)
-    length = fields.IntField(required=False)
+    job_tittle = fields.StringField(required=True)
+    required_skills = fields.StringField(required=True)
+    experience_level = fields.StringField(required=True)
+    employment_type = fields.StringField(required=True)
+    working_hours = fields.IntField(required=False)
+    benefits_offered = fields.StringField(required=False)
+    work_permit = fields.StringField(choices=WORK_PERMIT, required=True)
+    salary_range = fields.StringField(required=True)
+    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+
+    # Part-time
+    flexibility = fields.IntField(required=False)
+
+    # freelancer
+    project_type = fields.StringField(required=False)
+    contract_duration = fields.IntField(required=False)
+
+    # Home offices
+    remote_work_tools = fields.StringField(required=False)
     passenger_capacity = fields.IntField(required=False)
+
+    # Helper
+    service_type = fields.StringField(required=False)
+    duties = fields.StringField(required=False)
+    accommodation_provided = fields.StringField(required=False)
+    own_tools = fields.StringField(choices=HELPER_TOOLS, required=False)
+    car_needed = fields.StringField(choices=HELPER_CAR, required=False)
+    helper_pay = fields.StringField(choices=HELPER_PAY, required=False)
+
+    # Timestamps
+    created_at = fields.DateTimeField(default=timezone.now())
+    updated_at = fields.DateTimeField(default=timezone.now())
 
     meta = {
         'collection': 'jobs_listing',

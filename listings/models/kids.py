@@ -13,10 +13,17 @@ Vehicle Listing model mongo based.
 from django.utils import timezone
 from mongoengine import fields, Document
 
+from ..helpers.constants import (
+    NEGOTIABLE,
+    DONATION,
+    CERTIFICATION,
+    KIDS_GRADES,
+)
+
 
 class KidsListing(Document):
     '''
-    Vehicle category listings.
+    Kids category listings.
     '''
 
     category = fields.StringField(required=True)
@@ -25,28 +32,51 @@ class KidsListing(Document):
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
+
+    # Price-related fields
+    price = fields.DecimalField(required=True)
+    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+
+    # Donation
+    donation = fields.StringField(choices=DONATION, required=True)
+
+    # Common fields for subcategories
+    age_range = fields.StringField(required=True)
+    expiry_date = fields.DateTimeField(required=False)
+    duration = fields.StringField(required=False)
+    certification = fields.StringField(choices=CERTIFICATION, required=False)
+
+    # Specific fields for subcategories
+    # Health
+    product_type = fields.StringField(required=False)
+    # Toys
+    toy_type = fields.StringField(required=False)
+    safety_standard = fields.StringField(required=False)
+
+    # Transport
+    vehicle_type = fields.StringField(required=False)
+    weight_capacity = fields.StringField(required=False)
+
+    # Accessories Type
+    accessories_type = fields.StringField(required=False)
+
+    # Classes
+    subject = fields.StringField(required=False)
+    experience_level = fields.StringField(required=False)
+    no_of_children = fields.IntField(required=False)
+
+    # Schools/Daycare/Babysitter
+    babysitter_experience = fields.StringField(required=False)
+    grades = fields.StringField(choices=KIDS_GRADES, required=False)
+    # After school program
+    activities_offered = fields.StringField(required=False)
+    # Activities
+    activity_type = fields.StringField(required=False)
+    equipment_required = fields.BooleanField(default=False)
+
+    # Timestamps
     created_at = fields.DateTimeField(default=timezone.now())
     updated_at = fields.DateTimeField(default=timezone.now())
-
-    # category based
-    make = fields.StringField(required=True)
-    model = fields.StringField(required=True)
-    year = fields.IntField(required=True)
-    color = fields.StringField(required=True)
-    mileage = fields.IntField(required=False)
-    fuel = fields.FloatField(required=False)
-    price = fields.DecimalField(required=True)
-    transmission = fields.ListField(max_length=2, required=False, default=None)
-    condition = fields.ListField(max_length=2, default=None)
-    number_of_doors = fields.ListField(
-        max_length=2, required=False, default=None
-    )
-    purpose = fields.ListField(max_length=2, required=False, default=None)
-    negotiable = fields.ListField(max_length=2, required=False, default=None)
-    Load_capacity = fields.IntField(required=False)
-    type = fields.IntField(required=False)
-    length = fields.IntField(required=False)
-    passenger_capacity = fields.IntField(required=False)
 
     meta = {
         'collection': 'kids_listing',

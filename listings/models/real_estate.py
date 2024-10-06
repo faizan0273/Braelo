@@ -29,7 +29,7 @@ from ..helpers.constants import (
 
 class RealEstateListing(Document):
     '''
-    Vehicle category listings.
+    Real Estate category listings.
     '''
 
     category = fields.StringField(required=True)
@@ -38,8 +38,6 @@ class RealEstateListing(Document):
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
 
     # category based
     property_type = fields.StringField(required=True)
@@ -80,6 +78,10 @@ class RealEstateListing(Document):
     negotiable = fields.ListField(max_length=2, required=False, default=None)
     land_type = fields.StringField(required=False)
     number_of_floors = fields.IntField(min_value=0)
+
+    # Timestamps
+    created_at = fields.DateTimeField(default=timezone.now())
+    updated_at = fields.DateTimeField(default=timezone.now())
 
     meta = {
         'collection': 'real_estate_listing',

@@ -14,57 +14,22 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework_mongoengine import serializers
 
-from .helpers.constants import (
-    CATEGORIES,
-    TRANSMISSION,
-    CONDITION,
-    NUMBER_OF_DOORS,
-    PURPOSE,
-    NEGOTIABLE,
-    FOR_SALE,
+from .helpers.constants import CATEGORIES
+from .models import (
+    ElectronicsListing,
+    EventsListing,
+    JobsListing,
+    ServicesListing,
+    SportsHobbyListing,
+    FurnitureListing,
+    FashionListing,
+    KidsListing,
 )
-from .models import Listing
 from .models.real_estate import RealEstateListing
 from .models.vehicle import VehicleListing
 
 
-class ListingSerializer(serializers.DocumentSerializer):
-
-    class Meta:
-        model = Listing
-        fields = [
-            'id',
-            'category',
-            'subcategory',
-            'pictures',
-            'title',
-            'description',
-            'location',
-            'created_at',
-            'updated_at',
-        ]
-        read_only_fields = ['created_at', 'updated_at']
-
-    def validate(self, data):
-        '''
-        Validate that the email exists in the database.
-        '''
-        return data
-
-    def create(self, validated_data):
-        '''
-        Create a new listing instance with multiple images.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = Listing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-            listing.save()
-        listing.save()
-        return listing
-
-
-class VehicleListingSerializer(serializers.DocumentSerializer):
+class VehicleSerializer(serializers.DocumentSerializer):
     class Meta:
         model = VehicleListing
         fields = [
@@ -93,33 +58,25 @@ class VehicleListingSerializer(serializers.DocumentSerializer):
         read_only_fields = ['created_at', 'updated_at']
 
     def create(self, validated_data):
-        """
-        Override the create method to handle VehicleListing creation.
-        """
+        '''
+        Override the create method to handle Vehicle listing creation.
+        '''
         pictures = validated_data.pop('pictures', [])
-        vehicle_listing = VehicleListing.objects.create(**validated_data)
+        listing = VehicleListing.objects.create(**validated_data)
         if pictures:
-            vehicle_listing.pictures = pictures
+            listing.pictures = pictures
 
-        vehicle_listing.save()
-        return vehicle_listing
+        listing.save()
+        return listing
 
     def validate(self, data):
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
-        optionals = {
-            'transmission': TRANSMISSION,
-            'condition': CONDITION,
-            'number_of_doors': NUMBER_OF_DOORS,
-            'purpose': PURPOSE,
-            'negotiable': NEGOTIABLE,
-            'for_sale': FOR_SALE,
-        }
-
-        if category not in CATEGORIES:
+        vehicle = ('electronics', 'Electronics')
+        if category not in vehicle:
             raise ValidationError(
-                {'category': f'categories should be {CATEGORIES.keys()}'}
+                {'category': f'categories should be {vehicle}'}
             )
         if subcategory not in CATEGORIES[category]:
             raise ValidationError(
@@ -132,37 +89,30 @@ class VehicleListingSerializer(serializers.DocumentSerializer):
             raise ValidationError(
                 {'year': f'Year must be between 1886 and {current_year}.'}
             )
-        for field, options in optionals.items():
-            val = data.get(field)
-            if val and val not in options:
-                raise ValidationError(
-                    {field: f'{field} should be in {options}'}
-                )
+
         return data
 
 
-class RealEstateListingSerializer(serializers.DocumentSerializer):
+class RealEstateSerializer(serializers.DocumentSerializer):
     class Meta:
         model = RealEstateListing
         read_only_fields = ['created_at', 'updated_at']
 
     def create(self, validated_data):
-        """
-        Override the create method to handle VehicleListing creation.
-        """
+        '''
+        Override the create method to handle real estate listing creation.
+        '''
         pictures = validated_data.pop('pictures', [])
-        real_estate_listing = RealEstateListing.objects.create(**validated_data)
+        listing = RealEstateListing.objects.create(**validated_data)
         if pictures:
-            real_estate_listing.pictures = pictures
+            listing.pictures = pictures
 
-        real_estate_listing.save()
-        return real_estate_listing
+        listing.save()
+        return listing
 
     def validate(self, data):
         category = data.get('category')
         subcategory = data.get('subcategory')
-        # year = data.get('year')
-
         if category not in CATEGORIES:
             raise ValidationError(
                 {'category': f'categories should be {CATEGORIES.keys()}'}
@@ -173,10 +123,271 @@ class RealEstateListingSerializer(serializers.DocumentSerializer):
                     'subcategory': f'subcategories should be {CATEGORIES[category]}'
                 }
             )
-        # current_year = timezone.now().year
-        # if year < 1886 or year > current_year:
-        #     raise ValidationError(
-        #         {'year': f'Year must be between 1886 and {current_year}.'}
-        #     )
 
+        return data
+
+
+class ElectronicsSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = ElectronicsListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle electronics creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = ElectronicsListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        electronics = ('electronics', 'Electronics')
+        if category not in electronics:
+            raise ValidationError(
+                {'category': f'categories should be {electronics}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class EventsSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = EventsListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle events listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = EventsListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        events = ('events', 'Events')
+        if category not in events:
+            raise ValidationError(
+                {'category': f'categories should be {events}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class JobsSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = JobsListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle jobs listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = JobsListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        jobs = ('jobs', 'Jobs')
+        if category not in jobs:
+            raise ValidationError({'category': f'categories should be {jobs}'})
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class ServicesSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = ServicesListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle service listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = ServicesListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        service = ('services', 'Services')
+        if category not in service:
+            raise ValidationError(
+                {'category': f'categories should be {service}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class SportsHobbySerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = SportsHobbyListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle sports and hobby creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = SportsHobbyListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        sport = ('sport & hobby', 'Sports & Hobby')
+        if category not in sport:
+            raise ValidationError({'category': f'categories should be {sport}'})
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class FurnitureSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = FurnitureListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle furniture listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = FurnitureListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        furniture = ('furniture', 'Furniture')
+        if category not in furniture:
+            raise ValidationError(
+                {'category': f'categories should be {furniture}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class FashionSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = FashionListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle fashion Listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = FashionListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        fashion = ('fashion', 'Fashion')
+        if category not in fashion:
+            raise ValidationError(
+                {'category': f'categories should be {fashion}'}
+            )
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+        return data
+
+
+class KidsSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = KidsListing
+        read_only_fields = ['created_at', 'updated_at']
+
+    def create(self, validated_data):
+        '''
+        Override the create method to handle Kids listing creation.
+        '''
+        pictures = validated_data.pop('pictures', [])
+        listing = KidsListing.objects.create(**validated_data)
+        if pictures:
+            listing.pictures = pictures
+
+        listing.save()
+        return listing
+
+    def validate(self, data):
+        category = data.get('category')
+        subcategory = data.get('subcategory')
+        kids = ('kids', 'Kids')
+        if category not in kids:
+            raise ValidationError({'category': f'categories should be {kids}'})
+        if subcategory not in CATEGORIES[category]:
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
         return data

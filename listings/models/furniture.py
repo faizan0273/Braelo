@@ -13,10 +13,17 @@ Vehicle Listing model mongo based.
 from django.utils import timezone
 from mongoengine import fields, Document
 
+from ..helpers.constants import (
+    DONATION,
+    MATTRESS_INCLUDED,
+    NEGOTIABLE,
+    CONDITION,
+)
+
 
 class FurnitureListing(Document):
     '''
-    Vehicle category listings.
+    Furniture category listings.
     '''
 
     category = fields.StringField(required=True)
@@ -25,28 +32,41 @@ class FurnitureListing(Document):
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
 
     # category based
-    make = fields.StringField(required=True)
-    model = fields.StringField(required=True)
-    year = fields.IntField(required=True)
+    material_type = fields.StringField(required=True)
     color = fields.StringField(required=True)
-    mileage = fields.IntField(required=False)
-    fuel = fields.FloatField(required=False)
+    dimensions = fields.StringField(required=True)
+    seating_capacity = fields.StringField(required=False)
+
+    upholstery_material = fields.StringField(required=False)
+    condition = fields.StringField(choices=CONDITION, required=True)
+    donation = fields.StringField(choices=DONATION, required=True)
+
     price = fields.DecimalField(required=True)
-    transmission = fields.ListField(max_length=2, required=False, default=None)
-    condition = fields.ListField(max_length=2, default=None)
-    number_of_doors = fields.ListField(
-        max_length=2, required=False, default=None
+    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+
+    # Tables
+    table_tye = fields.StringField(required=False)
+    shapes = fields.StringField(required=False)
+
+    # Chairs
+    chair_type = fields.StringField(required=False)
+    weight_capacity = fields.StringField(required=False)
+
+    # Bed
+    bed_size = fields.StringField(required=False)
+    mattress_included = fields.StringField(
+        choices=MATTRESS_INCLUDED, required=False
     )
-    purpose = fields.ListField(max_length=2, required=False, default=None)
-    negotiable = fields.ListField(max_length=2, required=False, default=None)
-    Load_capacity = fields.IntField(required=False)
-    type = fields.IntField(required=False)
-    length = fields.IntField(required=False)
-    passenger_capacity = fields.IntField(required=False)
+
+    # Custom furniture
+    customization = fields.StringField(required=False)
+    lead_time = fields.StringField(required=False)
+
+    # Timestamps
+    created_at = fields.DateTimeField(default=timezone.now())
+    updated_at = fields.DateTimeField(default=timezone.now())
 
     meta = {
         'collection': 'furniture_listing',
