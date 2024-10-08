@@ -11,7 +11,7 @@ Listing endpoints.
 '''
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework_mongoengine import generics
 
 from ..models import (
@@ -37,6 +37,7 @@ from ..serializers import (
     ServicesSerializer,
     SportsHobbySerializer,
     KidsSerializer,
+    VehicleSerializer
 )
 
 
@@ -46,8 +47,8 @@ class VehicleAPI(generics.CreateAPIView):
     '''
 
     queryset = VehicleListing.objects.all()
-    permission_classes = [AllowAny]
-    serializer_class = VehicleListing
+    permission_classes = [IsAuthenticated]
+    serializer_class = VehicleSerializer
 
     @handle_exceptions
     def post(self, request, **kwargs):
@@ -56,6 +57,8 @@ class VehicleAPI(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: listing status. (json)
         '''
+        # dataa = request.data
+        # dataa['user_id'] = request.user.id
         serializer = self.get_serializer(data=request.data)
         # Validate and create the listing if valid
         serializer.is_valid(raise_exception=True)

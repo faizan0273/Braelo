@@ -36,6 +36,8 @@ from ..helpers.constants import (
     RENDERING_VISUALIZING,
     HOMEMADE_SERVICE,
     MENU_CUSTOMIZATION,
+    NEGOTIABLE,
+    PAYMENT_OPTION
 )
 
 
@@ -58,21 +60,21 @@ class ServicesListing(Document):
     service_area = fields.StringField(required=True)
     cleaning_type = fields.StringField(required=False)
     insurance = fields.FloatField(required=False)
-    payment_options = fields.DecimalField(required=True)
-    offered_services = fields.ListField(
+    payment_options = fields.StringField(choices=PAYMENT_OPTION,required=True)
+    offered_services = fields.StringField(
         max_length=4, required=False, default=None
     )
-    eco_friendly_product = fields.ListField(
+    eco_friendly_product = fields.StringField(
         choices=ECO_FRIENDLY_PRODUCTS, max_length=2, default=None
     )
-    provided_equipment = fields.ListField(
+    provided_equipment = fields.StringField(
         max_length=2, required=False, default=None
     )
     price = fields.DecimalField(required=True)
-    certifications = fields.ListField(
+    certifications = fields.StringField(
         max_length=2, required=False, default=None
     )
-    negotiable = fields.IntField(required=False)
+    negotiable = fields.StringField(choices=NEGOTIABLE,required=False)
     # Extra fields as per different subcategories
     # Handy man
     experience_qualifications = fields.StringField(required=False)

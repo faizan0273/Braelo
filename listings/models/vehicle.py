@@ -26,7 +26,7 @@ class VehicleListing(Document):
     '''
     Vehicle category listings.
     '''
-
+    user_id = fields.IntField(required=True)
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
     pictures = fields.ListField(fields.ImageField(), required=False)
@@ -45,7 +45,7 @@ class VehicleListing(Document):
     transmission = fields.StringField(
         choices=TRANSMISSION, required=False, default=None
     )
-    condition = fields.ListField(choices=CONDITION, max_length=2, default=None)
+    condition = fields.StringField(choices=CONDITION, max_length=2, default=None)
     number_of_doors = fields.StringField(
         choices=NUMBER_OF_DOORS, required=False, default=None
     )

@@ -13,6 +13,7 @@ Serializer file for Listings based endpoints
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from rest_framework_mongoengine import serializers
+from mongoengine import DoesNotExist
 
 from .helpers.constants import CATEGORIES
 from .models import (
@@ -73,7 +74,7 @@ class VehicleSerializer(serializers.DocumentSerializer):
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
-        vehicle = ('electronics', 'Electronics')
+        vehicle = ('vehicles', 'Vehicles')
         if category not in vehicle:
             raise ValidationError(
                 {'category': f'categories should be {vehicle}'}
@@ -89,7 +90,6 @@ class VehicleSerializer(serializers.DocumentSerializer):
             raise ValidationError(
                 {'year': f'Year must be between 1886 and {current_year}.'}
             )
-
         return data
 
 
