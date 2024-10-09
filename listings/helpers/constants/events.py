@@ -1,0 +1,104 @@
+from .category import CONFIRMATION
+
+
+class EventConstants:
+    '''
+    Events Category Constants
+    '''
+
+    EVENT_TYPES = ['WEDDINGS', 'CORPORATE EVENTS', 'PARTIES', 'OTHER (SPECIFY)']
+    EVENT_SPECIFIC_SERVICES = [
+        'PLANNING',
+        'CATERING',
+        'DECORATION',
+        'COORDINATION',
+        'OTHER (SPECIFY)',
+    ]
+    NEGOTIABLE = CONFIRMATION
+    CUSTOMIZABLE_PACKAGE = CONFIRMATION
+
+    # MOVING & PACKERS
+    MOVING_SERVICE = [
+        'LOCAL',
+        'LONG-DISTANCE',
+        'RESIDENTIAL',
+        'COMMERCIAL',
+        'STORAGE',
+        'INTERNATIONALLY',
+    ]
+    PACKING_MATERIALS = CONFIRMATION
+    GOODS_TRANSIT_INSURANCE = CONFIRMATION
+
+    # FARM FRESH FOOD
+    PRODUCTS_AVAILABLE = [
+        'VEGETABLES',
+        'FRUITS',
+        'DAIRY',
+        'FAIR',
+        'LUNCH',
+        'COLONIAL COFFEE',
+        'OTHER (SPECIFY)',
+    ]
+    DELIVERY_AVAILABILITY = CONFIRMATION
+    ORGANIC_SOURCED = CONFIRMATION
+    REGULAR_DELIVERY_OPTION = CONFIRMATION
+
+    # PHOTOGRAPHY AND VIDEOGRAPHY
+    PHOTOGRAPHY_SERVICES = [
+        'WEDDINGS',
+        'CORPORATE',
+        'PORTRAIT',
+        'COMMERCIAL',
+        'DRONE',
+        'OTHER (SPECIFY)',
+    ]
+    DIFFERENT_PACKAGES = CONFIRMATION
+    RECURRING_SERVICE_PLAN = CONFIRMATION
+
+    # INTERIOR DESIGN
+    INTERIOR_DESIGN_SERVICES = [
+        'RESIDENTIAL',
+        'COMMERCIAL',
+        'VIRTUAL',
+        'OTHER (SPECIFY)',
+    ]
+    FURNITURE_SELECTION = CONFIRMATION
+    RENDERING_VISUALIZING = CONFIRMATION
+
+    # HOMEMADE FOOD
+    AVAILABLE_HOMEMADE_FOOD = [
+        'BAKED GOODS',
+        'MEALS',
+        'SNACKS',
+        'FOOD PREP',
+        'PERSONAL CHEF',
+        'OTHER (SPECIFY)',
+    ]
+    HOMEMADE_SERVICE = [
+        'DELIVERY',
+        'PICKUP',
+        'AT-HOME PREP',
+        'ALL OF THE ABOVE',
+    ]
+
+    # INSURANCE
+    INSURANCE_SERVICES = [
+        'HEALTH',
+        'AUTO',
+        'HOME',
+        'LIFE',
+        'BUSINESS',
+        'OTHER (SPECIFY)',
+    ]
+
+    # HOME CARE
+    HOME_CARE_SERVICES = [
+        'NURSING',
+        'PHYSICAL THERAPY',
+        'COMPANIONSHIP',
+        'PERSONAL CARE',
+        'HOME MAKING',
+        'OTHER (SPECIFY)',
+    ]
+    # Buffet
+    MENU_CUSTOMIZATION = CONFIRMATION

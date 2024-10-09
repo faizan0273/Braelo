@@ -12,9 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-
-from ..helpers.constants import CONDITION, DONATION, NEGOTIABLE
-
+from ..helpers.constants.fashion import FashionConstants
 
 class FashionListing(Document):
     '''
@@ -37,11 +35,11 @@ class FashionListing(Document):
 
     gender = fields.StringField(required=False)
     # todo why two sizes
-    condition = fields.StringField(choices=CONDITION, required=True)
-    donation = fields.StringField(choices=DONATION, required=True)
+    condition = fields.StringField(choices=FashionConstants.CONDITION, required=True)
+    donation = fields.StringField(choices=FashionConstants.DONATION, required=True)
 
     price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+    negotiable = fields.StringField(choices=FashionConstants.NEGOTIABLE, required=True)
 
     # Shoes
     shoe_type = fields.StringField(required=False)

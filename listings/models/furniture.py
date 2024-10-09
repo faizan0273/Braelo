@@ -12,14 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-
-from ..helpers.constants import (
-    DONATION,
-    MATTRESS_INCLUDED,
-    NEGOTIABLE,
-    CONDITION,
-)
-
+from ..helpers.constants.furniture import FurnitureConstants
 
 class FurnitureListing(Document):
     '''
@@ -40,11 +33,11 @@ class FurnitureListing(Document):
     seating_capacity = fields.StringField(required=False)
 
     upholstery_material = fields.StringField(required=False)
-    condition = fields.StringField(choices=CONDITION, required=True)
-    donation = fields.StringField(choices=DONATION, required=True)
+    condition = fields.StringField(choices=FurnitureConstants.CONDITION, required=True)
+    donation = fields.StringField(choices=FurnitureConstants.DONATION, required=True)
 
     price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+    negotiable = fields.StringField(choices=FurnitureConstants.NEGOTIABLE, required=True)
 
     # Tables
     table_tye = fields.StringField(required=False)
@@ -57,7 +50,7 @@ class FurnitureListing(Document):
     # Bed
     bed_size = fields.StringField(required=False)
     mattress_included = fields.StringField(
-        choices=MATTRESS_INCLUDED, required=False
+        choices=FurnitureConstants.MATTRESS_INCLUDED, required=False
     )
 
     # Custom furniture

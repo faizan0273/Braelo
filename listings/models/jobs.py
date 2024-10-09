@@ -12,15 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-
-from ..helpers.constants import (
-    HELPER_TOOLS,
-    HELPER_CAR,
-    HELPER_PAY,
-    WORK_PERMIT,
-    NEGOTIABLE,
-)
-
+from ..helpers.constants.jobs import JobsConstants
 
 class JobsListing(Document):
     '''
@@ -41,9 +33,9 @@ class JobsListing(Document):
     employment_type = fields.StringField(required=True)
     working_hours = fields.IntField(required=False)
     benefits_offered = fields.StringField(required=False)
-    work_permit = fields.StringField(choices=WORK_PERMIT, required=True)
+    work_permit = fields.StringField(choices=JobsConstants.WORK_PERMIT, required=True)
     salary_range = fields.StringField(required=True)
-    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+    negotiable = fields.StringField(choices=JobsConstants.NEGOTIABLE, required=True)
 
     # Part-time
     flexibility = fields.IntField(required=False)
@@ -60,9 +52,9 @@ class JobsListing(Document):
     service_type = fields.StringField(required=False)
     duties = fields.StringField(required=False)
     accommodation_provided = fields.StringField(required=False)
-    own_tools = fields.StringField(choices=HELPER_TOOLS, required=False)
-    car_needed = fields.StringField(choices=HELPER_CAR, required=False)
-    helper_pay = fields.StringField(choices=HELPER_PAY, required=False)
+    own_tools = fields.StringField(choices=JobsConstants.HELPER_TOOLS, required=False)
+    car_needed = fields.StringField(choices=JobsConstants.HELPER_CAR, required=False)
+    helper_pay = fields.StringField(choices=JobsConstants.HELPER_PAY, required=False)
 
     # Timestamps
     created_at = fields.DateTimeField(default=timezone.now())

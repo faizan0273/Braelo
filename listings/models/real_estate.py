@@ -12,20 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import (
-    CONDITION,
-    BASEMENT,
-    FURNISHED,
-    LEASE_TERMS,
-    CREDIT_SCORE_REQ,
-    UTILITIES,
-    AMENITIES,
-    ADDITIONAL_FEES,
-    PET_POLICY,
-    RENTERS_INSURANCE,
-    SECURITY_MEASURE,
-)
-
+from ..helpers.constants.real_estate import RealEstateConstants
 
 class RealEstateListing(Document):
     '''
@@ -45,35 +32,35 @@ class RealEstateListing(Document):
     bathrooms = fields.IntField(min_value=0, required=True)
     year_built = fields.IntField(min_value=1800, required=False)
     size = fields.FloatField(required=True)
-    condition = fields.StringField(choices=CONDITION, required=True)
-    basement = fields.StringField(choices=BASEMENT, required=False)
-    furnished = fields.StringField(choices=FURNISHED, default=False)
+    condition = fields.StringField(choices=RealEstateConstants.CONDITION, required=True)
+    basement = fields.StringField(choices=RealEstateConstants.BASEMENT, required=False)
+    furnished = fields.StringField(choices=RealEstateConstants.FURNISHED, default=False)
     parking_and_cost = fields.StringField(required=False)
-    lease_terms = fields.StringField(choices=LEASE_TERMS, required=False)
+    lease_terms = fields.StringField(choices=RealEstateConstants.LEASE_TERMS, required=False)
     maintenance_policy = fields.StringField(required=False)
-    credit_score = fields.StringField(choices=CREDIT_SCORE_REQ, required=False)
+    credit_score = fields.StringField(choices=RealEstateConstants.CREDIT_SCORE_REQ, required=False)
     utilities_included = fields.ListField(
-        fields.StringField(choices=UTILITIES), required=False
+        fields.StringField(choices=RealEstateConstants.UTILITIES), required=False
     )
     access_to_amenities = fields.ListField(
-        fields.StringField(choices=AMENITIES), required=False
+        fields.StringField(choices=RealEstateConstants.AMENITIES), required=False
     )
     additional_fees = fields.StringField(
-        choices=ADDITIONAL_FEES, required=False
+        choices=RealEstateConstants.ADDITIONAL_FEES, required=False
     )
     pet_policy = fields.StringField(
-        choices=PET_POLICY,
+        choices=RealEstateConstants.PET_POLICY,
         required=False,
     )
     renters_insurance_requirement = fields.StringField(
-        choices=RENTERS_INSURANCE, default=False
+        choices=RealEstateConstants.RENTERS_INSURANCE, default=False
     )
     security_measures = fields.ListField(
-        fields.StringField(choices=SECURITY_MEASURE),
+        fields.StringField(choices=RealEstateConstants.SECURITY_MEASURE),
         required=False,
     )
     other = fields.StringField(required=False)
-    lease_managed_by = fields.StringField(choices=LEASE_TERMS, required=False)
+    lease_managed_by = fields.StringField(choices=RealEstateConstants.LEASE_TERMS, required=False)
     price = fields.FloatField(required=True)
     negotiable = fields.ListField(max_length=2, required=False, default=None)
     land_type = fields.StringField(required=False)

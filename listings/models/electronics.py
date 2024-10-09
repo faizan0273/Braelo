@@ -12,9 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-
-from ..helpers.constants import CONDITION, NEGOTIABLE
-
+from ..helpers.constants.electronics import ElectronicsConstants
 
 class ElectronicsListing(Document):
     '''
@@ -34,9 +32,9 @@ class ElectronicsListing(Document):
     warranty = fields.StringField(required=True)
     operating_system = fields.StringField(required=False)
     carrier_lock = fields.StringField(required=False)
-    condition = fields.StringField(choices=CONDITION, required=True)
+    condition = fields.StringField(choices=ElectronicsConstants.CONDITION, required=True)
     price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(choices=NEGOTIABLE, required=True)
+    negotiable = fields.StringField(choices=ElectronicsConstants.NEGOTIABLE, required=True)
 
     # Computer
     processor = fields.StringField(required=False)
