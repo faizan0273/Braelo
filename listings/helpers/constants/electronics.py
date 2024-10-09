@@ -6,5 +6,5 @@ class ElectronicsConstants:
     Electronics Category Constants
     '''
 
-    CONDITION = CONFIRMATION
+    CONDITION = ['USED', 'NEW']
     NEGOTIABLE = CONFIRMATION

@@ -6,5 +6,5 @@ class SportsHobbyConstants:
     Sports_Hobby Category Constants
     '''
 
-    CONDITION = CONFIRMATION
+    CONDITION = ['USED', 'NEW']
     NEGOTIABLE = CONFIRMATION
