@@ -40,7 +40,7 @@ class FurnitureListing(Document):
     negotiable = fields.StringField(choices=FurnitureConstants.NEGOTIABLE, required=True)
 
     # Tables
-    table_tye = fields.StringField(required=False)
+    table_type = fields.StringField(required=False)
     shapes = fields.StringField(required=False)
 
     # Chairs
