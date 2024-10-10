@@ -12,7 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants.events import EventConstants
+from ..helpers.constants import EventConstants
 
 
 class EventsListing(Document):
@@ -35,7 +35,9 @@ class EventsListing(Document):
     industry_focus = fields.IntField(required=False)
     speaker_list = fields.FloatField(required=False)
     ticket_price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(choices=EventConstants.NEGOTIABLE, required=True)
+    negotiable = fields.StringField(
+        choices=EventConstants.NEGOTIABLE, required=True
+    )
     # Concert
     performer = fields.IntField(required=False)
     genre = fields.StringField(required=False)

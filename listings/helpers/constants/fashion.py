@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class FashionConstants:
     '''
-    Fashion Category Constants
+    Fashion Category Constants.
     '''
 
     NEGOTIABLE = CONFIRMATION

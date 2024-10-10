@@ -12,7 +12,7 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants.vehicle import VehicleListingConstants
+from ..helpers.constants import VehicleConstants
 
 
 class VehicleListing(Document):
@@ -36,15 +36,23 @@ class VehicleListing(Document):
     fuel = fields.FloatField(required=False)
     price = fields.DecimalField(required=True)
     transmission = fields.StringField(
-        choices=VehicleListingConstants.TRANSMISSION, required=False, default=None
+        choices=VehicleConstants.TRANSMISSION,
+        required=False,
+        default=None,
     )
-    condition = fields.ListField(choices=VehicleListingConstants.CONDITION, max_length=2, default=None)
+    condition = fields.ListField(
+        choices=VehicleConstants.CONDITION, max_length=2, default=None
+    )
     number_of_doors = fields.StringField(
-        choices=VehicleListingConstants.NUMBER_OF_DOORS, required=False, default=None
+        choices=VehicleConstants.NUMBER_OF_DOORS,
+        required=False,
+        default=None,
     )
-    purpose = fields.StringField(choices=VehicleListingConstants.PURPOSE, required=False, default=None)
+    purpose = fields.StringField(
+        choices=VehicleConstants.PURPOSE, required=False, default=None
+    )
     negotiable = fields.StringField(
-        choices=VehicleListingConstants.NEGOTIABLE, required=False, default=None
+        choices=VehicleConstants.NEGOTIABLE, required=False, default=None
     )
     Load_capacity = fields.IntField(required=False)
     type = fields.IntField(required=False)

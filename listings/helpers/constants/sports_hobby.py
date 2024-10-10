@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class SportsHobbyConstants:
     '''
-    Sports_Hobby Category Constants
+    Sports_Hobby Category Constants.
     '''
 
     CONDITION = ['USED', 'NEW']

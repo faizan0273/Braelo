@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class JobsConstants:
     '''
-    Jobs Category Constants
+    Jobs Category Constants.
     '''
 
     WORK_PERMIT = CONFIRMATION

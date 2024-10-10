@@ -12,7 +12,8 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants.services import ServicesConstants
+from ..helpers.constants import ServicesConstants
+
 
 class ServicesListing(Document):
     '''
@@ -38,7 +39,9 @@ class ServicesListing(Document):
         max_length=4, required=False, default=None
     )
     eco_friendly_product = fields.ListField(
-        choices=ServicesConstants.ECO_FRIENDLY_PRODUCTS, max_length=2, default=None
+        choices=ServicesConstants.ECO_FRIENDLY_PRODUCTS,
+        max_length=2,
+        default=None,
     )
     provided_equipment = fields.ListField(
         max_length=2, required=False, default=None
@@ -84,14 +87,18 @@ class ServicesListing(Document):
     personalised_fitness_plan = fields.StringField(
         choices=ServicesConstants.PERSONALISED_FITNESS_PLAN, required=False
     )
-    group_session = fields.StringField(choices=ServicesConstants.GROUP_SESSION, required=False)
+    group_session = fields.StringField(
+        choices=ServicesConstants.GROUP_SESSION, required=False
+    )
     # Immigration and visa
     free_appointment = fields.StringField(
         choices=ServicesConstants.FREE_APPOINTMENTS, required=False
     )
     # Event services
     portfolio = fields.StringField(required=False)
-    event_type = fields.StringField(choices=ServicesConstants.EVENT_TYPES, required=False)
+    event_type = fields.StringField(
+        choices=ServicesConstants.EVENT_TYPES, required=False
+    )
     customizable_package = fields.StringField(
         choices=ServicesConstants.CUSTOMIZABLE_PACKAGE, required=False
     )

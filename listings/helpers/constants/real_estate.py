@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class RealEstateConstants:
     '''
-    Real_Estate Category Constants
+    Real_Estate Category Constants.
     '''
 
     BASEMENT = CONFIRMATION

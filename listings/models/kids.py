@@ -12,7 +12,8 @@ Vehicle Listing model mongo based.
 
 from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants.kids import KidsConstants
+from ..helpers.constants import KidsConstants
+
 
 class KidsListing(Document):
     '''
@@ -28,7 +29,9 @@ class KidsListing(Document):
 
     # Price-related fields
     price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(choices=KidsConstants.NEGOTIABLE, required=True)
+    negotiable = fields.StringField(
+        choices=KidsConstants.NEGOTIABLE, required=True
+    )
 
     # Donation
     donation = fields.StringField(choices=KidsConstants.DONATION, required=True)
@@ -37,7 +40,9 @@ class KidsListing(Document):
     age_range = fields.StringField(required=True)
     expiry_date = fields.DateTimeField(required=False)
     duration = fields.StringField(required=False)
-    certification = fields.StringField(choices=KidsConstants.CERTIFICATION, required=False)
+    certification = fields.StringField(
+        choices=KidsConstants.CERTIFICATION, required=False
+    )
 
     # Specific fields for subcategories
     # Health
@@ -60,7 +65,9 @@ class KidsListing(Document):
 
     # Schools/Daycare/Babysitter
     babysitter_experience = fields.StringField(required=False)
-    grades = fields.StringField(choices=KidsConstants.KIDS_GRADES, required=False)
+    grades = fields.StringField(
+        choices=KidsConstants.KIDS_GRADES, required=False
+    )
     # After school program
     activities_offered = fields.StringField(required=False)
     # Activities

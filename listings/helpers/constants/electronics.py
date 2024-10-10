@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class ElectronicsConstants:
     '''
-    Electronics Category Constants
+    Electronics Category Constants.
     '''
 
     CONDITION = ['USED', 'NEW']

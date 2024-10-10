@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class FurnitureConstants:
     '''
-    Furniture Category Constants
+    Furniture Category Constants.
     '''
 
     DONATION = CONFIRMATION

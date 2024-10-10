@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class KidsConstants:
     '''
-    Kids Category Constants
+    Kids Category Constants.
     '''
 
     NEGOTIABLE = CONFIRMATION

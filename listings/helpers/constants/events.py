@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class EventConstants:
     '''
-    Events Category Constants
+    Events Category Constants.
     '''
 
     EVENT_TYPES = ['WEDDINGS', 'CORPORATE EVENTS', 'PARTIES', 'OTHER (SPECIFY)']

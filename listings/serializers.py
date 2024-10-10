@@ -11,10 +11,9 @@ Serializer file for Listings based endpoints
 '''
 
 from django.utils import timezone
-from mongoengine import DoesNotExist
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
-from .helpers.constants.category import CATEGORIES
+from .helpers.constants import CATEGORIES
 
 
 from .models import (
@@ -26,9 +25,9 @@ from .models import (
     FurnitureListing,
     FashionListing,
     KidsListing,
+    RealEstateListing,
+    VehicleListing,
 )
-from .models.real_estate import RealEstateListing
-from .models.vehicle import VehicleListing
 
 
 class VehicleSerializer(serializers.DocumentSerializer):

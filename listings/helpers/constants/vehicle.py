@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
-class VehicleListingConstants:
+class VehicleConstants:
     '''
-    Vehicle Category Constants
+    Vehicle Category Constants.
     '''
 
     TRANSMISSION = ['AUTOMATIC', 'MANUAL']

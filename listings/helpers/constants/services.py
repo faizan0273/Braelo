@@ -1,9 +1,9 @@
-from .category import CONFIRMATION
+from .meta import CONFIRMATION
 
 
 class ServicesConstants:
     '''
-    Services Category Constants
+    Services Category Constants.
     '''
 
     INSURANCE = ['REQUIRED', 'NOT REQUIRED']
