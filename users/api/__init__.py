@@ -14,3 +14,4 @@ from .login import *
 from .signup import *
 from .password import *
 from .user_interest import *
+from .update_profile import *

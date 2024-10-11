@@ -580,3 +580,57 @@ class InterestSerializer(serializers.Serializer):
         else:
             # Otherwise, create a new interest
             return self.create(self.validated_data)
+
+
+class UpdateProfileSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    name = serializers.CharField(required=True)
+    first_name = serializers.CharField(required=True)
+    last_name = serializers.CharField(required=True)
+
+    def validate(self, data):
+        '''
+        Verify the provided email exists.
+        '''
+
+        email = data.get('email')
+
+        user = User.objects.filter(email=email).first()
+        if user is None:
+            raise serializers.ValidationError(
+                {'email': 'No User Found with this email address.'}
+            )
+
+        return data
+
+    def save(self, **kwargs):
+        '''
+        Save or update the profile fields provided by user
+        '''
+        email = self.validated_data.get('email')
+        name = self.validated_data.get('name')
+        first_name = self.validated_data.get('first_name')
+        last_name = self.validated_data.get('last_name')
+
+        with transaction.atomic():
+            user = User.objects.filter(email=email).first()
+
+            if user.name != name:
+                user.username = name
+
+            if user.first_name != first_name:
+                user.first_name = first_name
+
+            if user.last_name != last_name:
+                user.last_name = last_name
+
+            user.save()
+            
+            fields = {
+                'email':email,
+                'name': name,
+                'first_name': first_name,
+                'last_name': last_name
+            }
+
+            return {'fields': fields}

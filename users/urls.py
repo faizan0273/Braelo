@@ -24,6 +24,7 @@ from .api import (
     ChangePassword,
     Logout,
     CreatePassword,
+    UpdateProfile
 )
 
 
@@ -51,4 +52,6 @@ urlpatterns = [
     # Logout
     path('api/logout', Logout.as_view(), name='logout'),
     path('interests', InterestListCreateView.as_view(), name='interest'),
+    #Update Profile
+    path('update/profile',UpdateProfile.as_view(),name='update_profile')
 ]
