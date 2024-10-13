@@ -24,10 +24,24 @@ from .models.models import User, OTP
 
 import phonenumbers
 from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 from django.core.validators import validate_email
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+
+
+def _validate_email(email):
+    '''
+    Validates given email.
+    :param email: email address. (string)
+    :return: email address. (string)
+    '''
+    try:
+        validate_email(email)
+        return email
+    except DjangoValidationError:
+        raise ValidationError({'email': 'Enter a valid email address.'})
 
 
 ############################################################################
@@ -52,22 +66,14 @@ class EmailSignup(serializers.Serializer):
     def validate(self, data):
         email = data.get('email')
         password = data.get('password')
-        try:
-            # Check if the email is valid
-            validate_email(email)
-        except DjangoValidationError:
-            raise serializers.ValidationError(
-                {'email': 'Enter a valid email address.'}
-            )
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError(
-                {'email': 'This email is already taken.'}
-            )
-        # Password validation
+        if not email:
+            raise ValidationError({'email': 'Email is required.'})
         if not password:
-            raise serializers.ValidationError(
-                {'password': 'Password is required.'}
-            )
+            raise ValidationError({'password': 'Password is required.'})
+        email = _validate_email(email)
+        if User.objects.filter(email=email).exists():
+            raise ValidationError({'email': 'This email is already taken.'})
+        # Password validation
         # data['password'] = make_password(password)
         return data
 
@@ -122,25 +128,24 @@ class PhoneSignup(serializers.Serializer):
 
             # Checking if the parsed number is a valid number
             if not phonenumbers.is_valid_number(parsed_number):
-                raise serializers.ValidationError(
-                    'This is not valid phone number.'
-                )
+                raise ValidationError('This is not valid phone number.')
 
         except phonenumbers.NumberParseException:
-            raise serializers.ValidationError('This is not valid phone number.')
+            raise ValidationError('This is not valid phone number.')
 
         return phone
 
     def validate(self, data):
         phone_number = data.get('phone_number')
-        if phone_number:
-            self.validate_phone_number(phone_number)
-            # Check if the email is valid
-            user = User.objects.filter(phone_number=phone_number).first()
-            if user:
-                raise serializers.ValidationError(
-                    {'Phone number': 'This Phone number is already taken.'}
-                )
+        if not phone_number:
+            raise ValidationError({'phone_number': 'phone number is required.'})
+        self.validate_phone_number(phone_number)
+        # Check if the email is valid
+        user = User.objects.filter(phone_number=phone_number).first()
+        if user:
+            raise ValidationError(
+                {'Phone number': 'This Phone number is already taken.'}
+            )
         return data
 
 
@@ -169,12 +174,10 @@ class GoogleSignup(serializers.Serializer):
         email = data.get('email')
         google_id = data.get('google_id')
         if email and User.objects.filter(email=email).first():
-            raise serializers.ValidationError(
-                {'email': 'This email is already taken.'}
-            )
+            raise ValidationError({'email': 'This email is already taken.'})
 
         if google_id and User.objects.filter(google_id=google_id).first():
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {'google_id': 'This Google ID is already taken.'}
             )
         return data
@@ -242,12 +245,10 @@ class AppleSignup(serializers.Serializer):
         email = data.get('email')
         google_id = data.get('google_id')
         if email and User.objects.filter(email=email).first():
-            raise serializers.ValidationError(
-                {'email': 'This email is already taken.'}
-            )
+            raise ValidationError({'email': 'This email is already taken.'})
 
         if google_id and User.objects.filter(google_id=google_id).first():
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {'google_id': 'This Google ID is already taken.'}
             )
         return data
@@ -310,14 +311,12 @@ class PhoneLogin(serializers.Serializer):
         phone_number = data.get('phone_number')
         # Check if the user with the provided email exists
         user = User.objects.filter(phone_number=phone_number).first()
-        if user is None:
-            raise serializers.ValidationError(
+        if not user:
+            raise ValidationError(
                 {'Phone number': 'No user found with this Phone Number.'}
             )
         if not self.is_otp_valid(phone_number, otp):
-            raise serializers.ValidationError(
-                {'otp': 'The OTP is invalid or has expired.'}
-            )
+            raise ValidationError({'otp': 'The OTP is invalid or has expired.'})
         return user
 
     def is_otp_valid(self, phone, otp):
@@ -350,16 +349,14 @@ class EmailLogin(serializers.Serializer):
         password = data.get('password')
         # Check if the user with the provided email exists
         user = User.objects.filter(email=email).first()
-        if user is None:
-            raise serializers.ValidationError(
+        if not user:
+            raise ValidationError(
                 {'email': 'No user found with this email address.'}
             )
 
         # Check if the provided password matches the stored password
         if not check_password(password, user.password):
-            raise serializers.ValidationError(
-                {'password': 'Incorrect password.'}
-            )
+            raise ValidationError({'password': 'Incorrect password.'})
         return user
 
 
@@ -378,22 +375,20 @@ class ChangePasswordSerializer(serializers.Serializer):
         confirm_password = data.get('confirm_password')
 
         user = User.objects.filter(email=data['email']).first()
-        if user is None:
-            raise serializers.ValidationError(
+        if not user:
+            raise ValidationError(
                 {'email': 'No user found with this email address.'}
             )
         if not user.check_password(current_password):
-            raise serializers.ValidationError(
-                {'old_password': ['Incorrect password.']}
-            )
+            raise ValidationError({'old_password': ['Incorrect password.']})
         if current_password == new_password:
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {
                     'new_password': 'New password cannot be the same as the old password.'
                 }
             )
         if new_password != confirm_password:
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {
                     'new_password': 'The new password and confirmation password do not match.'
                 }
@@ -430,18 +425,18 @@ class CreatePasswordSerializer(serializers.Serializer):
 
         user = User.objects.filter(email=email).first()
 
-        if user is None:
-            raise serializers.ValidationError(
+        if not user:
+            raise ValidationError(
                 {'email': 'No user found with this email address.'}
             )
         if user.check_password(new_password):
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {
                     'new_password': 'The new password cannot be the same as the current password.'
                 }
             )
         if new_password != confirm_password:
-            raise serializers.ValidationError(
+            raise ValidationError(
                 {
                     'new_password': 'The new password and confirmation password do not match.'
                 }
@@ -473,9 +468,9 @@ class VerifyOtpSerializer(serializers.Serializer):
         try:
             otp_record = OTP.objects.get(user__email=email, otp=otp)
         except OTP.DoesNotExist:
-            raise serializers.ValidationError('Invalid OTP or email.')
+            raise ValidationError('Invalid OTP or email.')
         if otp_record.has_expired():
-            raise serializers.ValidationError('This OTP has expired.')
+            raise ValidationError('This OTP has expired.')
         data['otp_record'] = otp_record
         return data
 
@@ -490,9 +485,7 @@ class ForgotPasswordSerializer(serializers.Serializer):
         email = data.get('email')
         user = User.objects.filter(email=email).first()
         if not user:
-            raise serializers.ValidationError(
-                'No user found with this email address.'
-            )
+            raise ValidationError('No user found with this email address.')
         data['user'] = user
         return data
 
@@ -512,11 +505,11 @@ class TokenBlacklistSerializer(serializers.Serializer):
             if BlacklistedToken.objects.filter(
                 token__jti=token['jti']
             ).exists():
-                raise serializers.ValidationError(
+                raise ValidationError(
                     'This token has already been blacklisted.'
                 )
         except Exception as exc:
-            raise serializers.ValidationError(str(exc))
+            raise ValidationError(str(exc))
 
         return value
 
@@ -537,7 +530,7 @@ class InterestSerializer(serializers.Serializer):
         '''
         for tag in tags:
             if tag not in INTERESTS:
-                raise serializers.ValidationError({'tags': 'Incorrect tag.'})
+                raise ValidationError({'tags': 'Incorrect tag.'})
         return tags
 
     def validate_user_id(self, user_id):
@@ -583,54 +576,120 @@ class InterestSerializer(serializers.Serializer):
 
 
 class UpdateProfileSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    name = serializers.CharField(required=True)
-    first_name = serializers.CharField(required=True)
-    last_name = serializers.CharField(required=True)
+    name = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False)
+    last_name = serializers.CharField(required=False)
 
     def validate(self, data):
         '''
         Verify the provided email exists.
         '''
 
-        email = data.get('email')
+        user = self.context['request'].user
+        name = data.get('name')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
 
-        user = User.objects.filter(email=email).first()
-        if user is None:
-            raise serializers.ValidationError(
-                {'email': 'No User Found with this email address.'}
+        if name and user.name == name:
+            raise ValidationError({'name': 'The name is already the same.'})
+        if first_name and user.first_name == first_name:
+            raise ValidationError(
+                {'first_name': 'The first name is already the same.'}
             )
-
+        if last_name and user.last_name == last_name:
+            raise ValidationError(
+                {'last_name': 'The last name is already the same.'}
+            )
         return data
 
     def save(self, **kwargs):
         '''
-        Save or update the profile fields provided by user
+        Save or update the profile fields provided by user.
         '''
-        email = self.validated_data.get('email')
-        name = self.validated_data.get('name')
-        first_name = self.validated_data.get('first_name')
-        last_name = self.validated_data.get('last_name')
+        user = self.context['request'].user
+        validated_data = self.validated_data
+        if not validated_data:
+            return {}
+        user.name = validated_data.get('name', user.name)
+        user.first_name = validated_data.get('first_name', user.first_name)
+        user.last_name = validated_data.get('last_name', user.last_name)
+        user.save()
+        return validated_data
 
-        with transaction.atomic():
-            user = User.objects.filter(email=email).first()
 
-            if user.name != name:
-                user.username = name
+class CompleteProfileSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=False)
+    phone = serializers.CharField(required=False)
 
-            if user.first_name != first_name:
-                user.first_name = first_name
+    def validate(self, data):
+        user = self.context['request'].user
 
-            if user.last_name != last_name:
-                user.last_name = last_name
+        email = data.get('email')
+        phone = data.get('phone')
 
-            user.save()
-            
-            fields = {
-                'email':email,
-                'name': name,
-                'first_name': first_name,
-                'last_name': last_name
-            }
+        if email and phone:
+            raise ValidationError(
+                'Only one of email or phone should be provided.'
+            )
 
-            return {'fields': fields}
+        # If the user already has an email, they can't add one
+        if email:
+            if user.email:
+                raise ValidationError(
+                    {'email': 'Email is already set and cannot be changed.'}
+                )
+            if User.objects.filter(email=email).exists():
+                raise ValidationError(
+                    {'email': 'This email is already in use.'}
+                )
+
+        # If the user already has a phone number, they can't add one
+        if phone:
+            if user.phone_number:
+                raise ValidationError(
+                    {
+                        'phone': 'Phone number is already set and cannot be changed.'
+                    }
+                )
+            if User.objects.filter(phone_number=phone).exists():
+                raise ValidationError(
+                    {'phone': 'This phone number is already in use.'}
+                )
+
+        return data
+
+    def save(self, **kwargs):
+        user = self.context['request'].user
+        validated_data = self.validated_data
+        if not validated_data:
+            return {}
+        # Update the missing information
+        if validated_data.get('email'):
+            user.email = validated_data['email']
+        if validated_data.get('phone'):
+            user.phone_number = validated_data['phone']
+
+        user.save()
+        return validated_data
+
+
+class UserProfileSerializer(serializers.Serializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'username',
+            'email',
+            'phone_number',
+            'name',
+            'first_name',
+            'last_name',
+            'google_id',
+            'apple_id',
+            'created_at',
+            'updated_at',
+            'is_active',
+            'is_email_verified',
+            'is_phone_verified',
+            'role',
+        ]

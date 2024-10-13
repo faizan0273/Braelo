@@ -12,3 +12,4 @@ users/helpers/__pycache__/
 users/migrations/
 users/models/__pycache__/
 venv/
+/__pycache__/

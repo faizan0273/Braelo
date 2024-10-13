@@ -24,9 +24,10 @@ from .api import (
     ChangePassword,
     Logout,
     CreatePassword,
-    UpdateProfile
+    UpdateProfile,
+    CompleteProfile,
+    UserProfile,
 )
-
 
 # todo import from separate files.
 
@@ -52,6 +53,11 @@ urlpatterns = [
     # Logout
     path('api/logout', Logout.as_view(), name='logout'),
     path('interests', InterestListCreateView.as_view(), name='interest'),
-    #Update Profile
-    path('update/profile',UpdateProfile.as_view(),name='update_profile')
+    # Update Profile
+    path('update/profile', UpdateProfile.as_view(), name='update_profile'),
+    # Complete Profile
+    path(
+        'complete/profile', CompleteProfile.as_view(), name='complete_profile'
+    ),
+    path('user/profile', UserProfile.as_view(), name='user_profile'),
 ]

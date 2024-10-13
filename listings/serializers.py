@@ -27,35 +27,30 @@ from .models import (
     KidsListing,
     RealEstateListing,
     VehicleListing,
+    SavedItem,
 )
+
+
+class SavedItemSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = SavedItem
+        fields = ['listing', 'created_at']
+
+    def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
+        # todo
+        #  1. we have to verify if the listing document we are receiving is valid?
+        #    => Category and subcategory verification
+        return data
+
+    def create(self, validated_data):
+        return SavedItem.objects.create(**validated_data)
 
 
 class VehicleSerializer(serializers.DocumentSerializer):
     class Meta:
         model = VehicleListing
-        fields = [
-            'id',
-            'category',
-            'subcategory',
-            'pictures',
-            'title',
-            'description',
-            'location',
-            'make',
-            'model',
-            'year',
-            'color',
-            'mileage',
-            'fuel',
-            'price',
-            'transmission',
-            'condition',
-            'number_of_doors',
-            'purpose',
-            'negotiable',
-            'created_at',
-            'updated_at',
-        ]
         read_only_fields = ['created_at', 'updated_at']
 
     def create(self, validated_data):
@@ -71,6 +66,8 @@ class VehicleSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
@@ -111,6 +108,8 @@ class RealEstateSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         if category not in CATEGORIES:
@@ -145,6 +144,8 @@ class ElectronicsSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         electronics = ('electronics', 'Electronics')
@@ -179,6 +180,8 @@ class EventsSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         events = ('events', 'Events')
@@ -213,6 +216,8 @@ class JobsSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         jobs = ('jobs', 'Jobs')
@@ -245,6 +250,8 @@ class ServicesSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         service = ('services', 'Services')
@@ -279,6 +286,8 @@ class SportsHobbySerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         sport = ('sport & hobby', 'Sports & Hobby')
@@ -311,6 +320,8 @@ class FurnitureSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         furniture = ('furniture', 'Furniture')
@@ -345,6 +356,8 @@ class FashionSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         fashion = ('fashion', 'Fashion')
@@ -379,6 +392,8 @@ class KidsSerializer(serializers.DocumentSerializer):
         return listing
 
     def validate(self, data):
+        user = self.context['request'].user
+        data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         kids = ('kids', 'Kids')

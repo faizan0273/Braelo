@@ -6,12 +6,6 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-__init__.py file for endpoints imports.
+Search of Listings endpoints.
 ---------------------------------------------------
 '''
-
-from .login import *
-from .signup import *
-from .profile import *
-from .password import *
-from .user_interest import *

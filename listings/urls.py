@@ -22,8 +22,21 @@ from .api.listing import (
     JobsAPI,
     KidsAPI,
     ServicesAPI,
-    SortsHobbyAPI,
+    SportsHobbyAPI,
     ElectronicsAPI,
+    SaveItemAPI,
+)
+from .api.paginate_listing import (
+    PaginateVehicle,
+    PaginateRealEstate,
+    PaginateElectronics,
+    PaginateEvents,
+    PaginateFashion,
+    PaginateJobs,
+    PaginateServices,
+    PaginateSportsHobby,
+    PaginateKids,
+    PaginateFurniture,
 )
 
 urlpatterns = [
@@ -36,6 +49,58 @@ urlpatterns = [
     path('services', ServicesAPI.as_view(), name='services-listing'),
     path('furniture', FurnitureAPI.as_view(), name='furniture-listing'),
     path('realestate', RealEstateAPI.as_view(), name='realestate-listing'),
-    path('sportshobby', SortsHobbyAPI.as_view(), name='sportshobby-listing'),
+    path('sportshobby', SportsHobbyAPI.as_view(), name='sportshobby-listing'),
     path('electronics', ElectronicsAPI.as_view(), name='electronics-listing'),
+    # Saved items
+    path('saved-items', SaveItemAPI.as_view(), name='save-item'),
+    # Pagination's listings
+    path(
+        'paginate/vehicle', PaginateVehicle.as_view(), name='paginate-vehicle'
+    ),
+    path(
+        'paginate/realestate',
+        PaginateRealEstate.as_view(),
+        name='paginate-realestate',
+    ),
+    path(
+        'paginate/electronics',
+        PaginateElectronics.as_view(),
+        name='paginate-electronics',
+    ),
+    path(
+        'paginate/events',
+        PaginateEvents.as_view(),
+        name='paginate-events',
+    ),
+    path(
+        'paginate/fashion',
+        PaginateFashion.as_view(),
+        name='paginate-fashion',
+    ),
+    path(
+        'paginate/jobs',
+        PaginateJobs.as_view(),
+        name='paginate-jobs',
+    ),
+    path(
+        'paginate/services',
+        PaginateServices.as_view(),
+        name='paginate-services',
+    ),
+    path(
+        'paginate/sportshobby',
+        PaginateSportsHobby.as_view(),
+        name='paginate-sportshobby',
+    ),
+    path(
+        'paginate/kids',
+        PaginateKids.as_view(),
+        name='paginate-kids',
+    ),
+    path(
+        'paginate/furniture',
+        PaginateFurniture.as_view(),
+        name='paginate-furniture',
+    ),
+    # Searching
 ]

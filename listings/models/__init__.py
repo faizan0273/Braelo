@@ -20,3 +20,6 @@ from .furniture import FurnitureListing
 from .real_estate import RealEstateListing
 from .electronics import ElectronicsListing
 from .sports_hobby import SportsHobbyListing
+
+
+from .saved_listing import SavedItem

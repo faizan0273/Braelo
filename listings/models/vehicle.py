@@ -20,12 +20,13 @@ class VehicleListing(Document):
     Vehicle category listings.
     '''
 
+    user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
     pictures = fields.ListField(fields.ImageField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    location = fields.PointField(required=True)
 
     # category based
     make = fields.StringField(required=True)
@@ -40,19 +41,17 @@ class VehicleListing(Document):
         required=False,
         default=None,
     )
-    condition = fields.ListField(
-        choices=VehicleConstants.CONDITION, max_length=2, default=None
+    condition = fields.StringField(
+        choices=VehicleConstants.CONDITION, required=True
     )
     number_of_doors = fields.StringField(
-        choices=VehicleConstants.NUMBER_OF_DOORS,
-        required=False,
-        default=None,
+        choices=VehicleConstants.NUMBER_OF_DOORS, required=False
     )
     purpose = fields.StringField(
-        choices=VehicleConstants.PURPOSE, required=False, default=None
+        choices=VehicleConstants.PURPOSE, required=False
     )
     negotiable = fields.StringField(
-        choices=VehicleConstants.NEGOTIABLE, required=False, default=None
+        choices=VehicleConstants.NEGOTIABLE, required=True
     )
     Load_capacity = fields.IntField(required=False)
     type = fields.IntField(required=False)

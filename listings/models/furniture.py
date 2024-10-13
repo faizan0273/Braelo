@@ -20,6 +20,7 @@ class FurnitureListing(Document):
     Furniture category listings.
     '''
 
+    user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
     pictures = fields.ListField(fields.ImageField(), required=False)

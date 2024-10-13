@@ -6,13 +6,13 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-Listing endpoints.
+Populate Listing and save listings endpoints.
 ---------------------------------------------------
 '''
 
 from rest_framework import status
-from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework_mongoengine import generics
+from rest_framework.permissions import IsAuthenticated
 
 from ..models import (
     ElectronicsListing,
@@ -23,6 +23,7 @@ from ..models import (
     SportsHobbyListing,
     KidsListing,
     FurnitureListing,
+    SavedItem,
 )
 from ..models.real_estate import RealEstateListing
 from ..models.vehicle import VehicleListing
@@ -37,277 +38,129 @@ from ..serializers import (
     ServicesSerializer,
     SportsHobbySerializer,
     KidsSerializer,
-    VehicleSerializer
+    VehicleSerializer,
+    SavedItemSerializer,
 )
 
 
-class VehicleAPI(generics.CreateAPIView):
+class Listing(generics.CreateAPIView):
+    '''
+    Base API endpoint to create a new listing for different categories.
+    '''
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def post(self, request, **kwargs):
+        '''
+        POST method to add a listing.
+        :param request: request object. (dict)
+        :return: listing status. (json)
+        '''
+        serializer = self.get_serializer(
+            data=request.data, context={'request': request}
+        )
+        # Validate and create the listing if valid
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response(
+            status=status.HTTP_201_CREATED,
+            message='Listing created successfully',
+            data=serializer.data,
+        )
+
+
+class VehicleAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = VehicleListing.objects.all()
-    permission_classes = [IsAuthenticated]
     serializer_class = VehicleSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        # dataa = request.data
-        # dataa['user_id'] = request.user.id
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class RealEstateAPI(generics.CreateAPIView):
+class RealEstateAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = RealEstateListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = RealEstateSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class ElectronicsAPI(generics.CreateAPIView):
+class ElectronicsAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = ElectronicsListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = ElectronicsSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class EventsAPI(generics.CreateAPIView):
+class EventsAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = EventsListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = EventsSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class FashionAPI(generics.CreateAPIView):
+class FashionAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = FashionListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = FashionSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class JobsAPI(generics.CreateAPIView):
+class JobsAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = JobsListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = JobsSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class ServicesAPI(generics.CreateAPIView):
+class ServicesAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = ServicesListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = ServicesSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class SortsHobbyAPI(generics.CreateAPIView):
+class SportsHobbyAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = SportsHobbyListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = SportsHobbySerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class KidsAPI(generics.CreateAPIView):
+class KidsAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = KidsListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = KidsSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
 
-
-class FurnitureAPI(generics.CreateAPIView):
+class FurnitureAPI(Listing):
     '''
     API endpoint to create a new vehicle listings.
     '''
 
     queryset = FurnitureListing.objects.all()
-    permission_classes = [AllowAny]
     serializer_class = FurnitureSerializer
 
-    @handle_exceptions
-    def post(self, request, **kwargs):
-        '''
-        POST method to add vehicle listings.
-        :param request: request object. (dict)
-        :return: listing status. (json)
-        '''
-        serializer = self.get_serializer(data=request.data)
-        # Validate and create the listing if valid
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response(
-            status=status.HTTP_201_CREATED,
-            message='Listing created successfully',
-            data=serializer.data,
-        )
+
+class SaveItemAPI(Listing):
+
+    queryset = SavedItem.objects.all()
+    serializer_class = SavedItemSerializer
