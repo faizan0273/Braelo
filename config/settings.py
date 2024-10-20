@@ -99,6 +99,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
+    ],
     'PAGE_SIZE': 15,
 }
 
@@ -123,6 +126,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# S3 configurations
+AZURE_ACCOUNT_NAME = 'braelos3'
+AZURE_ACCOUNT_KEY = '5PkRWE5PK49PotcquKuVgZ6jLN261i8VNuqqdpTKJJekYcr2EWwrrlRyqV/s7a+mLOrV/YKBZDOX+AStNDj6pQ=='
+AZURE_CONTAINER_NAME = 'braelo'
+AZURE_CUSTOM_DOMAIN = 'https://braelos3.blob.core.windows.net/braelo'
 
 ROOT_URLCONF = 'config.urls'
 

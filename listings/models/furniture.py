@@ -10,9 +10,8 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import FurnitureConstants
+from listings.helpers.constants import FurnitureConstants
 
 
 class FurnitureListing(Document):
@@ -23,7 +22,7 @@ class FurnitureListing(Document):
     user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.ImageField(), required=False)
+    pictures = fields.ListField(fields.StringField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
@@ -66,8 +65,8 @@ class FurnitureListing(Document):
     lead_time = fields.StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
 
     meta = {
         'collection': 'furniture_listing',

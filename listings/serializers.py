@@ -10,13 +10,17 @@ Serializer file for Listings based endpoints
 ---------------------------------------------------
 '''
 
+from django.db import transaction
 from django.utils import timezone
+from azure.storage.blob import BlobServiceClient
+from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
-from .helpers.constants import CATEGORIES
+from listings.helpers.constants import CATEGORIES
 
 
-from .models import (
+from listings.models import (
     ElectronicsListing,
     EventsListing,
     JobsListing,
@@ -29,380 +33,202 @@ from .models import (
     VehicleListing,
     SavedItem,
 )
+from listings.models.listsync import ListSync
+from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
+
+blob_service_client = BlobServiceClient.from_connection_string(
+    'DefaultEndpointsProtocol=https;AccountName=braelos3;AccountKey=ODvt'
+    'b8NuHRyWRsNR54wyp2lP0a7YGlM//NnhbkQKKv+JhX9E9Z+JXUSX56/sY7q0OxYPjidA5'
+    'HL0+AStWzRAYA==;EndpointSuffix=core.windows.net'
+)
+
+
+def listsync(data, _id):
+    obj = {
+        'user_id': data['user_id'],
+        'listing_id': str(_id),
+        'category': data['category'],
+        'title': data['title'],
+        'location': data['location'],
+        'created_at': data['created_at'],
+    }
+
+    # Price range
+    if data.get('salary_range'):
+        obj['salary_range'] = data['salary_range']
+    elif data.get('service_fee'):
+        obj['price'] = data['service_fee']
+    elif data.get('ticket_price'):
+        obj['price'] = data['ticket_price']
+    else:
+        obj['price'] = data['price']
+
+    # Pictures
+    if data.get('pictures'):
+        obj['pictures'] = data['pictures']
+
+    list_sync_entry = ListSync(**obj)
+    list_sync_entry.save()
+
+
+class ListsyncSerializer(serializers.DocumentSerializer):
+    class Meta:
+        model = ListSync
+        fields = '__all__'
 
 
 class SavedItemSerializer(serializers.DocumentSerializer):
     class Meta:
         model = SavedItem
-        fields = ['listing', 'created_at']
 
     def validate(self, data):
         user = self.context['request'].user
         data['user_id'] = user.id
-        # todo
-        #  1. we have to verify if the listing document we are receiving is valid?
-        #    => Category and subcategory verification
+        category = data.get('category')
+        if category not in CATEGORIES:
+            raise ValidationError(
+                {'category': f'categories should be {CATEGORIES}'}
+            )
+        data['saved_at'] = timezone.now()
         return data
 
     def create(self, validated_data):
         return SavedItem.objects.create(**validated_data)
 
 
-class VehicleSerializer(serializers.DocumentSerializer):
+class Serializer(serializers.DocumentSerializer):
     class Meta:
-        model = VehicleListing
-        read_only_fields = ['created_at', 'updated_at']
+        abstract = True
 
     def create(self, validated_data):
         '''
-        Override the create method to handle Vehicle listing creation.
+        Handle the creation of listings and picture uploads.
+        This method can be extended by child classes for custom logic.
         '''
-        pictures = validated_data.pop('pictures', [])
-        listing = VehicleListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
+        with transaction.atomic():
+            listing = self.Meta.model.objects.create(**validated_data)
+            listsync(validated_data, listing.id)
         return listing
 
     def validate(self, data):
+        '''
+        Common validation logic for listings.
+        Ensures category and subcategory validation and user association.
+        '''
         user = self.context['request'].user
         data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
-        vehicle = ('vehicles', 'Vehicles')
-        if category not in vehicle:
+
+        # Validate category and subcategory
+        if category != self.Meta.category:
             raise ValidationError(
-                {'category': f'categories should be {vehicle}'}
+                {'category': f'categories should be {self.Meta.category}'}
             )
-        if subcategory not in CATEGORIES[category]:
+        if subcategory and subcategory not in CATEGORIES.get(category, []):
             raise ValidationError(
                 {
                     'subcategory': f'subcategories should be {CATEGORIES[category]}'
                 }
             )
-        current_year = timezone.now().year
-        if year < 1886 or year > current_year:
-            raise ValidationError(
-                {'year': f'Year must be between 1886 and {current_year}.'}
-            )
+        if year:
+            current_year = timezone.now().year
+            if year < 1886 or year > current_year:
+                raise ValidationError(
+                    {'year': f'Year must be between 1886 and {current_year}.'}
+                )
+
+        pictures = data.pop('pictures', [])
+        s3_urls = []
+
+        for picture in pictures:
+            if isinstance(picture, InMemoryUploadedFile):
+                file_name = f'listings/{category}/{user.id}/{picture.name}'
+                # Upload file to Azure Blob Storage
+                blob_client = blob_service_client.get_blob_client(
+                    container=AZURE_CONTAINER_NAME, blob=file_name
+                )
+                blob_client.upload_blob(picture, overwrite=True)
+
+                # Create a URL to access the uploaded image
+                picture_url = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{file_name}'
+                s3_urls.append(picture_url)
+
+        # Assign uploaded picture URLs to validated data
+        data['pictures'] = s3_urls
+
+        # Timestamps
+        data['created_at'] = timezone.now()
+        data['updated_at'] = timezone.now()
         return data
 
 
-class RealEstateSerializer(serializers.DocumentSerializer):
+class VehicleSerializer(Serializer):
+    class Meta:
+        model = VehicleListing
+        fields = '__all__'
+        category = 'vehicles'
+
+
+class RealEstateSerializer(Serializer):
     class Meta:
         model = RealEstateListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle real estate listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = RealEstateListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        if category not in CATEGORIES:
-            raise ValidationError(
-                {'category': f'categories should be {CATEGORIES.keys()}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-
-        return data
+        category = 'real estate'
+        fields = '__all__'
 
 
-class ElectronicsSerializer(serializers.DocumentSerializer):
+class ElectronicsSerializer(Serializer):
     class Meta:
         model = ElectronicsListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle electronics creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = ElectronicsListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        electronics = ('electronics', 'Electronics')
-        if category not in electronics:
-            raise ValidationError(
-                {'category': f'categories should be {electronics}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'electronics'
 
 
-class EventsSerializer(serializers.DocumentSerializer):
+class EventsSerializer(Serializer):
     class Meta:
         model = EventsListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle events listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = EventsListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        events = ('events', 'Events')
-        if category not in events:
-            raise ValidationError(
-                {'category': f'categories should be {events}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'events'
 
 
-class JobsSerializer(serializers.DocumentSerializer):
+class JobsSerializer(Serializer):
     class Meta:
         model = JobsListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle jobs listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = JobsListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        jobs = ('jobs', 'Jobs')
-        if category not in jobs:
-            raise ValidationError({'category': f'categories should be {jobs}'})
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'jobs'
 
 
-class ServicesSerializer(serializers.DocumentSerializer):
+class ServicesSerializer(Serializer):
     class Meta:
         model = ServicesListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle service listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = ServicesListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        service = ('services', 'Services')
-        if category not in service:
-            raise ValidationError(
-                {'category': f'categories should be {service}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'events'
 
 
-class SportsHobbySerializer(serializers.DocumentSerializer):
+class SportsHobbySerializer(Serializer):
     class Meta:
         model = SportsHobbyListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle sports and hobby creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = SportsHobbyListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        sport = ('sport & hobby', 'Sports & Hobby')
-        if category not in sport:
-            raise ValidationError({'category': f'categories should be {sport}'})
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'sport & hobby'
 
 
-class FurnitureSerializer(serializers.DocumentSerializer):
+class FurnitureSerializer(Serializer):
     class Meta:
         model = FurnitureListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle furniture listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = FurnitureListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        furniture = ('furniture', 'Furniture')
-        if category not in furniture:
-            raise ValidationError(
-                {'category': f'categories should be {furniture}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'furniture'
 
 
-class FashionSerializer(serializers.DocumentSerializer):
+class FashionSerializer(Serializer):
     class Meta:
         model = FashionListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle fashion Listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = FashionListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        fashion = ('fashion', 'Fashion')
-        if category not in fashion:
-            raise ValidationError(
-                {'category': f'categories should be {fashion}'}
-            )
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'fashion'
 
 
-class KidsSerializer(serializers.DocumentSerializer):
+class KidsSerializer(Serializer):
     class Meta:
         model = KidsListing
-        read_only_fields = ['created_at', 'updated_at']
-
-    def create(self, validated_data):
-        '''
-        Override the create method to handle Kids listing creation.
-        '''
-        pictures = validated_data.pop('pictures', [])
-        listing = KidsListing.objects.create(**validated_data)
-        if pictures:
-            listing.pictures = pictures
-
-        listing.save()
-        return listing
-
-    def validate(self, data):
-        user = self.context['request'].user
-        data['user_id'] = user.id
-        category = data.get('category')
-        subcategory = data.get('subcategory')
-        kids = ('kids', 'Kids')
-        if category not in kids:
-            raise ValidationError({'category': f'categories should be {kids}'})
-        if subcategory not in CATEGORIES[category]:
-            raise ValidationError(
-                {
-                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                }
-            )
-        return data
+        fields = '__all__'
+        category = 'kids'

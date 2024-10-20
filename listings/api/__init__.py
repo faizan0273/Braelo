@@ -10,4 +10,5 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from .category import *
+from listings.api.category import *
+from listings.api.listing import Listing

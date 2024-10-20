@@ -11,13 +11,10 @@ Pagination of Listing endpoints.
 '''
 
 from rest_framework import generics
-from rest_framework.permissions import (
-    IsAuthenticatedOrReadOnly,
-    IsAuthenticated,
-)
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
 
-from ..models import (
+from listings.models import (
     VehicleListing,
     RealEstateListing,
     ElectronicsListing,
@@ -28,9 +25,8 @@ from ..models import (
     SportsHobbyListing,
     KidsListing,
     FurnitureListing,
-    SavedItem,
 )
-from ..serializers import (
+from listings.serializers import (
     VehicleSerializer,
     RealEstateSerializer,
     ElectronicsSerializer,
@@ -41,7 +37,6 @@ from ..serializers import (
     KidsSerializer,
     FurnitureSerializer,
     EventsSerializer,
-    SavedItemSerializer,
 )
 
 

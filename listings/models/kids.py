@@ -10,9 +10,8 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import KidsConstants
+from listings.helpers.constants import KidsConstants
 
 
 class KidsListing(Document):
@@ -23,7 +22,7 @@ class KidsListing(Document):
     user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.ImageField(), required=False)
+    pictures = fields.ListField(fields.StringField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
@@ -76,8 +75,8 @@ class KidsListing(Document):
     equipment_required = fields.BooleanField(default=False)
 
     # Timestamps
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
 
     meta = {
         'collection': 'kids_listing',

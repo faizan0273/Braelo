@@ -14,7 +14,7 @@ from rest_framework import status
 from rest_framework_mongoengine import generics
 from rest_framework.permissions import IsAuthenticated
 
-from ..models import (
+from listings.models import (
     ElectronicsListing,
     EventsListing,
     FashionListing,
@@ -23,12 +23,11 @@ from ..models import (
     SportsHobbyListing,
     KidsListing,
     FurnitureListing,
-    SavedItem,
+    RealEstateListing,
+    VehicleListing,
 )
-from ..models.real_estate import RealEstateListing
-from ..models.vehicle import VehicleListing
-from ..helpers import response, handle_exceptions
-from ..serializers import (
+from listings.helpers import response, handle_exceptions
+from listings.serializers import (
     RealEstateSerializer,
     ElectronicsSerializer,
     EventsSerializer,
@@ -39,7 +38,6 @@ from ..serializers import (
     SportsHobbySerializer,
     KidsSerializer,
     VehicleSerializer,
-    SavedItemSerializer,
 )
 
 
@@ -158,9 +156,3 @@ class FurnitureAPI(Listing):
 
     queryset = FurnitureListing.objects.all()
     serializer_class = FurnitureSerializer
-
-
-class SaveItemAPI(Listing):
-
-    queryset = SavedItem.objects.all()
-    serializer_class = SavedItemSerializer

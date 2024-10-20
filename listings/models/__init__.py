@@ -10,16 +10,16 @@ __init__ file.
 ---------------------------------------------------
 '''
 
-from .jobs import JobsListing
-from .kids import KidsListing
-from .events import EventsListing
-from .fashion import FashionListing
-from .vehicle import VehicleListing
-from .services import ServicesListing
-from .furniture import FurnitureListing
-from .real_estate import RealEstateListing
-from .electronics import ElectronicsListing
-from .sports_hobby import SportsHobbyListing
+from listings.models.jobs import JobsListing
+from listings.models.kids import KidsListing
+from listings.models.events import EventsListing
+from listings.models.fashion import FashionListing
+from listings.models.vehicle import VehicleListing
+from listings.models.services import ServicesListing
+from listings.models.furniture import FurnitureListing
+from listings.models.real_estate import RealEstateListing
+from listings.models.electronics import ElectronicsListing
+from listings.models.sports_hobby import SportsHobbyListing
 
-
-from .saved_listing import SavedItem
+from listings.models.listsync import ListSync
+from listings.models.saved_listing import SavedItem

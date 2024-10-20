@@ -139,4 +139,5 @@ class ServicesConstants:
         'ASYLUM',
         'CITIZENSHIP',
     ]
+    NEGOTIABLE = CONFIRMATION
     FREE_APPOINTMENTS = CONFIRMATION

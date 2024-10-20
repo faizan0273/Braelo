@@ -14,8 +14,8 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework_mongoengine import generics
 
-from ..helpers import response
-from ..helpers.constants import CATEGORIES
+from listings.helpers import response
+from listings.helpers.constants import CATEGORIES
 
 
 class Categories(generics.CreateAPIView):

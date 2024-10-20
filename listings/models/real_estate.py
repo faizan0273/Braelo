@@ -10,9 +10,8 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import RealEstateConstants
+from listings.helpers.constants import RealEstateConstants
 
 
 class RealEstateListing(Document):
@@ -23,7 +22,7 @@ class RealEstateListing(Document):
     user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.ImageField(), required=False)
+    pictures = fields.ListField(required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
@@ -78,13 +77,15 @@ class RealEstateListing(Document):
         choices=RealEstateConstants.LEASE_TERMS, required=False
     )
     price = fields.FloatField(required=True)
-    negotiable = fields.ListField(max_length=2, required=False, default=None)
+    negotiable = fields.StringField(
+        choices=RealEstateConstants.NEGOTIABLE, required=True
+    )
     land_type = fields.StringField(required=False)
     number_of_floors = fields.IntField(min_value=0)
 
     # Timestamps
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
 
     meta = {
         'collection': 'real_estate_listing',

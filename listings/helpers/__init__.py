@@ -10,5 +10,5 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from .helper import *
-from .decorators import *
+from listings.helpers.helper import *
+from listings.helpers.decorators import *

@@ -10,9 +10,8 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import ElectronicsConstants
+from listings.helpers.constants import ElectronicsConstants
 
 
 class ElectronicsListing(Document):
@@ -23,7 +22,7 @@ class ElectronicsListing(Document):
     user_id = fields.StringField(required=True)
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.ImageField(), required=False)
+    pictures = fields.ListField(fields.StringField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
@@ -60,8 +59,8 @@ class ElectronicsListing(Document):
     compatible_model = fields.StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
 
     meta = {
         'collection': 'electronics_listing',

@@ -10,8 +10,9 @@ Helper functions file.
 ---------------------------------------------------
 '''
 
+import hashlib
+
 from django.http import JsonResponse
-from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def get_error_details(error_info):
@@ -39,6 +40,7 @@ def response(status, message, data, error=None):
     :param message: Information about response. (dict)
     :return: Response object with formatted error details.
     '''
+
     resp = {
         'status': status,
         'message': message,
@@ -46,3 +48,26 @@ def response(status, message, data, error=None):
         'data': data,
     }
     return JsonResponse(resp)
+
+
+def _upload_to_s3(self, data):
+    """
+    Upload data on s3.
+    @param data: Object name and content to upload. (tuple)
+    @return: None. (None)
+    """
+    object_key, content = data
+    md5 = hashlib.md5(content).digest()
+    md5b64 = DP.get_b64(md5).decode('utf-8')
+    try:
+        self.s3client.put_object(
+            Bucket=self.s3_bucket_name,
+            Key=object_key,
+            Body=content,
+            ContentMD5=md5b64,
+        )
+    except (ClientError, BotoCoreError) as exce:
+        self.logger.error('Failed to upload %s to S3', object_key)
+        self.logger.error(exce)
+        # Raise to propagate error to the main thread
+        raise exce

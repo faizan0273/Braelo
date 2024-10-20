@@ -10,9 +10,8 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from django.utils import timezone
 from mongoengine import fields, Document
-from ..helpers.constants import ServicesConstants
+from listings.helpers.constants import ServicesConstants
 
 
 class ServicesListing(Document):
@@ -23,7 +22,7 @@ class ServicesListing(Document):
     user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.ImageField(), required=False)
+    pictures = fields.ListField(fields.StringField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
     location = fields.StringField(required=True)
@@ -47,11 +46,13 @@ class ServicesListing(Document):
     provided_equipment = fields.ListField(
         max_length=2, required=False, default=None
     )
-    price = fields.DecimalField(required=True)
+    service_fee = fields.DecimalField(required=True)
     certifications = fields.ListField(
         max_length=2, required=False, default=None
     )
-    negotiable = fields.IntField(required=False)
+    negotiable = fields.StringField(
+        choices=ServicesConstants.NEGOTIABLE, required=False
+    )
     # Extra fields as per different subcategories
     # Handy man
     experience_qualifications = fields.StringField(required=False)
@@ -158,8 +159,8 @@ class ServicesListing(Document):
     distance = fields.StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField(default=timezone.now())
-    updated_at = fields.DateTimeField(default=timezone.now())
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
 
     meta = {
         'collection': 'services_listing',
