@@ -18,7 +18,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
 from listings.helpers.constants import CATEGORIES
-
+from listings.helpers.listsync import ListSynchronize
 
 from listings.models import (
     ElectronicsListing,
@@ -41,34 +41,6 @@ blob_service_client = BlobServiceClient.from_connection_string(
     'b8NuHRyWRsNR54wyp2lP0a7YGlM//NnhbkQKKv+JhX9E9Z+JXUSX56/sY7q0OxYPjidA5'
     'HL0+AStWzRAYA==;EndpointSuffix=core.windows.net'
 )
-
-
-def listsync(data, _id):
-    obj = {
-        'user_id': data['user_id'],
-        'listing_id': str(_id),
-        'category': data['category'],
-        'title': data['title'],
-        'location': data['location'],
-        'created_at': data['created_at'],
-    }
-
-    # Price range
-    if data.get('salary_range'):
-        obj['salary_range'] = data['salary_range']
-    elif data.get('service_fee'):
-        obj['price'] = data['service_fee']
-    elif data.get('ticket_price'):
-        obj['price'] = data['ticket_price']
-    else:
-        obj['price'] = data['price']
-
-    # Pictures
-    if data.get('pictures'):
-        obj['pictures'] = data['pictures']
-
-    list_sync_entry = ListSync(**obj)
-    list_sync_entry.save()
 
 
 class ListsyncSerializer(serializers.DocumentSerializer):
@@ -107,7 +79,7 @@ class Serializer(serializers.DocumentSerializer):
         '''
         with transaction.atomic():
             listing = self.Meta.model.objects.create(**validated_data)
-            listsync(validated_data, listing.id)
+            ListSynchronize.listsync(validated_data, listing.id)
         return listing
 
     def validate(self, data):
@@ -120,6 +92,7 @@ class Serializer(serializers.DocumentSerializer):
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
+        status = data.get('is_active')
 
         # Validate category and subcategory
         if category != self.Meta.category:
@@ -138,7 +111,7 @@ class Serializer(serializers.DocumentSerializer):
                 raise ValidationError(
                     {'year': f'Year must be between 1886 and {current_year}.'}
                 )
-
+        data['is_active'] = True if status else False
         pictures = data.pop('pictures', [])
         s3_urls = []
 

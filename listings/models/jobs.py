@@ -71,6 +71,9 @@ class JobsListing(Document):
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()
 
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
     meta = {
         'collection': 'jobs_listing',
         'ordering': ['-created_at'],

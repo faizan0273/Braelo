@@ -162,6 +162,9 @@ class ServicesListing(Document):
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()
 
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
     meta = {
         'collection': 'services_listing',
         'ordering': ['-created_at'],

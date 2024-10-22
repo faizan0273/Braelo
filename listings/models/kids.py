@@ -72,11 +72,14 @@ class KidsListing(Document):
     activities_offered = fields.StringField(required=False)
     # Activities
     activity_type = fields.StringField(required=False)
-    equipment_required = fields.BooleanField(default=False)
+    equipment_required = fields.StringField(default=False)
 
     # Timestamps
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()
+
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'kids_listing',

@@ -10,85 +10,66 @@ User saved listings endpoints.
 ---------------------------------------------------
 '''
 
-from rest_framework import generics, status
+from rest_framework import status
+from rest_framework_mongoengine import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 
-from listings.api.listing import Listing
+from listings.api import MODEL_MAP
+from listings.models import SavedItem
+from listings.api.upsert_listing import Listing
+from listings.serializers import SavedItemSerializer
+from listings.helpers.listsync import ListSynchronize
 from listings.helpers import handle_exceptions, response
-from listings.models import SavedItem, ListSync
-from listings.serializers import SavedItemSerializer, ListsyncSerializer
 
 
-def get_user_listings(collection, user_id, offset, limit):
+class SaveListing(Listing):
     '''
-    Retrieves listings from given collection.
-    :param collection: CMongo db collection name. (Dict)
-    :param user_id: user id. (int)
-    :param offset: records to skip. (int)
-    :param limit: records to fetch from db. (int)
-    :return:
+    Save user listed listing.
     '''
-    sort = '-created_at'
-    queryset = (
-        collection.objects.filter(user_id=user_id)
-        .order_by(sort)
-        .skip(offset)
-        .limit(limit)
-    )
-    return list(queryset)
-
-
-class SaveItemAPI(Listing):
 
     queryset = SavedItem.objects.all()
+    permission_classes = [IsAuthenticated]
     serializer_class = SavedItemSerializer
 
 
-class RetrieveSavedListing(generics.ListAPIView):
+# todo un save
+
+
+class FlipListingStatus(generics.CreateAPIView):
+    '''
+    Flip listing status.
+    '''
 
     permission_classes = [IsAuthenticated]
 
     @handle_exceptions
-    def get(self, request, *args, **kwargs):
-        '''
-        GET method to retrieve saved items for the user.
-        :param request: request object. (dict)
-        :return: saved items. (json)
-        '''
-        user_id = request.user.id
+    def post(self, request, **kwargs):
+        req = request.data
+        listing_status = req.get('status')
+        category = req.get('category')
+        listing_id = req.get('listing_id')
+        if not category or not listing_id:
+            raise ValidationError(
+                'Category and listing_id are required parameters.'
+            )
 
-        # Fetch all listings for the user across all categories
-        limit = int(request.query_params.get('limit', 10))
-        offset = int(request.query_params.get('offset', 0))
-        listings = get_user_listings(SavedItem, user_id, offset, limit)
-        serializer = SavedItemSerializer(listings, many=True)
-
+        # Validate category
+        if category not in MODEL_MAP:
+            raise ValidationError(
+                {
+                    'category': f'Invalid category. Choose from {list(MODEL_MAP.keys())}.'
+                }
+            )
+        model = MODEL_MAP[category]
+        ListSynchronize.flip_status(
+            listing_id=listing_id, status=listing_status, model=model
+        )
+        ListSynchronize.flip_status(
+            listing_id=listing_id, status=listing_status
+        )
         return response(
             status=status.HTTP_200_OK,
-            message='Saved items retrieved successfully',
-            data=serializer.data,
+            message='Flipped listing status successfully',
+            data={},
         )
-
-
-class UserListing(generics.CreateAPIView):
-    permission_classes = [IsAuthenticated]
-
-    @handle_exceptions
-    def get(self, request):
-        # Get the logged-in user's ID
-        user_id = request.user.id
-
-        # Fetch all listings for the user across all categories
-        limit = int(request.query_params.get('limit', 10))
-        offset = int(request.query_params.get('offset', 0))
-        listings = get_user_listings(ListSync, user_id, offset, limit)
-        serializer = ListsyncSerializer(listings, many=True)
-
-        return response(
-            status=status.HTTP_200_OK,
-            message='Saved items retrieved successfully',
-            data=serializer.data,
-        )
-
-
-# todo un save, active, inactive

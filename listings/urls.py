@@ -13,7 +13,8 @@ End points registry file.
 from django.urls import path
 
 from listings.api.category import Categories
-from listings.api.listing import (
+from listings.api.fetch_listings import SavedListing, UserListing, LookupListing
+from listings.api.upsert_listing import (
     VehicleAPI,
     RealEstateAPI,
     EventsAPI,
@@ -37,12 +38,7 @@ from listings.api.paginate_listing import (
     PaginateKids,
     PaginateFurniture,
 )
-from listings.api.saved_listing import (
-    SaveItemAPI,
-    RetrieveSavedListing,
-    UserListing,
-)
-from listings.api.search import LookupListing
+from listings.api.saved_listing import SaveListing, FlipListingStatus
 
 urlpatterns = [
     path('jobs', JobsAPI.as_view(), name='jobs-listing'),
@@ -57,10 +53,8 @@ urlpatterns = [
     path('sportshobby', SportsHobbyAPI.as_view(), name='sportshobby-listing'),
     path('electronics', ElectronicsAPI.as_view(), name='electronics-listing'),
     # Saved items
-    path('saved-items', SaveItemAPI.as_view(), name='save-item'),
-    path(
-        'fetch/saveditems', RetrieveSavedListing.as_view(), name='get-save-item'
-    ),
+    path('saved-items', SaveListing.as_view(), name='save-item'),
+    path('fetch/saveditems', SavedListing.as_view(), name='get-save-item'),
     # Pagination's listings
     path(
         'paginate/vehicle', PaginateVehicle.as_view(), name='paginate-vehicle'
@@ -115,4 +109,6 @@ urlpatterns = [
     path('user/all', UserListing.as_view(), name='user-all-listings'),
     # Look up listing
     path('lookup', LookupListing.as_view(), name='user-specific-listings'),
+    # Flip listing status
+    path('flip/status', FlipListingStatus.as_view(), name='flip-status'),
 ]

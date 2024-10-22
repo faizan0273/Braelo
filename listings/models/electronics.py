@@ -19,7 +19,7 @@ class ElectronicsListing(Document):
     Electronics category listings.
     '''
 
-    user_id = fields.StringField(required=True)
+    user_id = fields.StringField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
     pictures = fields.ListField(fields.StringField(), required=False)
@@ -61,6 +61,9 @@ class ElectronicsListing(Document):
     # Timestamps
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()
+
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'electronics_listing',

@@ -24,6 +24,9 @@ class ListSync(Document):
     pictures = fields.ListField(fields.StringField(), required=False)
     created_at = fields.DateTimeField()
 
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
     meta = {
         'collection': 'listsync',
         'ordering': ['-created_at'],

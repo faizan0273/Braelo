@@ -24,6 +24,9 @@ class SavedItem(Document):
     saved_at = fields.DateTimeField()
     created_at = fields.DateTimeField(required=True)
 
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
     meta = {
         'collection': 'saved_listings',
         'ordering': ['-created_at'],

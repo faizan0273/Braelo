@@ -50,6 +50,9 @@ class EventsListing(Document):
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()
 
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
     meta = {
         'collection': 'events_listing',
         'ordering': ['-created_at'],
