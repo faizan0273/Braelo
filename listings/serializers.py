@@ -210,7 +210,7 @@ class SportsHobbySerializer(Serializer):
     class Meta:
         model = SportsHobbyListing
         fields = '__all__'
-        category = 'sport & hobby'
+        category = 'sports & hobby'
 
 
 class FurnitureSerializer(Serializer):

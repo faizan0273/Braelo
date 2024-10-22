@@ -25,7 +25,7 @@ class VehicleListing(Document):
     pictures = fields.ListField(fields.StringField(), required=False)
     title = fields.StringField(required=True)
     description = fields.StringField(required=True)
-    location = fields.PointField(required=True)
+    location = fields.StringField(required=True)
 
     # category based
     make = fields.StringField(required=True)
