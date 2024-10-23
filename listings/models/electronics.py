@@ -19,7 +19,7 @@ class ElectronicsListing(Document):
     Electronics category listings.
     '''
 
-    user_id = fields.StringField()
+    user_id = fields.IntField()
     category = fields.StringField(required=True)
     subcategory = fields.StringField(required=True)
     pictures = fields.ListField(fields.StringField(), required=False)

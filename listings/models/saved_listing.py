@@ -14,7 +14,7 @@ from mongoengine import Document, fields
 
 
 class SavedItem(Document):
-    user_id = fields.IntField(required=True)
+    user_id = fields.IntField()
     listing_id = fields.ObjectIdField(required=True)
     category = fields.StringField(required=True)
     title = fields.StringField(required=True)

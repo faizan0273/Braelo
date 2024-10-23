@@ -13,3 +13,7 @@ users/migrations/
 users/models/__pycache__/
 venv/
 /__pycache__/
+users/serializers/__pycache__
+users/serializers.txt
+listings/serializers/__pycache__
+listings/serializers.txt

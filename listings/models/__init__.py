@@ -9,7 +9,6 @@ Description:
 __init__ file.
 ---------------------------------------------------
 '''
-
 from listings.models.jobs import JobsListing
 from listings.models.kids import KidsListing
 from listings.models.events import EventsListing
