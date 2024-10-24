@@ -10,19 +10,17 @@ User saved listings endpoints.
 ---------------------------------------------------
 """
 
-from django.http import JsonResponse
 from rest_framework import status
-from rest_framework import generics as drf_generics
 from rest_framework.exceptions import ValidationError
-from rest_framework_mongoengine import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework_mongoengine import generics
 
 from listings.api import MODEL_MAP
-from listings.models import SavedItem
 from listings.api.upsert_listing import Listing
-from listings.serializers import SavedItemSerializer,UnsaveItemSerializer
-from listings.helpers.listsync import ListSynchronize
 from listings.helpers import handle_exceptions, response
+from listings.helpers.listsync import ListSynchronize
+from listings.models import SavedItem
+from listings.serializers import SavedItemSerializer
 
 
 class SaveListing(Listing):
@@ -33,9 +31,6 @@ class SaveListing(Listing):
     queryset = SavedItem.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = SavedItemSerializer
-
-
-# todo un save
 
 
 class FlipListingStatus(generics.CreateAPIView):
@@ -77,39 +72,31 @@ class FlipListingStatus(generics.CreateAPIView):
         )
 
 
-class UnsaveUserListing(drf_generics.DestroyAPIView):
+class UnSaveListing(generics.RetrieveDestroyAPIView):
+    '''
+    Delete a listing from the saved listing collection.
+    '''
 
     permission_classes = [IsAuthenticated]
-    serializer_class = UnsaveItemSerializer
 
     @handle_exceptions
     def delete(self, request):
-          
-            serializer = UnsaveItemSerializer(data=request.data)
-            if serializer.is_valid():
-                listing_id = serializer.validated_data['listing_id']
-                listing_unsaved = SavedItem.objects.filter(listing_id=listing_id).delete()
-                if listing_unsaved == 0:
-                    return JsonResponse(
-                        {   "status":status.HTTP_204_NO_CONTENT,
-                            "message": "no listing to delete"},
-                        status=status.HTTP_204_NO_CONTENT,
-                    )
-
-                return JsonResponse(
-                {
-                    "status": status.HTTP_200_OK,
-                    "message": "Saved item deleted successfully",
-                },
+        req = request.data
+        listing_id = req.get('listing_id')
+        if not listing_id:
+            raise ValidationError('listing_id is required.')
+        deleted_count, _ = SavedItem.objects.filter(
+            listing_id=listing_id
+        ).delete()
+        if deleted_count == 0:
+            return response(
                 status=status.HTTP_200_OK,
-                )
-            
-            else:
-             return JsonResponse(
-                {
-                    "status": status.HTTP_400_BAD_REQUEST,
-                    "message": "Validation error",
-                    "errors": serializer.errors,
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-                )
+                message='No listing Found',
+                data={},
+            )
+
+        return response(
+            status=status.HTTP_200_OK,
+            message='Deleted Listing successfully',
+            data={},
+        )

@@ -38,7 +38,11 @@ from listings.api.paginate_listing import (
     PaginateKids,
     PaginateFurniture,
 )
-from listings.api.saved_listing import SaveListing, FlipListingStatus,UnsaveUserListing
+from listings.api.saved_listing import (
+    SaveListing,
+    FlipListingStatus,
+    UnSaveListing,
+)
 
 urlpatterns = [
     path("jobs", JobsAPI.as_view(), name="jobs-listing"),
@@ -52,13 +56,12 @@ urlpatterns = [
     path("realestate", RealEstateAPI.as_view(), name="realestate-listing"),
     path("sportshobby", SportsHobbyAPI.as_view(), name="sportshobby-listing"),
     path("electronics", ElectronicsAPI.as_view(), name="electronics-listing"),
-    # Saved items
-    path('saved-items', SaveListing.as_view(), name='save-item'),
-    path('fetch/saveditems', SavedListing.as_view(), name='get-save-item'),
-    path("unsave/saveditem", UnsaveUserListing.as_view(), name="DeleteUserListing"),
-
     # Pagination's listings
-    path("paginate/vehicle", PaginateVehicle.as_view(), name="paginate-vehicle"),
+    path(
+        "paginate/vehicle",
+        PaginateVehicle.as_view(),
+        name="paginate-vehicle",
+    ),
     path(
         "paginate/realestate",
         PaginateRealEstate.as_view(),
@@ -104,10 +107,13 @@ urlpatterns = [
         PaginateFurniture.as_view(),
         name="paginate-furniture",
     ),
+    # Saved items
+    path('save', SaveListing.as_view(), name='save-listing'),
+    path('saved', SavedListing.as_view(), name='get-save-lisitngs'),
+    path("unsave", UnSaveListing.as_view(), name="unsave-listing"),
     # Searching
-    # User own listings
+    # User own listings & Look up
     path("user/all", UserListing.as_view(), name="user-all-listings"),
-    # Look up listing
     path('lookup', LookupListing.as_view(), name='user-specific-listings'),
     # Flip listing status
     path('flip/status', FlipListingStatus.as_view(), name='flip-status'),

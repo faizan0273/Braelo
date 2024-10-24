@@ -6,13 +6,13 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-Listsync helper class.
+Listing synchronization with listsync collection helper class.
 ---------------------------------------------------
 '''
 
 from mongoengine import DoesNotExist, OperationError
-
 from listings.models import ListSync
+from rest_framework.exceptions import ValidationError
 
 
 class ListSynchronize:
@@ -26,27 +26,38 @@ class ListSynchronize:
         flip status for certain list.
         '''
         try:
-            if model == ListSync:
-                result = model.objects(listing_id=listing_id).update_one(
-                    set__is_active=status
-                )
-            else:
-                result = model.objects(id=listing_id).update_one(
-                    set__is_active=status
-                )
+            filter_by = 'listing_id' if model == ListSync else 'id'
+            result = model.objects(**{filter_by: listing_id}).update_one(
+                set__is_active=status
+            )
             if result == 0:
                 raise DoesNotExist(
-                    f'ListSync: listing_id {listing_id} does not exist'
+                    f'{model.__name__}: listing_id {listing_id} does not exist'
                 )
             return True
         except OperationError as oe:
-            raise OperationError(f"flip status: Operation error: {oe}")
+            raise OperationError(f"flip_status: Operation error: {oe}")
 
     @staticmethod
     def listsync(data, _id):
         '''
         Save listing doc to listsync collection.
         '''
+        required_fields = [
+            'user_id',
+            'category',
+            'title',
+            'location',
+            'created_at',
+        ]
+        missing_fields = [
+            field for field in required_fields if field not in data
+        ]
+
+        if missing_fields:
+            raise ValidationError(
+                f'Missing required fields: {", ".join(missing_fields)}'
+            )
         obj = {
             'user_id': data['user_id'],
             'listing_id': str(_id),
@@ -55,16 +66,14 @@ class ListSynchronize:
             'location': data['location'],
             'created_at': data['created_at'],
         }
-
+        price = (
+            data.get('salary_range')
+            or data.get('service_fee')
+            or data.get('ticket_price')
+            or data.get('price')
+        )
         # Price range
-        if data.get('salary_range'):
-            obj['salary_range'] = data['salary_range']
-        elif data.get('service_fee'):
-            obj['price'] = data['service_fee']
-        elif data.get('ticket_price'):
-            obj['price'] = data['ticket_price']
-        else:
-            obj['price'] = data['price']
+        obj['price'] = price
 
         # Pictures
         if data.get('pictures'):

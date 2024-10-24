@@ -12,3 +12,4 @@ __init__.py file for endpoints imports.
 
 from listings.helpers.helper import *
 from listings.helpers.decorators import *
+from listings.helpers.constants import CATEGORIES
