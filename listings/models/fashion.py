@@ -1,0 +1,81 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Vehicle Listing model mongo based.
+---------------------------------------------------
+'''
+
+from mongoengine import fields, Document
+from listings.helpers.constants import FashionConstants
+
+
+class FashionListing(Document):
+    '''
+    Fashion category listings.
+    '''
+
+    user_id = fields.IntField()
+    category = fields.StringField(required=True)
+    subcategory = fields.StringField(required=True)
+    pictures = fields.ListField(fields.StringField(), required=False)
+    title = fields.StringField(required=True)
+    description = fields.StringField(required=True)
+    location = fields.StringField(required=True)
+
+    # category based
+    # fashion attributes
+    brand = fields.StringField(required=True)
+    size = fields.StringField(required=True)
+    color = fields.StringField(required=True)
+    material_type = fields.StringField(required=True)
+
+    gender = fields.StringField(required=False)
+    # todo why two sizes
+    condition = fields.StringField(
+        choices=FashionConstants.CONDITION, required=True
+    )
+    donation = fields.StringField(
+        choices=FashionConstants.DONATION, required=True
+    )
+
+    price = fields.DecimalField(required=True)
+    negotiable = fields.StringField(
+        choices=FashionConstants.NEGOTIABLE, required=True
+    )
+
+    # Shoes
+    shoe_type = fields.StringField(required=False)
+
+    # Accessories
+    accessories_type = fields.StringField(required=False)
+
+    # Beauty products
+    skin_type = fields.StringField(required=False)
+    expiry_date = fields.DateTimeField(required=False)
+
+    # Jewelry
+    metal_type = fields.StringField(required=False)
+    gem_stone = fields.StringField(required=False)
+
+    # Timestamps
+    created_at = fields.DateTimeField()
+    updated_at = fields.DateTimeField()
+
+    # Status
+    is_active = fields.BooleanField(required=True, default=True)
+
+    meta = {
+        'collection': 'fashion_listing',
+        'ordering': ['-created_at'],
+        'indexes': [
+            {'fields': ['title']},
+            {'fields': ['location']},
+            {'fields': ['category']},
+            {'fields': ['subcategory']},
+        ],
+    }
