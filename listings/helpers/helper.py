@@ -11,6 +11,7 @@ Helper functions file.
 '''
 
 from django.http import JsonResponse
+from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
 def get_error_details(error_info):
@@ -38,6 +39,17 @@ def response(status, message, data, error=None):
     :param message: Information about response. (dict)
     :return: Response object with formatted error details.
     '''
+
+    def clean_data(data):
+        resp = {}
+        for key, value in data.items():
+            if not isinstance(value, InMemoryUploadedFile):
+                resp[key] = value
+            else:
+                resp[key] = value.name
+        return resp
+
+    data = clean_data(data)
 
     resp = {
         'status': status,
