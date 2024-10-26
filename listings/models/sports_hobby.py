@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import SportsHobbyConstants
+from mongoengine import Document
+from listings.helpers.constants import SportsHobbyConstants as SHC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
 
 
 class SportsHobbyListing(Document):
@@ -19,33 +27,29 @@ class SportsHobbyListing(Document):
     Sports & Hobby category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # Specific fields for Sports & Hobby
-    item_type = fields.StringField(required=True)
-    condition = fields.StringField(
-        choices=SportsHobbyConstants.CONDITION, required=True
-    )
-    activity_type = fields.StringField(required=False)
+    item_type = StringField(required=True)
+    condition = StringField(choices=SHC.CONDITION, required=True)
+    activity_type = StringField(required=False)
 
     # Pricing and Negotiation
-    price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=SportsHobbyConstants.NEGOTIABLE, required=True
-    )
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=SHC.NEGOTIABLE, required=True)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'sports_hobby_listing',

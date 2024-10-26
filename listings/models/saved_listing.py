@@ -10,22 +10,31 @@ Serializer file for Listings based endpoints
 ---------------------------------------------------
 '''
 
-from mongoengine import Document, fields
+from mongoengine import Document
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+    ObjectIdField,
+)
 
 
 class SavedItem(Document):
-    user_id = fields.IntField()
-    listing_id = fields.ObjectIdField(required=True)
-    category = fields.StringField(required=True)
-    title = fields.StringField(required=True)
-    location = fields.StringField(required=True)
-    price = fields.DecimalField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    saved_at = fields.DateTimeField()
-    created_at = fields.DateTimeField(required=True)
+    user_id = IntField()
+    listing_id = ObjectIdField(required=True)
+    category = StringField(required=True)
+    title = StringField(required=True)
+    location = StringField(required=True)
+    price = DecimalField(required=True)
+    pictures = ListField(required=True)
+    saved_at = DateTimeField()
+    created_at = DateTimeField(required=True)
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'saved_listings',

@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import FurnitureConstants
+from mongoengine import Document
+from listings.helpers.constants import FurnitureConstants as FC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
 
 
 class FurnitureListing(Document):
@@ -19,57 +27,52 @@ class FurnitureListing(Document):
     Furniture category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # category based
-    material_type = fields.StringField(required=True)
-    color = fields.StringField(required=True)
-    dimensions = fields.StringField(required=True)
-    seating_capacity = fields.StringField(required=False)
+    material_type = StringField(required=True)
+    color = StringField(required=True)
+    dimensions = StringField(required=True)
 
-    upholstery_material = fields.StringField(required=False)
-    condition = fields.StringField(
-        choices=FurnitureConstants.CONDITION, required=True
-    )
-    donation = fields.StringField(
-        choices=FurnitureConstants.DONATION, required=True
-    )
+    condition = StringField(choices=FC.CONDITION, required=True)
+    donation = StringField(choices=FC.DONATION, required=True)
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=FC.NEGOTIABLE, required=True)
 
-    price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=FurnitureConstants.NEGOTIABLE, required=True
-    )
+    # Couch
+    seating_capacity = StringField(required=False)
+    upholstery_material = StringField(required=False)
 
     # Tables
-    table_type = fields.StringField(required=False)
-    shapes = fields.StringField(required=False)
+    table_type = StringField(required=False)
+    shapes = StringField(required=False)
 
     # Chairs
-    chair_type = fields.StringField(required=False)
-    weight_capacity = fields.StringField(required=False)
+    chair_type = StringField(required=False)
+    weight_capacity = StringField(required=False)
 
     # Bed
-    bed_size = fields.StringField(required=False)
-    mattress_included = fields.StringField(
-        choices=FurnitureConstants.MATTRESS_INCLUDED, required=False
+    bed_size = StringField(required=False)
+    mattress_included = StringField(
+        choices=FC.MATTRESS_INCLUDED, required=False
     )
 
     # Custom furniture
-    customization = fields.StringField(required=False)
-    lead_time = fields.StringField(required=False)
+    customization = StringField(required=False)
+    lead_time = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'furniture_listing',

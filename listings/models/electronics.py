@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import ElectronicsConstants
+from mongoengine import Document
+from listings.helpers.constants import ElectronicsConstants as EC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
 
 
 class ElectronicsListing(Document):
@@ -19,51 +27,50 @@ class ElectronicsListing(Document):
     Electronics category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # category based
-    brand = fields.StringField(required=True)
-    model = fields.StringField(required=True)
-    warranty = fields.StringField(required=True)
-    operating_system = fields.StringField(required=False)
-    carrier_lock = fields.StringField(required=False)
-    condition = fields.StringField(
-        choices=ElectronicsConstants.CONDITION, required=True
-    )
-    price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=ElectronicsConstants.NEGOTIABLE, required=True
-    )
+    brand = StringField(required=True)
+    model = StringField(required=True)
+    warranty = StringField(required=True)
+
+    condition = StringField(choices=EC.CONDITION, required=True)
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=EC.NEGOTIABLE, required=True)
+
+    # Smartphone
+    operating_system = StringField(required=False)
+    carrier_lock = StringField(required=False)
 
     # Computer
-    processor = fields.StringField(required=False)
-    ram = fields.StringField(required=False)
-    storage_type = fields.StringField(required=False)
+    processor = StringField(required=False)
+    ram = StringField(required=False)
+    storage_type = StringField(required=False)
 
     # Appliances
-    energy_rating = fields.StringField(required=False)
-    dimension = fields.StringField(required=False)
+    energy_rating = StringField(required=False)
+    dimension = StringField(required=False)
 
     # Games
-    platforms = fields.StringField(required=False)
-    jenry = fields.StringField(required=False)
+    platforms = StringField(required=False)
+    jenry = StringField(required=False)
 
     # Services and parts
-    part_type = fields.StringField(required=False)
-    compatible_model = fields.StringField(required=False)
+    part_type = StringField(required=False)
+    compatible_model = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'electronics_listing',

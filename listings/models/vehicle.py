@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import VehicleConstants
+from mongoengine import Document
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
+from listings.helpers.constants import VehicleConstants as VC
 
 
 class VehicleListing(Document):
@@ -19,52 +27,55 @@ class VehicleListing(Document):
     Vehicle category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # category based
-    make = fields.StringField(required=True)
-    model = fields.StringField(required=True)
-    year = fields.IntField(required=True)
-    color = fields.StringField(required=True)
-    mileage = fields.IntField(required=False)
-    fuel = fields.FloatField(required=False)
-    price = fields.DecimalField(required=True)
-    transmission = fields.StringField(
-        choices=VehicleConstants.TRANSMISSION,
-        required=False,
-        default=None,
-    )
-    condition = fields.StringField(
-        choices=VehicleConstants.CONDITION, required=True
-    )
-    number_of_doors = fields.StringField(
-        choices=VehicleConstants.NUMBER_OF_DOORS, required=False
-    )
-    purpose = fields.StringField(
-        choices=VehicleConstants.PURPOSE, required=False
-    )
-    negotiable = fields.StringField(
-        choices=VehicleConstants.NEGOTIABLE, required=True
-    )
-    Load_capacity = fields.IntField(required=False)
-    type = fields.IntField(required=False)
-    length = fields.IntField(required=False)
-    passenger_capacity = fields.IntField(required=False)
-    vehicle_type = fields.StringField(required=False)
-    rental_duration = fields.StringField(required=False)
+
+    make = StringField(required=True)
+    model = StringField(required=True)
+    year = IntField(required=True)
+    color = StringField(required=True)
+    mileage = IntField(required=False)
+    fuel_type = StringField(required=False)
+
+    transmission = StringField(choices=VC.TRANSMISSION, required=False)
+    condition = StringField(choices=VC.CONDITION, required=True)
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=VC.NEGOTIABLE, required=True)
+
+    # Cars
+    number_of_doors = StringField(choices=VC.NUMBER_OF_DOORS, required=False)
+    purpose = StringField(choices=VC.PURPOSE, required=False)
+
+    # Truck
+    Load_capacity = IntField(required=False)
+
+    # Bike
+    bike_type = StringField(required=False)
+    # Boat
+    boat_length = IntField(required=False)
+    # Vans
+    passenger_capacity = IntField(required=False)
+    # Parts and Accessories
+    part_name = StringField(required=False)
+    # Rentals
+    for_sale = StringField(choices=VC.FOR_SALE, required=False)
+    rentals = StringField(choices=VC.RENTALS, required=False)
+    vehicle_type = StringField(required=False)
+    rental_duration = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'vehicle_listing',

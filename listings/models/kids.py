@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import KidsConstants
+from mongoengine import Document
+from listings.helpers.constants import KidsConstants as KC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
 
 
 class KidsListing(Document):
@@ -19,67 +27,60 @@ class KidsListing(Document):
     Kids category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # Price-related fields
-    price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=KidsConstants.NEGOTIABLE, required=True
-    )
-
-    # Donation
-    donation = fields.StringField(choices=KidsConstants.DONATION, required=True)
+    donation = StringField(choices=KC.DONATION, required=True)
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=KC.NEGOTIABLE, required=True)
 
     # Common fields for subcategories
-    age_range = fields.StringField(required=True)
-    expiry_date = fields.DateTimeField(required=False)
-    duration = fields.StringField(required=False)
-    certification = fields.StringField(
-        choices=KidsConstants.CERTIFICATION, required=False
-    )
+    age_range = StringField(required=True)
+    expiry_date = DateTimeField(required=False)
+    duration = StringField(required=False)
+    certification = StringField(choices=KC.CERTIFICATION, required=False)
 
     # Specific fields for subcategories
     # Health
-    product_type = fields.StringField(required=False)
+    product_type = StringField(required=False)
     # Toys
-    toy_type = fields.StringField(required=False)
-    safety_standard = fields.StringField(required=False)
+    toy_type = StringField(required=False)
+    safety_standard = StringField(required=False)
 
     # Transport
-    vehicle_type = fields.StringField(required=False)
-    weight_capacity = fields.StringField(required=False)
+    vehicle_type = StringField(required=False)
+    weight_capacity = StringField(required=False)
 
     # Accessories Type
-    accessories_type = fields.StringField(required=False)
+    accessories_type = StringField(required=False)
 
     # Classes
-    subject = fields.StringField(required=False)
-    experience_level = fields.StringField(required=False)
-    no_of_children = fields.IntField(required=False)
+    subject = StringField(required=False)
+    experience_level = StringField(required=False)
 
     # Schools/Daycare/Babysitter
-    babysitter_experience = fields.StringField(required=False)
-    grades = fields.StringField(
-        choices=KidsConstants.KIDS_GRADES, required=False
-    )
+    babysitter_experience = StringField(required=False)
+    grades = StringField(choices=KC.KIDS_GRADES, required=False)
+    no_of_children = IntField(required=False)
+    age_group = StringField(required=False)
     # After school program
-    activities_offered = fields.StringField(required=False)
+    activities_offered = StringField(required=False)
     # Activities
-    activity_type = fields.StringField(required=False)
-    equipment_required = fields.StringField(default=False)
+    activity_type = StringField(required=False)
+    equipment_required = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'kids_listing',
