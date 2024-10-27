@@ -49,7 +49,10 @@ def response(status, message, data, error=None):
                 resp[key] = value.name
         return resp
 
-    data = clean_data(data)
+    if isinstance(data, list):
+        data = [clean_data(item) for item in data]
+    elif isinstance(data, dict):
+        data = clean_data(data)
 
     resp = {
         'status': status,
