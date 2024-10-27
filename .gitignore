@@ -2,6 +2,7 @@
 braelo-7a93f-firebase-adminsdk-dq0of-061276a792.json
 config/__pycache__/
 db.sqlite3
+Braelo/db.sqlite3
 listings/__pycache__/
 listings/api/__pycache__/
 listings/helpers/__pycache__/
