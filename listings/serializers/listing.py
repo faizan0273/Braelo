@@ -162,7 +162,7 @@ class ServicesSerializer(Serializer):
     class Meta:
         model = ServicesListing
         fields = '__all__'
-        category = 'events'
+        category = 'services'
 
 
 class SportsHobbySerializer(Serializer):
