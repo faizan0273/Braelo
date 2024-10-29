@@ -113,48 +113,48 @@ class ElectronicsSerializer(Serializer):
     class Meta:
         model = ElectronicsListing
         fields = '__all__'
-        category = 'electronics'
+        category = 'Electronics'
 
 
 class EventsSerializer(Serializer):
     class Meta:
         model = EventsListing
         fields = '__all__'
-        category = 'events'
+        category = 'Events'
 
 
 class FashionSerializer(Serializer):
     class Meta:
         model = FashionListing
         fields = '__all__'
-        category = 'fashion'
+        category = 'Fashion'
 
 
 class FurnitureSerializer(Serializer):
     class Meta:
         model = FurnitureListing
         fields = '__all__'
-        category = 'furniture'
+        category = 'Furniture'
 
 
 class JobsSerializer(Serializer):
     class Meta:
         model = JobsListing
         fields = '__all__'
-        category = 'jobs'
+        category = 'Jobs'
 
 
 class KidsSerializer(Serializer):
     class Meta:
         model = KidsListing
         fields = '__all__'
-        category = 'kids'
+        category = 'Kids'
 
 
 class RealEstateSerializer(Serializer):
     class Meta:
         model = RealEstateListing
-        category = 'real estate'
+        category = 'Real Estate'
         fields = '__all__'
 
 
@@ -162,18 +162,18 @@ class ServicesSerializer(Serializer):
     class Meta:
         model = ServicesListing
         fields = '__all__'
-        category = 'services'
+        category = 'Services'
 
 
 class SportsHobbySerializer(Serializer):
     class Meta:
         model = SportsHobbyListing
         fields = '__all__'
-        category = 'sports & hobby'
+        category = 'Sports & Hobby'
 
 
 class VehicleSerializer(Serializer):
     class Meta:
         model = VehicleListing
         fields = '__all__'
-        category = 'vehicles'
+        category = 'Vehicles'

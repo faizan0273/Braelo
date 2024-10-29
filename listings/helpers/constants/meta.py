@@ -87,16 +87,16 @@ SPORTS_HOBBY = [
 
 # Categories
 CATEGORIES = {
-    'vehicles': VEHICLES,
-    'real estate': REAL_ESTATE,
-    'services': Services,
-    'events': EVENTS,
-    'jobs': JOBS,
-    'electronics': ELECTRONICS,
-    'furniture': FURNITURE,
-    'fashion': FASHION,
-    'kids': KIDS,
-    'sports & hobby': SPORTS_HOBBY,
+    'Vehicles': VEHICLES,
+    'Real Estate': REAL_ESTATE,
+    'Services': Services,
+    'Events': EVENTS,
+    'Jobs': JOBS,
+    'Electronics': ELECTRONICS,
+    'Furniture': FURNITURE,
+    'Fashion': FASHION,
+    'Kids': KIDS,
+    'Sports & Hobby': SPORTS_HOBBY,
 }
 
 # GENRALS

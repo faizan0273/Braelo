@@ -81,7 +81,7 @@ class ServicesConstants:
         'FINANCE',
         'OTHER (SPECIFY)',
     ]
-    SERVICE_AVAILABLE = ['IN-PERSON', 'REMOTELY', 'BOTH']
+    SERVICE_AVAILABLE = ['IN-PERSON', 'ONLINE', 'BOTH']
 
     # HOME AUTOMATION
     AUTOMATION_SERVICES = [
@@ -151,7 +151,7 @@ class ServicesConstants:
     # MOVING & PACKERS
     MOVING_SERVICE = [
         'LOCAL',
-        'LONG-DISTANCE',
+        'LOCAL-DISTANCE',
         'RESIDENTIAL',
         'COMMERCIAL',
         'STORAGE',

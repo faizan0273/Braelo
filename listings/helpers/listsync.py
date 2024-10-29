@@ -67,12 +67,14 @@ class ListSynchronize:
             'created_at': data['created_at'],
         }
         price = (
-            data.get('salary_range')
-            or data.get('service_fee')
+            data.get('service_fee')
             or data.get('ticket_price')
             or data.get('price')
         )
         # Price range
+        if(data.get('salary_range')):
+            obj['salary_range']= data['salary_range']
+
         obj['price'] = price
 
         # Pictures

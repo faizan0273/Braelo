@@ -49,7 +49,6 @@ class EventsListing(Document):
     industry_focus = IntField(required=False)
     speaker_list = FloatField(required=False)
     # Concert
-    performer = IntField(required=False)
     genre = StringField(required=False)
     # festivals
     no_of_days = IntField(required=False)

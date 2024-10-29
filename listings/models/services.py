@@ -38,20 +38,20 @@ class ServicesListing(Document):
     location = StringField(required=True)
 
     other = StringField(required=False)
-    certifications = StringField(max_length=2, required=False, default=None)
+    certifications = StringField(choices=SC.CERTIFICATION, required=False, default=None)
     service_fee = DecimalField(required=True)
     negotiable = StringField(choices=SC.NEGOTIABLE, required=False)
 
     # category based
-    service_type = StringField(required=True)
+    service_type = StringField(required=False)
     availability = IntField(required=True)
-    pricing_structure = IntField(required=True)
-    service_area = StringField(required=True)
+    pricing_structure = IntField(required=False)
+    service_area = StringField(required=False)
 
     # Cleaning
     cleaning_type = StringField(required=False)
     insurance = StringField(choices=SC.INSURANCE, required=False)
-    payment_options = StringField(choices=SC.PAYMENT_OPTION, required=True)
+    payment_options = StringField(choices=SC.PAYMENT_OPTION, required=False)
     cleaning_services = StringField(
         choices=SC.CLEANING_SERVICES, required=False
     )
@@ -115,6 +115,9 @@ class ServicesListing(Document):
     expertise_level = StringField(choices=SC.EXPERTISE_LEVEL, required=False)
     technology_services = StringField(
         choices=SC.TECHNOLOGY_SERVICES, required=False
+    )
+    service_delivery_method = StringField(
+        choices=SC.DELIVERY_METHOD , required=False
     )
     # utilize: offered services in technology delivery method section
     ongoing_support_maintenance = StringField(
