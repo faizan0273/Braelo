@@ -13,3 +13,4 @@ __init__ file.
 from listings.serializers.listing import *
 from listings.serializers.listsync import *
 from listings.serializers.saved_listings import *
+from listings.serializers.report_review import *

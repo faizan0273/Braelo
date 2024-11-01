@@ -22,3 +22,6 @@ from listings.models.sports_hobby import SportsHobbyListing
 
 from listings.models.listsync import ListSync
 from listings.models.saved_listing import SavedItem
+
+from listings.models.report_issue import ReportIssue
+from listings.models.review import Review

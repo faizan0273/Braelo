@@ -90,7 +90,7 @@ class UnSaveListing(generics.RetrieveDestroyAPIView):
         ).delete()
         if deleted_count == 0:
             return response(
-                status=status.HTTP_200_OK,
+                status=status.HTTP_204_NO_CONTENT,
                 message='No listing Found',
                 data={},
             )

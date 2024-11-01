@@ -1,4 +1,4 @@
-'''
+"""
 ---------------------------------------------------
 Project:        Braelo
 Date:           Aug 14, 2024
@@ -8,7 +8,7 @@ Author:         Hamid
 Description:
 __init__.py file for endpoints imports.
 ---------------------------------------------------
-'''
+"""
 
 from listings.api.category import *
 from listings.models import (
@@ -25,14 +25,14 @@ from listings.models import (
 )
 
 MODEL_MAP = {
-    'vehicles': VehicleListing,
-    'real estate': RealEstateListing,
-    'services': ServicesListing,
-    'events': EventsListing,
-    'jobs': JobsListing,
-    'electronics': ElectronicsListing,
-    'furniture': FurnitureListing,
-    'fashion': FashionListing,
-    'kids': KidsListing,
-    'sports & hobby': SportsHobbyListing,
+    "Vehicles": VehicleListing,
+    "Real Estate": RealEstateListing,
+    "Services": ServicesListing,
+    "Events": EventsListing,
+    "Jobs": JobsListing,
+    "Electronics": ElectronicsListing,
+    "Furniture": FurnitureListing,
+    "Fashion": FashionListing,
+    "Kids": KidsListing,
+    "Sports & Hobby": SportsHobbyListing,
 }
