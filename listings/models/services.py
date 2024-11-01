@@ -1,4 +1,4 @@
-"""
+'''
 ---------------------------------------------------
 Project:        Braelo
 Date:           Aug 14, 2024
@@ -8,7 +8,7 @@ Author:         Hamid
 Description:
 Vehicle Listing model mongo based.
 ---------------------------------------------------
-"""
+'''
 
 from tokenize import String
 
@@ -25,9 +25,9 @@ from mongoengine.fields import (
 
 
 class ServicesListing(Document):
-    """
+    '''
     Service category listings.
-    """
+    '''
 
     user_id = IntField()
     category = StringField(required=True)
@@ -217,12 +217,12 @@ class ServicesListing(Document):
     is_active = BooleanField(required=True, default=True)
 
     meta = {
-        "collection": "services_listing",
-        "ordering": ["-created_at"],
-        "indexes": [
-            {"fields": ["title"]},
-            {"fields": ["location"]},
-            {"fields": ["category"]},
-            {"fields": ["subcategory"]},
+        'collection': 'services_listing',
+        'ordering': ['-created_at'],
+        'indexes': [
+            {'fields': ['title']},
+            {'fields': ['location']},
+            {'fields': ['category']},
+            {'fields': ['subcategory']},
         ],
     }

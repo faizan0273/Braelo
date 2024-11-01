@@ -1,4 +1,4 @@
-"""
+'''
 ---------------------------------------------------
 Project:        Braelo
 Date:           Aug 14, 2024
@@ -8,7 +8,7 @@ Author:         Hamid
 Description:
 User saved listings endpoints.
 ---------------------------------------------------
-"""
+'''
 
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -67,7 +67,7 @@ class FlipListingStatus(generics.CreateAPIView):
         )
         return response(
             status=status.HTTP_200_OK,
-            message="Flipped listing status successfully",
+            message='Flipped listing status successfully',
             data={},
         )
 
