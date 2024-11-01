@@ -11,7 +11,14 @@ Real Estate Listing model mongo-based.
 '''
 
 from mongoengine import fields, Document
-from listings.helpers.constants import RealEstateConstants
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    FloatField,
+)
+from listings.helpers.constants import RealEstateConstants as REC
 
 
 class RealEstateListing(Document):
@@ -19,85 +26,78 @@ class RealEstateListing(Document):
     Real Estate category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=False)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
-    # Category based
-    property_type = fields.StringField(required=True)
-    bedrooms = fields.IntField(min_value=0, required=True)
-    bathrooms = fields.IntField(min_value=0, required=True)
-    year_built = fields.IntField(min_value=1800, required=False)
-    size = fields.FloatField(required=True)
-    condition = fields.StringField(
-        choices=RealEstateConstants.CONDITION, required=True
+    # Common Start fields
+    property_type = StringField(required=True)
+    bedrooms = IntField(min_value=0, required=True)
+    bathrooms = IntField(min_value=0, required=True)
+    year_built = IntField(min_value=1800, required=False)
+    size = FloatField(required=True)
+    condition = StringField(choices=REC.CONDITION, required=True)
+    furnished = StringField(choices=REC.FURNISHED, default='UNFURNISHED')
+
+    # Last
+    other = StringField(required=False)
+    lease_managed_by = StringField(choices=REC.LEASE_MANAGED_BY, required=False)
+    price = FloatField(required=True)
+    negotiable = StringField(choices=REC.NEGOTIABLE, required=True)
+
+    # Category Based
+    # Apartment & House & Mobile Home
+    basement = StringField(choices=REC.BASEMENT, required=False)
+    # Common in commercial
+    parking_and_cost = StringField(required=False)
+    lease_terms = StringField(choices=REC.LEASE_TERMS, required=False)
+    maintenance_policy = StringField(required=False)
+    credit_score = StringField(choices=REC.CREDIT_SCORE_REQ, required=False)
+    utilities_included = StringField(choices=REC.UTILITIES, required=False)
+    access_to_amenities = StringField(choices=REC.AMENITIES, required=False)
+    additional_fees = StringField(choices=REC.ADDITIONAL_FEES, required=False)
+    pet_policy = StringField(choices=REC.PET_POLICY, required=False)
+    renters_insurance_requirement = StringField(
+        choices=REC.RENTERS_INSURANCE, required=False
     )
-    basement = fields.StringField(
-        choices=RealEstateConstants.BASEMENT, required=False
+    security_measures = StringField(
+        choices=REC.SECURITY_MEASURE, required=False
     )
-    furnished = fields.StringField(
-        choices=RealEstateConstants.FURNISHED, default='UNFURNISHED'
+
+    # Land
+    land_type = StringField(required=False)
+
+    # commercial
+    hoa_fees = IntField(min_value=1)
+    number_of_floors = IntField(min_value=1, required=False)
+
+    # Bedroom
+    rent_price = StringField(required=False)
+    security_deposit = IntField(min_value=1, required=False)
+    house_rules = StringField(required=False)
+    location_details = StringField(required=False)
+    availability_dates = StringField(required=False)
+    number_of_occupants = StringField(required=False)
+    bathroom_type = StringField(choices=REC.BATHROOM_TYPE, required=False)
+    kitchen_access_type = StringField(
+        choices=REC.KITCHEN_ACCESS_TYPE, required=False
     )
-    parking_and_cost = fields.StringField(required=False)
-    lease_terms = fields.StringField(
-        choices=RealEstateConstants.LEASE_TERMS, required=False
+    laundry_facilities = StringField(
+        choices=REC.LAUNDRY_FACILITIES, required=False
     )
-    maintenance_policy = fields.StringField(required=False)
-    credit_score = fields.StringField(
-        choices=RealEstateConstants.CREDIT_SCORE_REQ, required=False
+    bedroom_additional_Fees = StringField(
+        choices=REC.BEDROOM_ADDITIONAL_FEES, required=False
     )
-    utilities_included = fields.ListField(
-        fields.StringField(choices=RealEstateConstants.UTILITIES),
-        required=False,
+    smoking_policy = StringField(choices=REC.SMOKING_POLICY, required=False)
+    security_features = StringField(
+        choices=REC.SECURITY_FEATURES, required=False
     )
-    access_to_amenities = fields.ListField(
-        fields.StringField(choices=RealEstateConstants.AMENITIES),
-        required=False,
-    )
-    additional_fees = fields.StringField(
-        choices=RealEstateConstants.ADDITIONAL_FEES, required=False
-    )
-    pet_policy = fields.StringField(
-        choices=RealEstateConstants.PET_POLICY, required=False
-    )
-    renters_insurance_requirement = fields.StringField(
-        choices=RealEstateConstants.RENTERS_INSURANCE, default='NOT REQUIRED'
-    )
-    security_measures = fields.ListField(
-        fields.StringField(choices=RealEstateConstants.SECURITY_MEASURE),
-        required=False,
-    )
-    other = fields.StringField(required=False)
-    lease_managed_by = fields.StringField(
-        choices=RealEstateConstants.LEASE_MANAGED_BY, required=False
-    )
-    price = fields.FloatField(required=True)
-    negotiable = fields.StringField(
-        choices=RealEstateConstants.NEGOTIABLE, required=True
-    )
-    land_type = fields.StringField(required=False)
-    number_of_floors = fields.IntField(min_value=0, required=False)
-    bathroom_type = fields.StringField(
-        choices=RealEstateConstants.BATHROOM_TYPE, required=False
-    )
-    kitchen_access_type = fields.StringField(
-        choices=RealEstateConstants.KITCHEN_ACCESS_TYPE, required=False
-    )
-    laundry_facilities = fields.StringField(
-        choices=RealEstateConstants.LAUNDRY_FACILITIES, required=False
-    )
-    smoking_policy = fields.StringField(
-        choices=RealEstateConstants.SMOKING_POLICY, required=False
-    )
-    security_features = fields.StringField(
-        choices=RealEstateConstants.SECURITY_FEATURES, required=False
-    )
-    preferred_occupants = fields.StringField(
-        choices=RealEstateConstants.PREFERRED_OCCUPANTS, required=False
+    preferred_occupants = StringField(
+        choices=REC.PREFERRED_OCCUPANTS, required=False
     )
 
     # Timestamps
@@ -105,7 +105,7 @@ class RealEstateListing(Document):
     updated_at = fields.DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         "collection": "real_estate_listing",

@@ -32,7 +32,6 @@ class ServicesConstants:
     CERTIFICATION = CONFIRMATION
     FURNITURE_SELECTION = CONFIRMATION
     RENDERING_VISUALIZING = CONFIRMATION
-    HOMEMADE_SERVICE = CONFIRMATION
     MENU_CUSTOMIZATION = CONFIRMATION
     CONDITION = ['USED', 'NEW']
 
@@ -76,13 +75,13 @@ class ServicesConstants:
     SEASONAL_SERVICES = ['SEASONAL SERVICES', 'ONE-TIME SERVICES']
 
     # CONSULTANCY
-    CONSULTANCY_LANDSCAPING_SERVICES = [
+    CONSULTANCY_SERVICES = [
         'BUSINESS',
         'MARKETING',
         'FINANCE',
         'OTHER (SPECIFY)',
     ]
-    SERVICE_AVAILABLE = ['IN-PERSON', 'REMOTELY', 'BOTH']
+    SERVICE_AVAILABLE = ['IN-PERSON', 'ONLINE', 'BOTH']
 
     # HOME AUTOMATION
     AUTOMATION_SERVICES = [
@@ -141,3 +140,85 @@ class ServicesConstants:
     ]
     NEGOTIABLE = CONFIRMATION
     FREE_APPOINTMENTS = CONFIRMATION
+    EVENT_SPECIFIC_SERVICES = [
+        'PLANNING',
+        'CATERING',
+        'DECORATION',
+        'COORDINATION',
+        'OTHER (SPECIFY)',
+    ]
+
+    # MOVING & PACKERS
+    MOVING_SERVICE = [
+        'LOCAL',
+        'LOCAL-DISTANCE',
+        'RESIDENTIAL',
+        'COMMERCIAL',
+        'STORAGE',
+        'INTERNATIONALLY',
+    ]
+
+    # FARM FRESH FOOD
+    PRODUCTS_AVAILABLE = [
+        'VEGETABLES',
+        'FRUITS',
+        'DAIRY',
+        'FAIR',
+        'LUNCH',
+        'COLONIAL COFFEE',
+        'OTHER (SPECIFY)',
+    ]
+
+    # PHOTOGRAPHY AND VIDEOGRAPHY
+    PHOTOGRAPHY_SERVICES = [
+        'WEDDINGS',
+        'CORPORATE',
+        'PORTRAIT',
+        'COMMERCIAL',
+        'DRONE',
+        'OTHER (SPECIFY)',
+    ]
+
+    # INTERIOR DESIGN
+    INTERIOR_DESIGN_SERVICES = [
+        'RESIDENTIAL',
+        'COMMERCIAL',
+        'VIRTUAL',
+        'OTHER (SPECIFY)',
+    ]
+
+    # HOMEMADE FOOD
+    HOMEMADE_SERVICE = [
+        'DELIVERY',
+        'PICKUP',
+        'AT-HOME PREP',
+        'ALL OF THE ABOVE',
+    ]
+    AVAILABLE_HOMEMADE_FOOD = [
+        'BAKED GOODS',
+        'MEALS',
+        'SNACKS',
+        'FOOD PREP',
+        'PERSONAL CHEF',
+        'OTHER (SPECIFY)',
+    ]
+
+    # INSURANCE
+    INSURANCE_SERVICES = [
+        'HEALTH',
+        'AUTO',
+        'HOME',
+        'LIFE',
+        'BUSINESS',
+        'OTHER (SPECIFY)',
+    ]
+
+    # HOME CARE
+    HOME_CARE_SERVICES = [
+        'NURSING',
+        'PHYSICAL THERAPY',
+        'COMPANIONSHIP',
+        'PERSONAL CARE',
+        'HOME MAKING',
+        'OTHER (SPECIFY)',
+    ]

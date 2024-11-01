@@ -10,8 +10,16 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import FashionConstants
+from mongoengine import Document
+from listings.helpers.constants import FashionConstants as FC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+)
 
 
 class FashionListing(Document):
@@ -19,55 +27,49 @@ class FashionListing(Document):
     Fashion category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # category based
     # fashion attributes
-    brand = fields.StringField(required=True)
-    size = fields.StringField(required=True)
-    color = fields.StringField(required=True)
-    material_type = fields.StringField(required=True)
+    brand = StringField(required=True)
+    size = StringField(required=True)
+    color = StringField(required=True)
+    material_type = StringField(required=True)
 
-    gender = fields.StringField(required=False)
+    gender = StringField(required=False)
     # todo why two sizes
-    condition = fields.StringField(
-        choices=FashionConstants.CONDITION, required=True
-    )
-    donation = fields.StringField(
-        choices=FashionConstants.DONATION, required=True
-    )
+    condition = StringField(choices=FC.CONDITION, required=True)
+    donation = StringField(choices=FC.DONATION, required=True)
 
-    price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=FashionConstants.NEGOTIABLE, required=True
-    )
+    price = DecimalField(required=True)
+    negotiable = StringField(choices=FC.NEGOTIABLE, required=True)
 
     # Shoes
-    shoe_type = fields.StringField(required=False)
+    shoe_type = StringField(required=False)
 
     # Accessories
-    accessories_type = fields.StringField(required=False)
+    accessories_type = StringField(required=False)
 
     # Beauty products
-    skin_type = fields.StringField(required=False)
-    expiry_date = fields.DateTimeField(required=False)
+    skin_type = StringField(required=False)
+    expiry_date = DateTimeField(required=False)
 
     # Jewelry
-    metal_type = fields.StringField(required=False)
-    gem_stone = fields.StringField(required=False)
+    metal_type = StringField(required=False)
+    gem_stone = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'fashion_listing',

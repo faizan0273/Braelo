@@ -10,8 +10,17 @@ Vehicle Listing model mongo based.
 ---------------------------------------------------
 '''
 
-from mongoengine import fields, Document
-from listings.helpers.constants import EventConstants
+from mongoengine import Document
+from listings.helpers.constants import EventConstants as EC
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    DateTimeField,
+    DecimalField,
+    FloatField,
+)
 
 
 class EventsListing(Document):
@@ -19,39 +28,39 @@ class EventsListing(Document):
     Events category listings.
     '''
 
-    user_id = fields.IntField()
-    category = fields.StringField(required=True)
-    subcategory = fields.StringField(required=True)
-    pictures = fields.ListField(fields.StringField(), required=False)
-    title = fields.StringField(required=True)
-    description = fields.StringField(required=True)
-    location = fields.StringField(required=True)
+    user_id = IntField()
+    category = StringField(required=True)
+    subcategory = StringField(required=True)
+    pictures = ListField(required=True)
+    title = StringField(required=True)
+    description = StringField(required=True)
+    location = StringField(required=True)
 
     # category based
-    event_type = fields.StringField(required=True)
-    event_date = fields.StringField(required=True)
-    expected_audience = fields.IntField(required=True)
-    special_feature = fields.StringField(required=True)
-    industry_focus = fields.IntField(required=False)
-    speaker_list = fields.FloatField(required=False)
-    ticket_price = fields.DecimalField(required=True)
-    negotiable = fields.StringField(
-        choices=EventConstants.NEGOTIABLE, required=True
-    )
+    event_type = StringField(required=True)
+    event_date = StringField(required=True)
+    expected_audience = IntField(required=True)
+    special_feature = StringField(required=True)
+
+    ticket_price = DecimalField(required=True)
+    negotiable = StringField(choices=EC.NEGOTIABLE, required=True)
+
+    # Networking event
+    industry_focus = IntField(required=False)
+    speaker_list = FloatField(required=False)
     # Concert
-    performer = fields.IntField(required=False)
-    genre = fields.StringField(required=False)
+    genre = StringField(required=False)
     # festivals
-    no_of_days = fields.IntField(required=False)
-    theme = fields.IntField(required=False)
-    major_attraction = fields.StringField(required=False)
+    no_of_days = IntField(required=False)
+    theme = IntField(required=False)
+    major_attraction = StringField(required=False)
 
     # Timestamps
-    created_at = fields.DateTimeField()
-    updated_at = fields.DateTimeField()
+    created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     # Status
-    is_active = fields.BooleanField(required=True, default=True)
+    is_active = BooleanField(required=True, default=True)
 
     meta = {
         'collection': 'events_listing',

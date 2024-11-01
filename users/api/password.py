@@ -16,7 +16,7 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from ..models.models import OTP, User
-from ..serializers import (
+from users.serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
     VerifyOtpSerializer,
@@ -102,7 +102,8 @@ class CreatePassword(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: user's password status. (json)
         '''
-        serializer = self.get_serializer(data=request.data)
+        data = request.data
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         resp = serializer.save()
         if not resp:
