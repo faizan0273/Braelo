@@ -56,7 +56,7 @@ class ListSynchronize:
 
         if missing_fields:
             raise ValidationError(
-                f'Missing required fields: {', '.join(missing_fields)}'
+                f'Missing required fields: {", ".join(missing_fields)}'
             )
         obj = {
             'user_id': data['user_id'],
