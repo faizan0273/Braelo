@@ -19,7 +19,7 @@ from mongoengine.fields import (
     DateTimeField,
     DecimalField,
 )
-from listings.helpers.constants import VehicleConstants as VC
+from helpers.constants import VehicleConstants as VC
 
 
 class VehicleListing(Document):

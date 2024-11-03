@@ -6,13 +6,14 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-admin file.
+End points registry file.
 ---------------------------------------------------
 '''
 
-from django.contrib import admin
-from users.models import User, OTP
+from django.urls import path
+from feedbacks.api.feedbacks import Requests, Feedback
 
-# Register your models here.
-admin.site.register(User)
-admin.site.register(OTP)
+urlpatterns = [
+    path('request', Requests.as_view(), name='user-request'),
+    path('feedback', Feedback.as_view(), name='user-feedback'),
+]

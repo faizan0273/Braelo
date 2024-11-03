@@ -16,15 +16,15 @@ from rest_framework.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
 
-from ..models import User
+from users.models import User
 
-from ..serializers import (
+from users.serializers import (
     EmailSignup,
     PhoneSignup,
     GoogleSignup,
     AppleSignup,
 )
-from ..helpers import (
+from helpers import (
     handle_exceptions,
     get_token,
     response,

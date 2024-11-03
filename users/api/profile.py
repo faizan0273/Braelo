@@ -10,15 +10,17 @@ Update profile api.
 ---------------------------------------------------
 '''
 
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from ..serializers import (
+from users.models import User
+from users.serializers import (
     UpdateProfileSerializer,
-    CompleteProfileSerializer,
     UserProfileSerializer,
+    DeactivateUserSerializer,
 )
-from ..helpers import handle_exceptions, response
+from helpers import handle_exceptions, response, ListSync
 
 
 class UpdateProfile(generics.CreateAPIView):
@@ -46,37 +48,100 @@ class UpdateProfile(generics.CreateAPIView):
         )
 
 
-class CompleteProfile(generics.CreateAPIView):
-    '''
-    Completed missing phone & email endpoint.
-    '''
-
-    serializer_class = CompleteProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    @handle_exceptions
-    def put(self, request, *args, **kwargs):
-        serializer = self.get_serializer(
-            data=request.data, context={'request': request}
-        )
-        serializer.is_valid(raise_exception=True)
-        updated_data = serializer.save()
-        return response(
-            status=status.HTTP_200_OK,
-            message='Profile Completed successfully',
-            data=updated_data,
-        )
-
-
 class UserProfile(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UserProfileSerializer
 
     @handle_exceptions
     def get(self, request, *args, **kwargs):
         user = request.user
-        serializer = UserProfileSerializer(user)
+        serializer = self.get_serializer(user)
         return response(
             status=status.HTTP_200_OK,
             message='Profile retrieved successfully',
             data=serializer.data,  # Send serialized user data
+        )
+
+
+class AboutUser(generics.CreateAPIView):
+    '''
+    Retrieve and Display User Information.
+    '''
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def get(self, request):
+        user = request.user
+        created_at = user.created_at
+        created_at = created_at.strftime('%B %Y')
+
+        user_data = {
+            'Name': user.name,
+            'Created_at': created_at,
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='User information fetched successfully',
+            data=user_data,
+        )
+
+
+class PublicProfile(generics.CreateAPIView):
+    '''
+    Get Public profile.
+    '''
+
+    permission_classes = [AllowAny]
+
+    @handle_exceptions
+    def get(self, request):
+        if request.user.is_authenticated:
+            user_id = request.user.id
+        else:
+            # Get user_id from the request data
+            user_id = request.data.get('user_id')
+        if not user_id:
+            return response(
+                status=status.HTTP_400_BAD_REQUEST,
+                message='user_id is required',
+                data={},
+            )
+        user = get_object_or_404(User, id=user_id)
+        member_since = user.created_at.strftime("Member since %b %Y")
+
+        # Count the listings in ListSync associated with the user_id
+        listing_count = ListSync.objects.filter(user_id=user_id).count()
+
+        # Prepare the response data
+        profile_data = {
+            'listing_count': listing_count,
+            'name': user.name,
+            'member_since': member_since,
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='User information fetched successfully',
+            data=profile_data,
+        )
+
+
+class DeactivateUser(generics.CreateAPIView):
+
+    serializer_class = DeactivateUserSerializer
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def post(self, request, *args, **kwargs):
+        '''
+        Handle the Profile inactive mechanism.
+        '''
+        context = {'request': request}
+        serializer = self.get_serializer(data=request.data, context=context)
+        serializer.is_valid(raise_exception=True)
+        updated_data = serializer.save()
+        return response(
+            status=status.HTTP_200_OK,
+            message='Profile deleted successfully',
+            data=updated_data,
         )

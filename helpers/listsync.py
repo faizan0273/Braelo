@@ -11,7 +11,6 @@ Listing synchronization with listsync collection helper class.
 '''
 
 from mongoengine import DoesNotExist, OperationError
-from listings.models import ListSync
 from rest_framework.exceptions import ValidationError
 
 
@@ -21,10 +20,13 @@ class ListSynchronize:
     '''
 
     @staticmethod
-    def flip_status(listing_id, status, model=ListSync):
+    def flip_status(listing_id, status, model=None):
         '''
         flip status for certain list.
         '''
+        from helpers import ListSync
+
+        model = ListSync or model
         try:
             filter_by = 'listing_id' if model == ListSync else 'id'
             result = model.objects(**{filter_by: listing_id}).update_one(
@@ -43,6 +45,8 @@ class ListSynchronize:
         '''
         Save listing doc to listsync collection.
         '''
+        from helpers import ListSync
+
         required_fields = [
             'user_id',
             'category',

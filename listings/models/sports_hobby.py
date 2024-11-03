@@ -11,7 +11,7 @@ Vehicle Listing model mongo based.
 '''
 
 from mongoengine import Document
-from listings.helpers.constants import SportsHobbyConstants as SHC
+from helpers.constants import SportsHobbyConstants as SHC
 from mongoengine.fields import (
     IntField,
     StringField,

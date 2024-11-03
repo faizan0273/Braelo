@@ -18,4 +18,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
     path('listing/', include('listings.urls')),
+    path('report/', include('feedbacks.urls')),
 ]

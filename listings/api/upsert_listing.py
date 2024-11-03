@@ -26,7 +26,7 @@ from listings.models import (
     RealEstateListing,
     VehicleListing,
 )
-from listings.helpers import response, handle_exceptions
+from helpers import response, handle_exceptions
 from listings.serializers import (
     RealEstateSerializer,
     ElectronicsSerializer,

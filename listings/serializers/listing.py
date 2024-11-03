@@ -17,8 +17,8 @@ from rest_framework.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from rest_framework_mongoengine import serializers
-from listings.helpers.constants import CATEGORIES
-from listings.helpers.listsync import ListSynchronize
+from helpers.constants import CATEGORIES
+from helpers.listsync import ListSynchronize
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
 from listings.models import (
     ElectronicsListing,

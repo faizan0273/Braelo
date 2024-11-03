@@ -13,12 +13,9 @@ User model sql based.
 from datetime import timedelta
 
 from django.db import models
+from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
-from django.utils import timezone
-
-
-# Create your models here.
 
 
 class CustomUserManager(BaseUserManager):
@@ -76,6 +73,19 @@ class User(AbstractUser):
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)
     role = models.CharField(max_length=255, choices=USER_ROLES)
+
+    # personal information
+    dob = models.CharField(max_length=15, null=True, blank=True)
+    gender = models.CharField(max_length=15, null=True, blank=True)
+    # About app
+    complement = models.CharField(max_length=15, null=True, blank=True)
+    # Address information
+    address = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(max_length=20, null=True, blank=True)
+    state = models.CharField(max_length=15, null=True, blank=True)
+    city = models.CharField(max_length=15, null=True, blank=True)
+    zip_code = models.CharField(max_length=15, null=True, blank=True)
+
     # New field for storing OTP
     otp = models.CharField(max_length=6, null=True, blank=True)
     otp_created_at = models.DateTimeField(auto_now=True)

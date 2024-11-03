@@ -15,14 +15,14 @@ from django.core.mail import send_mail
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from ..models.models import OTP, User
+from users.models import OTP, User
 from users.serializers import (
     ForgotPasswordSerializer,
     ChangePasswordSerializer,
     VerifyOtpSerializer,
     CreatePasswordSerializer,
 )
-from ..helpers import handle_exceptions, response
+from helpers import handle_exceptions, response
 
 
 class ForgotPassword(generics.CreateAPIView):

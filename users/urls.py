@@ -25,9 +25,10 @@ from .api import (
     Logout,
     CreatePassword,
     UpdateProfile,
-    CompleteProfile,
     UserProfile,
     AboutUser,
+    DeactivateUser,
+    PublicProfile,
 )
 
 # todo import from separate files.
@@ -56,11 +57,11 @@ urlpatterns = [
     path('interests', InterestListCreateView.as_view(), name='interest'),
     # Update Profile
     path('update/profile', UpdateProfile.as_view(), name='update_profile'),
-    # Complete Profile
-    path(
-        'complete/profile', CompleteProfile.as_view(), name='complete_profile'
-    ),
     path('user/profile', UserProfile.as_view(), name='user_profile'),
     # about user
     path('user/about', AboutUser.as_view(), name='about_user'),
+    # Delete
+    path('user/delete', DeactivateUser.as_view(), name='delete_user'),
+    # Public Profile
+    path('public-profile', PublicProfile.as_view(), name='flip-status'),
 ]

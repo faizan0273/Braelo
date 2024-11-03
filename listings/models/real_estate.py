@@ -18,7 +18,7 @@ from mongoengine.fields import (
     BooleanField,
     FloatField,
 )
-from listings.helpers.constants import RealEstateConstants as REC
+from helpers.constants import RealEstateConstants as REC
 
 
 class RealEstateListing(Document):

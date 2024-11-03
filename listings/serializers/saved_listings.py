@@ -12,7 +12,7 @@ Serializer file for saved item Listings based endpoints
 
 from django.utils import timezone
 from listings.models import SavedItem
-from listings.helpers.constants import CATEGORIES
+from helpers.constants import CATEGORIES
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
 

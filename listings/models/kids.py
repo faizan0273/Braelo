@@ -11,7 +11,7 @@ Vehicle Listing model mongo based.
 '''
 
 from mongoengine import Document
-from listings.helpers.constants import KidsConstants as KC
+from helpers.constants import KidsConstants as KC
 from mongoengine.fields import (
     IntField,
     StringField,

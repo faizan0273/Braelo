@@ -1,4 +1,4 @@
-from listings.helpers.constants.meta import CONFIRMATION
+from helpers.constants.meta import CONFIRMATION
 
 
 class SportsHobbyConstants:

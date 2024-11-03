@@ -10,7 +10,9 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from .helper import *
-from .decorators import *
-from .google_auth import *
-from .constants import INTERESTS
+from helpers.models import *
+from helpers.helper import *
+from helpers.listsync import *
+from helpers.constants import *
+from helpers.decorators import *
+from helpers.google_auth import *

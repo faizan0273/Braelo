@@ -10,7 +10,7 @@ Serializer file for list sync Listings based endpoints
 ---------------------------------------------------
 '''
 
-from listings.models.listsync import ListSync
+from helpers.models.listsync import ListSync
 from rest_framework_mongoengine import serializers
 
 

@@ -43,7 +43,6 @@ from listings.api.saved_listing import (
     FlipListingStatus,
     UnSaveListing,
 )
-from listings.api.report_review import ReportIssue, Review
 
 urlpatterns = [
     path('jobs', JobsAPI.as_view(), name='jobs-listing'),
@@ -110,7 +109,7 @@ urlpatterns = [
     ),
     # Saved items
     path('save', SaveListing.as_view(), name='save-listing'),
-    path('saved', SavedListing.as_view(), name='get-save-lisitngs'),
+    path('get-save', SavedListing.as_view(), name='get-save-lisitngs'),
     path('unsave', UnSaveListing.as_view(), name='unsave-listing'),
     # Searching
     # User own listings & Look up
@@ -118,8 +117,4 @@ urlpatterns = [
     path('lookup', LookupListing.as_view(), name='user-specific-listings'),
     # Flip listing status
     path('flip/status', FlipListingStatus.as_view(), name='flip-status'),
-    # sumbit A request
-    path('report/issue', ReportIssue.as_view(), name='report-issue'),
-    # review
-    path('review', Review.as_view(), name='braelo-review'),
 ]

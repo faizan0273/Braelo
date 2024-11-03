@@ -1,20 +1,29 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+User Feedbacks/review Endpoints.
+---------------------------------------------------
+'''
+
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
-from listings.helpers import handle_exceptions, response
+from helpers import handle_exceptions, response
 
-from listings.serializers.report_review import (
-    ReportIssueSerializer,
-    ReviewSerializer,
-)
+from feedbacks.serializers import RequestsSerializer, FeedbacksSerializer
 
 
-class ReportIssue(generics.CreateAPIView):
+class Requests(generics.CreateAPIView):
     '''
-    handles submit a request for any issue
+    User requests form endpoint.
     '''
 
     permission_classes = [IsAuthenticated]
-    serializer_class = ReportIssueSerializer
+    serializer_class = RequestsSerializer
 
     @handle_exceptions
     def post(self, request, **kwargs):
@@ -30,13 +39,13 @@ class ReportIssue(generics.CreateAPIView):
         )
 
 
-class Review(generics.CreateAPIView):
+class Feedback(generics.CreateAPIView):
     '''
-    handles creation of review
+    User feedback endpoint.
     '''
 
     permission_classes = [IsAuthenticated]
-    serializer_class = ReviewSerializer
+    serializer_class = FeedbacksSerializer
 
     @handle_exceptions
     def post(self, request, **kwargs):
@@ -47,6 +56,6 @@ class Review(generics.CreateAPIView):
         serializer.save()
         return response(
             status=status.HTTP_201_CREATED,
-            message='review submitted successfully',
+            message='Feedback submitted successfully',
             data=serializer.data,
         )

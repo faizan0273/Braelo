@@ -15,8 +15,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from ..serializers import EmailLogin, TokenBlacklistSerializer
-from ..helpers import handle_exceptions, get_token, response
+from helpers import handle_exceptions, get_token, response
+from users.serializers import EmailLogin, TokenBlacklistSerializer
 
 # login part
 

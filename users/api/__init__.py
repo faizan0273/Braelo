@@ -10,9 +10,8 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
-from .login import *
-from .signup import *
-from .profile import *
-from .password import *
-from .user_interest import *
-from .about_user import AboutUser
+from users.api.login import *
+from users.api.signup import *
+from users.api.profile import *
+from users.api.password import *
+from users.api.user_interest import *

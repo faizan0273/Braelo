@@ -13,9 +13,9 @@ User interests end-points module.
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 
-from ..models import Interest
-from ..serializers import InterestSerializer
-from ..helpers import handle_exceptions, response
+from users.models import Interest
+from users.serializers import InterestSerializer
+from helpers import handle_exceptions, response
 
 
 class InterestListCreateView(generics.ListCreateAPIView):

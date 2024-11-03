@@ -9,6 +9,7 @@ Description:
 __init__ file.
 ---------------------------------------------------
 '''
+
 from listings.models.jobs import JobsListing
 from listings.models.kids import KidsListing
 from listings.models.events import EventsListing
@@ -20,8 +21,4 @@ from listings.models.real_estate import RealEstateListing
 from listings.models.electronics import ElectronicsListing
 from listings.models.sports_hobby import SportsHobbyListing
 
-from listings.models.listsync import ListSync
 from listings.models.saved_listing import SavedItem
-
-from listings.models.report_issue import ReportIssue
-from listings.models.review import Review

@@ -13,7 +13,7 @@ Vehicle Listing model mongo based.
 from tokenize import String
 
 from mongoengine import Document
-from listings.helpers.constants import ServicesConstants as SC
+from helpers.constants import ServicesConstants as SC
 from mongoengine.fields import (
     IntField,
     StringField,

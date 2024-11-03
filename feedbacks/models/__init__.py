@@ -6,9 +6,9 @@ Author:         Hamid
 ---------------------------------------------------
 
 Description:
-__init__.py file for endpoints imports.
+__init__ file.
 ---------------------------------------------------
 '''
 
-from users.models.interests import Interest
-from users.models.users import User, OTP
+from feedbacks.models.requests import Requests
+from feedbacks.models.feedbacks import Feedbacks

@@ -11,6 +11,7 @@ Helper functions file.
 '''
 
 from django.http import JsonResponse
+from rest_framework_simplejwt.tokens import RefreshToken
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
 
@@ -61,3 +62,18 @@ def response(status, message, data, error=None):
         'data': data,
     }
     return JsonResponse(resp)
+
+
+def get_token(user):
+    '''
+    Generates JWT token for user.
+    :param user: user information. (dict)
+    :return: JWT token. (dict)
+    '''
+    # Generate JWT token after user creation
+    refresh = RefreshToken.for_user(user)
+    token_data = {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+    return token_data

@@ -11,7 +11,7 @@ Vehicle Listing model mongo based.
 '''
 
 from mongoengine import Document
-from listings.helpers.constants import FurnitureConstants as FC
+from helpers.constants import FurnitureConstants as FC
 from mongoengine.fields import (
     IntField,
     StringField,

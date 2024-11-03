@@ -13,7 +13,7 @@ Vehicle Listing model mongo based.
 from mongoengine import fields, Document
 from mongoengine.fields import IntField, StringField, ListField, BooleanField
 
-from listings.helpers.constants import JobsConstants as JC
+from helpers import JobsConstants as JC
 
 
 class JobsListing(Document):
