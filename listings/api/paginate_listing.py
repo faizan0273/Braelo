@@ -10,9 +10,10 @@ Pagination of Listing endpoints.
 ---------------------------------------------------
 '''
 
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
+from helpers import response
 
 from helpers import CATEGORIES
 from listings.models import (
@@ -49,6 +50,23 @@ class Pagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 50
+
+    def get_paginated_response(self, data):
+        '''
+        Overriding a function to convert a list into a dict
+        '''
+        dict_of_dicts = {item['id']: item for item in data}
+        pagination_data = {
+            'count': self.page.paginator.count,
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'results': dict_of_dicts,
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='listings fetched successfully',
+            data=pagination_data,
+        )
 
 
 class PaginateVehicle(generics.ListAPIView):
