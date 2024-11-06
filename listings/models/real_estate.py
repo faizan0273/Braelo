@@ -38,7 +38,6 @@ class RealEstateListing(Document):
     property_type = StringField(required=True)
     bedrooms = IntField(min_value=0, required=True)
     bathrooms = IntField(min_value=0, required=True)
-    year_built = IntField(min_value=1800, required=False)
     size = FloatField(required=True)
     condition = StringField(choices=REC.CONDITION, required=True)
     furnished = StringField(choices=REC.FURNISHED, default='UNFURNISHED')

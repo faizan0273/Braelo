@@ -13,9 +13,12 @@ Pagination of Listing endpoints.
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.pagination import PageNumberPagination
-from helpers import response
+from rest_framework.exceptions import ValidationError
 
+
+from helpers import response
 from helpers import CATEGORIES
+from listings.api import MODEL_MAP
 from listings.models import (
     VehicleListing,
     RealEstateListing,
@@ -69,7 +72,29 @@ class Pagination(PageNumberPagination):
         )
 
 
-class PaginateVehicle(generics.ListAPIView):
+class QueryFilter(generics.ListAPIView):
+
+    def get_queryset(self):
+        '''
+        filtering query based on subcategory
+        '''
+        category = getattr(self, 'category', None)
+        subcategory = self.request.GET.get('subcategory')
+        if subcategory:
+            if subcategory not in CATEGORIES.get(category, []):
+                raise ValidationError(
+                    {
+                        'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                    }
+                )
+            else:
+                model = MODEL_MAP.get(category)
+                return model.objects.filter(subcategory=subcategory)
+        else:
+            return super().get_queryset()
+
+
+class PaginateVehicle(QueryFilter):
     '''
     Endpoint to retrieve the latest vehicle listings with pagination.
     '''
@@ -78,93 +103,112 @@ class PaginateVehicle(generics.ListAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = VehicleSerializer
+    category = 'Vehicles'
 
 
-class PaginateRealEstate(generics.ListAPIView):
+class PaginateRealEstate(QueryFilter):
     '''
     Endpoint to retrieve the latest real estate listings with pagination.
     '''
 
     queryset = RealEstateListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = RealEstateSerializer
+    category = 'Real Estate'
 
 
-class PaginateElectronics(generics.ListAPIView):
+class PaginateElectronics(QueryFilter):
     '''
     Endpoint to retrieve the latest electronics listings with pagination.
     '''
 
     queryset = ElectronicsListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = ElectronicsSerializer
+    category = 'Electronics'
 
 
-class PaginateEvents(generics.ListAPIView):
+class PaginateEvents(QueryFilter):
     '''
     Endpoint to retrieve the latest events listings with pagination.
     '''
 
     queryset = EventsListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = EventsSerializer
+    category = 'Events'
 
 
-class PaginateFashion(generics.ListAPIView):
+class PaginateFashion(QueryFilter):
     '''
     Endpoint to retrieve the latest fashion listings with pagination.
     '''
 
     queryset = FashionListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = FashionSerializer
+    category = 'Fashion'
 
 
-class PaginateJobs(generics.ListAPIView):
+class PaginateJobs(QueryFilter):
     '''
     Endpoint to retrieve the latest jobs listings with pagination.
     '''
 
     queryset = JobsListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = JobsSerializer
+    category = 'Jobs'
 
 
-class PaginateServices(generics.ListAPIView):
+class PaginateServices(QueryFilter):
     '''
     Endpoint to retrieve the latest services listings with pagination.
     '''
 
     queryset = ServicesListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = ServicesSerializer
+    category = 'Services'
 
 
-class PaginateSportsHobby(generics.ListAPIView):
+class PaginateSportsHobby(QueryFilter):
     '''
     Endpoint to retrieve the latest sports and hobby listings with pagination.
     '''
 
     queryset = SportsHobbyListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = SportsHobbySerializer
+    category = 'Sports & Hobby'
 
 
-class PaginateKids(generics.ListAPIView):
+class PaginateKids(QueryFilter):
     '''
     Endpoint to retrieve the latest kids listings with pagination.
     '''
 
     queryset = KidsListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = KidsSerializer
+    category = 'Kids'
 
 
-class PaginateFurniture(generics.ListAPIView):
+class PaginateFurniture(QueryFilter):
     '''
     Endpoint to retrieve the latest furniture listings with pagination.
     '''
 
     queryset = FurnitureListing.objects.all()
+    permission_classes = [IsAuthenticatedOrReadOnly]
     pagination_class = Pagination
     serializer_class = FurnitureSerializer
+    category = 'Furniture'
