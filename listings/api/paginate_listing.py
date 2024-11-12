@@ -55,20 +55,11 @@ class Pagination(PageNumberPagination):
     max_page_size = 50
 
     def get_paginated_response(self, data):
-        '''
-        Overriding a function to convert a list into a dict
-        '''
-        dict_of_dicts = {item['id']: item for item in data}
-        pagination_data = {
-            'count': self.page.paginator.count,
-            'next': self.get_next_link(),
-            'previous': self.get_previous_link(),
-            'results': dict_of_dicts,
-        }
+        paginated_data = super().get_paginated_response(data).data
         return response(
             status=status.HTTP_200_OK,
-            message='listings fetched successfully',
-            data=pagination_data,
+            message='listings fetched Successfully',
+            data=paginated_data,
         )
 
 
@@ -80,18 +71,19 @@ class QueryFilter(generics.ListAPIView):
         '''
         category = getattr(self, 'category', None)
         subcategory = self.request.GET.get('subcategory')
-        if subcategory:
-            if subcategory not in CATEGORIES.get(category, []):
-                raise ValidationError(
-                    {
-                        'subcategory': f'subcategories should be {CATEGORIES[category]}'
-                    }
-                )
-            else:
-                model = MODEL_MAP.get(category)
-                return model.objects.filter(subcategory=subcategory)
-        else:
+
+        if not subcategory or subcategory in ('ALL', 'all'):
             return super().get_queryset()
+
+        if subcategory not in CATEGORIES.get(category, []):
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
+
+        model = MODEL_MAP.get(category)
+        return model.objects.filter(subcategory=subcategory)
 
 
 class PaginateVehicle(QueryFilter):
