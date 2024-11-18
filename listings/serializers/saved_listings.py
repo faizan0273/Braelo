@@ -16,6 +16,7 @@ from helpers.constants import CATEGORIES
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
 
+from listings.api import MODEL_MAP 
 
 class SavedItemSerializer(serializers.DocumentSerializer):
     class Meta:
@@ -29,6 +30,19 @@ class SavedItemSerializer(serializers.DocumentSerializer):
             raise ValidationError(
                 {'category': f'categories should be {CATEGORIES}'}
             )
+        validation_data ={
+            'id': data.get('listing_id'),
+            'title': data.get('title'),
+            'price': data.get('price'),
+            'location': data.get('location')
+        }
+
+        model = MODEL_MAP.get(category)
+        if not model.objects.filter(**validation_data):
+            raise ValidationError(
+                {'listings': 'Data Invalid or no matching listings found'}
+            )
+
         data['saved_at'] = timezone.now()
         return data
 

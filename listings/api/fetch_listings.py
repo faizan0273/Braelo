@@ -61,12 +61,11 @@ class SavedListing(generics.ListAPIView):
         offset = int(request.query_params.get('offset', 0))
         listings = get_user_listings(SavedItem, user_id, offset, limit)
         serializer = SavedItemSerializer(listings, many=True)
-        saved_listings = {item['id']: item for item in serializer.data}
 
         return response(
             status=status.HTTP_200_OK,
             message='Saved items retrieved successfully',
-            data=saved_listings,
+            data=serializer.data,
         )
 
 
@@ -87,12 +86,11 @@ class UserListing(generics.CreateAPIView):
         offset = int(request.query_params.get('offset', 0))
         listings = get_user_listings(ListSync, user_id, offset, limit)
         serializer = ListsyncSerializer(listings, many=True)
-        user_listings = {item['id']: item for item in serializer.data}
 
         return response(
             status=status.HTTP_200_OK,
             message='Saved items retrieved successfully',
-            data=user_listings,
+            data=serializer.data,
         )
 
 

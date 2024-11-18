@@ -58,7 +58,7 @@ urlpatterns = [
     path('electronics', ElectronicsAPI.as_view(), name='electronics-listing'),
     # Pagination's listings
     path(
-        'paginate/vehicle',
+        'paginate/vehicles',
         PaginateVehicle.as_view(),
         name='paginate-vehicle',
     ),

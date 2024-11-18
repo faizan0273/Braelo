@@ -108,7 +108,7 @@ class PublicProfile(generics.CreateAPIView):
                 data={},
             )
         user = get_object_or_404(User, id=user_id)
-        member_since = user.created_at.strftime("Member since %b %Y")
+        member_since = user.created_at.strftime('%b %Y')
 
         # Count the listings in ListSync associated with the user_id
         listing_count = ListSync.objects.filter(user_id=user_id).count()
