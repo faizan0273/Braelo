@@ -13,6 +13,7 @@ Update profile api.
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.exceptions import ValidationError
 
 from users.models import User
 from users.serializers import (
@@ -144,4 +145,28 @@ class DeactivateUser(generics.CreateAPIView):
             status=status.HTTP_200_OK,
             message='Profile deleted successfully',
             data=updated_data,
+        )
+
+
+class FlipUserStatus(generics.CreateAPIView):
+    '''
+    Flips normal user into business user
+    '''
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def post(self, request):
+        user = request.user
+        user_id = user.id
+
+        update_status = User.objects.filter(id=user_id).first()
+        if update_status.is_business:
+            raise ValidationError({'User': 'User is already a Business User'})
+        update_status.is_business = True
+        update_status.save()
+        return response(
+            status=status.HTTP_201_CREATED,
+            message='Flipped User Status Succesfully',
+            data={},
         )

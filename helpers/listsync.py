@@ -26,9 +26,17 @@ class ListSynchronize:
         '''
         from helpers import ListSync
 
-        model = ListSync or model
+        model = model or ListSync
         try:
             filter_by = 'listing_id' if model == ListSync else 'id'
+            active_status = model.objects(**{filter_by: listing_id}).first()
+            # if category or listing _id is not correct
+            if not active_status:
+                raise ValidationError({'Listings': 'No listings found'})
+            if active_status.is_active == status:
+                raise ValidationError(
+                    {'Status': f'The status is already set to {status}'}
+                )
             result = model.objects(**{filter_by: listing_id}).update_one(
                 set__is_active=status
             )

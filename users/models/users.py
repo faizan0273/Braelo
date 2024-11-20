@@ -72,8 +72,11 @@ class User(AbstractUser):
     is_active = models.BooleanField(default=True)
     is_email_verified = models.BooleanField(default=False)
     is_phone_verified = models.BooleanField(default=False)
+    is_business = models.BooleanField(default=False)
     role = models.CharField(max_length=255, choices=USER_ROLES)
 
+    # Limited only for normal user
+    allowed_listings = models.IntegerField(default=10, blank=True)
     # personal information
     dob = models.CharField(max_length=15, null=True, blank=True)
     gender = models.CharField(max_length=15, null=True, blank=True)

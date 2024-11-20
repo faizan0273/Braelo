@@ -16,6 +16,7 @@ from azure.storage.blob import BlobServiceClient
 from rest_framework.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
+from users.models import User
 from rest_framework_mongoengine import serializers
 from helpers.constants import CATEGORIES
 from helpers.listsync import ListSynchronize
@@ -65,7 +66,11 @@ class Serializer(serializers.DocumentSerializer):
         subcategory = data.get('subcategory')
         year = data.get('year')
         status = data.get('is_active')
+        user_status = User.objects.filter(id=user.id).first()
 
+        if not user_status.is_business:
+            if user_status.allowed_listings < 1:
+                raise ValidationError({'Listings': 'Normal User Limit Reached'})
         # Validate category and subcategory
         if category != self.Meta.category:
             raise ValidationError(
@@ -106,6 +111,10 @@ class Serializer(serializers.DocumentSerializer):
         # Timestamps
         data['created_at'] = timezone.now()
         data['updated_at'] = timezone.now()
+        # Decrement if user is normal user
+        if not user_status.is_business:
+            user_status.allowed_listings -= 1
+            user_status.save()
         return data
 
 

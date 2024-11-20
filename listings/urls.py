@@ -42,6 +42,7 @@ from listings.api.saved_listing import (
     SaveListing,
     FlipListingStatus,
     UnSaveListing,
+    DeleteListing,
 )
 
 urlpatterns = [
@@ -117,4 +118,6 @@ urlpatterns = [
     path('lookup', LookupListing.as_view(), name='user-specific-listings'),
     # Flip listing status
     path('flip/status', FlipListingStatus.as_view(), name='flip-status'),
+    # delete listing
+    path('delete', DeleteListing.as_view(), name='delete-listing'),
 ]

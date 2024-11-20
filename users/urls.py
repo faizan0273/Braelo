@@ -29,6 +29,7 @@ from .api import (
     AboutUser,
     DeactivateUser,
     PublicProfile,
+    FlipUserStatus,
 )
 
 # todo import from separate files.
@@ -63,5 +64,7 @@ urlpatterns = [
     # Delete
     path('user/delete', DeactivateUser.as_view(), name='delete_user'),
     # Public Profile
-    path('public-profile', PublicProfile.as_view(), name='flip-status'),
+    path('public-profile', PublicProfile.as_view(), name='public_profile'),
+    # Flip User Status
+    path('user/flip-status', FlipUserStatus.as_view(), name='flip_user_status'),
 ]
