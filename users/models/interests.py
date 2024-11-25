@@ -11,11 +11,13 @@ User interests model mongo based.
 '''
 
 from mongoengine import Document, fields
+from helpers.constants import INTERESTS
+
 
 
 class Interest(Document):
     user_id = fields.IntField(required=True)
-    tags = fields.ListField(field=fields.StringField())
+    tags = fields.ListField(field=fields.StringField(choices=INTERESTS))
 
     meta = {
         'collection': 'interests',

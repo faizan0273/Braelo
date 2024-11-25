@@ -34,7 +34,7 @@ class InterestSerializer(serializers.Serializer):
         '''
         for tag in tags:
             if tag not in INTERESTS:
-                raise ValidationError({'tags': 'Incorrect tag.'})
+                raise ValidationError('Incorrect tag.')
         return tags
 
     def validate_user_id(self, user_id):

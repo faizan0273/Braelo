@@ -102,10 +102,13 @@ class FlipListingStatus(generics.CreateAPIView):
 
         model = MODEL_MAP[category]
         ListSynchronize.flip_status(
-            listing_id=listing_id, status=listing_status, model=model
+            listing_id=listing_id,
+            status=listing_status,
+            model=model,
+            user_id=user_id,
         )
         ListSynchronize.flip_status(
-            listing_id=listing_id, status=listing_status
+            listing_id=listing_id, status=listing_status, user_id=user_id
         )
         # Only updates if user is Normal User
         if not listing_limit.is_business:
