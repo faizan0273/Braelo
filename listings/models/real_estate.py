@@ -29,7 +29,7 @@ class RealEstateListing(Document):
     user_id = IntField()
     category = StringField(required=True)
     subcategory = StringField(required=True)
-    pictures = ListField(required=False)
+    pictures = ListField(required=True)
     title = StringField(required=True)
     description = StringField(required=True)
     location = StringField(required=True)

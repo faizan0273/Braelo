@@ -10,13 +10,17 @@ Fetch User listings endpoints.
 ---------------------------------------------------
 '''
 
+from mongoengine import Q
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+
 
 from helpers import ListSync
 from listings.api import MODEL_MAP
 from listings.models import SavedItem
 from helpers import handle_exceptions, response
+from users.models import Interest
 from rest_framework.exceptions import ValidationError
 from listings.serializers import SavedItemSerializer, ListsyncSerializer
 
@@ -38,6 +42,37 @@ def get_user_listings(collection, user_id, offset, limit):
         .limit(limit)
     )
     return list(queryset)
+
+
+def get_user_recommendations(user_id):
+    '''
+    Retrieves user interests.
+    :param user_id: user id information. (int)
+    :return: users interests. (list)
+    '''
+    try:
+        interest = Interest.objects.get(user_id=user_id)
+        return interest.tags
+    except Interest.DoesNotExist:
+        raise Exception('No Interest found')
+
+
+class Pagination(PageNumberPagination):
+    '''
+    Listing pagination configurations.
+    '''
+
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+    def get_paginated_response(self, data):
+        paginated_data = super().get_paginated_response(data).data
+        return response(
+            status=status.HTTP_200_OK,
+            message='Recommendations fetched Successfully',
+            data=paginated_data,
+        )
 
 
 class SavedListing(generics.ListAPIView):
@@ -136,4 +171,22 @@ class LookupListing(generics.CreateAPIView):
             status=status.HTTP_200_OK,
             message='Listing fetched successfully',
             data=listing_data,
+        )
+
+
+class Recommendations(generics.ListAPIView):
+    '''
+    Fetch listings based on user recommendation.
+    '''
+
+    queryset = ListSync.objects.all()
+    permission_classes = [IsAuthenticated]
+    pagination_class = Pagination
+    serializer_class = ListsyncSerializer
+
+    def get_queryset(self):
+        user_id = self.request.user.id
+        interests = get_user_recommendations(user_id)
+        return ListSync.objects.filter(
+            Q(category__in=interests) | Q(subcategory__in=interests)
         )

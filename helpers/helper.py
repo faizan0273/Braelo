@@ -50,7 +50,7 @@ def response(status, message, data, error=None):
                 resp[key] = value.name
         return resp
 
-    if isinstance(data, list):
+    if isinstance(data, list) and error:
         data = [clean_data(item) for item in data]
     elif isinstance(data, dict):
         data = clean_data(data)

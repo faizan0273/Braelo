@@ -77,6 +77,7 @@ class ListSynchronize:
             'user_id': data['user_id'],
             'listing_id': str(_id),
             'category': data['category'],
+            'subcategory': data['subcategory'],
             'title': data['title'],
             'location': data['location'],
             'created_at': data['created_at'],

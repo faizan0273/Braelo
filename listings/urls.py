@@ -13,7 +13,12 @@ End points registry file.
 from django.urls import path
 
 from listings.api.category import Categories
-from listings.api.fetch_listings import SavedListing, UserListing, LookupListing
+from listings.api.fetch_listings import (
+    SavedListing,
+    UserListing,
+    LookupListing,
+    Recommendations,
+)
 from listings.api.upsert_listing import (
     VehicleAPI,
     RealEstateAPI,
@@ -120,4 +125,10 @@ urlpatterns = [
     path('flip/status', FlipListingStatus.as_view(), name='flip-status'),
     # delete listing
     path('delete', DeleteListing.as_view(), name='delete-listing'),
+    # Recommendations
+    path(
+        'recommendations',
+        Recommendations.as_view(),
+        name='Recommendations',
+    ),
 ]
