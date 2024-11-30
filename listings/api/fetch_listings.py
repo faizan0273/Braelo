@@ -15,9 +15,11 @@ from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from helpers import ListSync
 from listings.api import MODEL_MAP
+from listings.api.paginate_listing import Pagination
 from listings.models import SavedItem
 from helpers import handle_exceptions, response
 from users.models import Interest
@@ -174,15 +176,17 @@ class LookupListing(generics.CreateAPIView):
         )
 
 
-class Recommendations(generics.ListAPIView):
-    '''
-    Fetch listings based on user recommendation.
-    '''
-
+class Recent(generics.ListAPIView):
     queryset = ListSync.objects.all()
     permission_classes = [IsAuthenticated]
     pagination_class = Pagination
     serializer_class = ListsyncSerializer
+
+
+class Recommendations(generics.ListAPIView):
+    '''
+    Fetch listings based on user recommendation.
+    '''
 
     def get_queryset(self):
         user_id = self.request.user.id

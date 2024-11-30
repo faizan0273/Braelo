@@ -11,6 +11,7 @@ Serializer file for users based endpoints
 
 from django.utils import timezone
 import phonenumbers
+from twilio.rest import Client
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 from django.core.validators import validate_email
@@ -18,6 +19,7 @@ from django.contrib.auth.hashers import check_password
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 
+from config import settings
 from users.models import User
 
 
@@ -84,6 +86,7 @@ class PhoneSignup(serializers.Serializer):
     phone_number = serializers.CharField(
         min_length=11, max_length=15, required=True
     )
+    otp = serializers.CharField(required=False, write_only=True)
 
     class Meta:
         model = User
@@ -114,11 +117,52 @@ class PhoneSignup(serializers.Serializer):
             raise ValidationError('This is not valid phone number.')
         return phone
 
+    def send_otp(self, phone_number):
+        '''
+        Sends OTP via Twilio.
+        '''
+        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        try:
+            verification = client.verify.v2.services(
+                settings.TWILIO_VERIFY_SERVICE_SID
+            ).verifications.create(to=phone_number, channel='sms')
+            if verification.status != 'pending':
+                raise ValidationError(
+                    {'otp': 'Failed to send OTP. Please try again later.'}
+                )
+        except Exception as e:
+            raise ValidationError({'otp': f'Twilio Error: {str(e)}'})
+
+    def verify_otp(self, phone_number, otp):
+        '''
+        Verifies OTP via Twilio.
+        '''
+        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+        try:
+            verification_check = client.verify.v2.services(
+                settings.TWILIO_VERIFY_SERVICE_SID
+            ).verification_checks.create(to=phone_number, code=otp)
+            if verification_check.status != 'approved':
+                raise ValidationError({'otp': 'Invalid or expired OTP.'})
+        except Exception as e:
+            raise ValidationError({'otp': f'Twilio Error: {str(e)}'})
+
     def validate(self, data):
         phone_number = data.get('phone_number')
+        otp = data.get('otp')
         if not phone_number:
             raise ValidationError({'phone_number': 'phone number is required.'})
         self.validate_phone_number(phone_number)
+
+        # If OTP is provided, validate it
+        if otp:
+            self.verify_otp(phone_number, otp)
+        else:
+            # If no OTP is provided, send OTP
+            self.send_otp(phone_number)
+            raise ValidationError(
+                {'otp': 'OTP sent to the provided phone number.'}
+            )
         # Check if the email is valid
         user = User.objects.filter(phone_number=phone_number).first()
         if user:

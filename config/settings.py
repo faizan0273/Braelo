@@ -48,7 +48,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     'braelo-fug5gcb6c0hpbpdn.canadacentral-01.azurewebsites.net',
 ]
-
+CORS_ORIGIN_ALLOW_ALL = True
 CSRF_TRUSTED_ORIGINS = [
     'https://braelo-fug5gcb6c0hpbpdn.canadacentral-01.azurewebsites.net',
     'http://localhost',
@@ -81,9 +81,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',  # Add this app
+    'rest_framework_simplejwt.token_blacklist',
     'users',
     'listings',
 ]
@@ -110,7 +111,7 @@ from datetime import timedelta
 
 SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=2880),
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
     'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
     'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
@@ -118,6 +119,7 @@ SIMPLE_JWT = {
 }
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -132,6 +134,11 @@ AZURE_ACCOUNT_NAME = 'braelos3'
 AZURE_ACCOUNT_KEY = '5PkRWE5PK49PotcquKuVgZ6jLN261i8VNuqqdpTKJJekYcr2EWwrrlRyqV/s7a+mLOrV/YKBZDOX+AStNDj6pQ=='
 AZURE_CONTAINER_NAME = 'braelo'
 AZURE_CUSTOM_DOMAIN = 'https://braelos3.blob.core.windows.net/braelo'
+
+# Twilio Setting
+TWILIO_ACCOUNT_SID = 'ACd73fc3ad8cee9529a484342740e6161b'
+TWILIO_AUTH_TOKEN = 'ef5f648b70cf84215b51e54d44037013 '
+TWILIO_VERIFY_SERVICE_SID = 'VAcd6f5d07809c6f1e0d61f76bb64ce123'
 
 ROOT_URLCONF = 'config.urls'
 

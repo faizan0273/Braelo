@@ -27,13 +27,17 @@ class ListSynchronize:
         from helpers import ListSync
 
         model = model or ListSync
+        filter_by = 'listing_id' if model == ListSync else 'id'
+
         try:
             filter_by = 'listing_id' if model == ListSync else 'id'
             active_status = model.objects(
                 **{filter_by: listing_id, 'user_id': user_id}
             ).first()
 
-            # if category or user_id or listing _id is not correct
+            # if category or user_id or listing _id is not correct=
+            active_status = model.objects(**{filter_by: listing_id}).first()
+            # if category or listing _id is not correct)
             if not active_status:
                 raise ValidationError({'Listings': 'No listings found'})
             if active_status.is_active == status:

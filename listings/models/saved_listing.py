@@ -31,7 +31,7 @@ class SavedItem(Document):
     price = DecimalField(required=True)
     pictures = ListField(required=True)
     saved_at = DateTimeField(required=False)
-    
+
     # Status
     is_active = BooleanField(required=True, default=True)
 

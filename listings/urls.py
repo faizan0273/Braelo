@@ -18,6 +18,19 @@ from listings.api.fetch_listings import (
     UserListing,
     LookupListing,
     Recommendations,
+    Recent,
+)
+from listings.api.update_listing import (
+    RealEstateUpdateAPI,
+    VehicleUpdateAPI,
+    ElectronicsUpdateAPI,
+    EventsUpdateAPI,
+    FashionUpdateAPI,
+    JobsUpdateAPI,
+    ServicesUpdateAPI,
+    SportsHobbyUpdateAPI,
+    KidsUpdateAPI,
+    FurnitureUpdateAPI,
 )
 from listings.api.upsert_listing import (
     VehicleAPI,
@@ -51,84 +64,54 @@ from listings.api.saved_listing import (
 )
 
 urlpatterns = [
-    path('jobs', JobsAPI.as_view(), name='jobs-listing'),
-    path('kids', KidsAPI.as_view(), name='kids-listing'),
-    path('meta', Categories.as_view(), name='categories-list'),
-    path('events', EventsAPI.as_view(), name='events-listing'),
-    path('vehicle', VehicleAPI.as_view(), name='vehicle-listing'),
-    path('fashion', FashionAPI.as_view(), name='fashion-listing'),
-    path('services', ServicesAPI.as_view(), name='services-listing'),
-    path('furniture', FurnitureAPI.as_view(), name='furniture-listing'),
-    path('realestate', RealEstateAPI.as_view(), name='realestate-listing'),
-    path('sportshobby', SportsHobbyAPI.as_view(), name='sportshobby-listing'),
-    path('electronics', ElectronicsAPI.as_view(), name='electronics-listing'),
+    path('jobs', JobsAPI.as_view()),
+    path('kids', KidsAPI.as_view()),
+    path('meta', Categories.as_view()),
+    path('events', EventsAPI.as_view()),
+    path('vehicle', VehicleAPI.as_view()),
+    path('fashion', FashionAPI.as_view()),
+    path('services', ServicesAPI.as_view()),
+    path('furniture', FurnitureAPI.as_view()),
+    path('realestate', RealEstateAPI.as_view()),
+    path('sportshobby', SportsHobbyAPI.as_view()),
+    path('electronics', ElectronicsAPI.as_view()),
+    # Update api
+    path('jobs/<str:pk>', JobsUpdateAPI.as_view()),
+    path('kids/<str:pk>', KidsUpdateAPI.as_view()),
+    path('events/<str:pk>', EventsUpdateAPI.as_view()),
+    path('fashion/<str:pk>', FashionUpdateAPI.as_view()),
+    path('vehicles/<str:pk>', VehicleUpdateAPI.as_view()),
+    path('services/<str:pk>', ServicesUpdateAPI.as_view()),
+    path('furniture/<str:pk>', FurnitureUpdateAPI.as_view()),
+    path('realestate/<str:pk>', RealEstateUpdateAPI.as_view()),
+    path('electronics/<str:pk>', ElectronicsUpdateAPI.as_view()),
+    path('sportshobby/<str:pk>', SportsHobbyUpdateAPI.as_view()),
     # Pagination's listings
-    path(
-        'paginate/vehicles',
-        PaginateVehicle.as_view(),
-        name='paginate-vehicle',
-    ),
-    path(
-        'paginate/realestate',
-        PaginateRealEstate.as_view(),
-        name='paginate-realestate',
-    ),
-    path(
-        'paginate/electronics',
-        PaginateElectronics.as_view(),
-        name='paginate-electronics',
-    ),
-    path(
-        'paginate/events',
-        PaginateEvents.as_view(),
-        name='paginate-events',
-    ),
-    path(
-        'paginate/fashion',
-        PaginateFashion.as_view(),
-        name='paginate-fashion',
-    ),
-    path(
-        'paginate/jobs',
-        PaginateJobs.as_view(),
-        name='paginate-jobs',
-    ),
-    path(
-        'paginate/services',
-        PaginateServices.as_view(),
-        name='paginate-services',
-    ),
-    path(
-        'paginate/sportshobby',
-        PaginateSportsHobby.as_view(),
-        name='paginate-sportshobby',
-    ),
-    path(
-        'paginate/kids',
-        PaginateKids.as_view(),
-        name='paginate-kids',
-    ),
-    path(
-        'paginate/furniture',
-        PaginateFurniture.as_view(),
-        name='paginate-furniture',
-    ),
+    path('paginate/jobs', PaginateJobs.as_view()),
+    path('paginate/kids', PaginateKids.as_view()),
+    path('paginate/events', PaginateEvents.as_view()),
+    path('paginate/fashion', PaginateFashion.as_view()),
+    path('paginate/vehicles', PaginateVehicle.as_view()),
+    path('paginate/services', PaginateServices.as_view()),
+    path('paginate/furniture', PaginateFurniture.as_view()),
+    path('paginate/realestate', PaginateRealEstate.as_view()),
+    path('paginate/electronics', PaginateElectronics.as_view()),
+    path('paginate/sportshobby', PaginateSportsHobby.as_view()),
     # Saved items
-    path('save', SaveListing.as_view(), name='save-listing'),
-    path('get-save', SavedListing.as_view(), name='get-save-lisitngs'),
-    path('unsave', UnSaveListing.as_view(), name='unsave-listing'),
+    path('save', SaveListing.as_view()),
+    path('get-save', SavedListing.as_view()),
+    path('unsave', UnSaveListing.as_view()),
     # Searching
     # User own listings & Look up
-    path('user/all', UserListing.as_view(), name='user-all-listings'),
-    path('lookup', LookupListing.as_view(), name='user-specific-listings'),
+    path('user/all', UserListing.as_view()),
+    path('lookup', LookupListing.as_view()),
     # Flip listing status
-    path('flip/status', FlipListingStatus.as_view(), name='flip-status'),
+    path('flip/status', FlipListingStatus.as_view()),
     # delete listing
-    path('delete', DeleteListing.as_view(), name='delete-listing'),
+    path('delete', DeleteListing.as_view()),
     # Recommendations
-    path(
-        'recommendations',
-        Recommendations.as_view(),
-        name='Recommendations',
-    ),
+    path('recommendations', Recommendations.as_view()),
+    path('delete', DeleteListing.as_view()),
+    # Recent
+    path('recent', Recent.as_view()),
 ]
