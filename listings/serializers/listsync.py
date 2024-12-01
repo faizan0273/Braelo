@@ -10,16 +10,31 @@ Serializer file for list sync Listings based endpoints
 ---------------------------------------------------
 '''
 
-
 from helpers.models.listsync import ListSync
+from rest_framework import serializers as SE
 from rest_framework_mongoengine import serializers
+
+from listings.models import SavedItem
 
 
 class ListsyncSerializer(serializers.DocumentSerializer):
+    is_saved = SE.SerializerMethodField()
 
     class Meta:
         model = ListSync
         fields = '__all__'
+
+    def get_is_saved(self, obj):
+        """
+        Check if the listing is saved by the current user.
+        """
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+
+        user = request.user
+        # Assuming SavedItem has fields: `user_id` and `listing_id`
+        return bool(SavedItem.objects(user_id=user.id, id=obj.id))
 
     def to_representation(self, instance):
         '''

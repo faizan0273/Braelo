@@ -24,7 +24,11 @@ from listings.models import SavedItem
 from helpers import handle_exceptions, response
 from users.models import Interest
 from rest_framework.exceptions import ValidationError
-from listings.serializers import SavedItemSerializer, ListsyncSerializer
+from listings.serializers import (
+    SavedItemSerializer,
+    ListsyncSerializer,
+    Serializer,
+)
 
 
 def get_user_listings(collection, user_id, offset, limit):
@@ -177,10 +181,11 @@ class LookupListing(generics.CreateAPIView):
 
 
 class Recent(generics.ListAPIView):
-    queryset = ListSync.objects.all()
-    permission_classes = [IsAuthenticated]
+
     pagination_class = Pagination
+    queryset = ListSync.objects.all()
     serializer_class = ListsyncSerializer
+    permission_classes = [IsAuthenticated]
 
 
 class Recommendations(generics.ListAPIView):
@@ -188,9 +193,17 @@ class Recommendations(generics.ListAPIView):
     Fetch listings based on user recommendation.
     '''
 
+    pagination_class = Pagination
+    serializer_class = ListsyncSerializer
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
         user_id = self.request.user.id
         interests = get_user_recommendations(user_id)
-        return ListSync.objects.filter(
-            Q(category__in=interests) | Q(subcategory__in=interests)
-        )
+        try:
+            queryset = ListSync.objects.filter(
+                Q(category__in=interests) | Q(subcategory__in=interests)
+            )
+        except Exception as exc:
+            raise ValidationError({'Listsync': str(exc)})
+        return queryset

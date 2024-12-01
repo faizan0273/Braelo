@@ -133,7 +133,7 @@ class Serializer(serializers.DocumentSerializer):
         instance.updated_at = timezone.now()
         instance.save()
         # Update list sync collection
-        ListSynchronize.listsync(validated_data, instance.id)
+        ListSynchronize.listsync(validated_data, instance.id, update=True)
         return instance
 
     def validate(self, data):
@@ -183,7 +183,6 @@ class Serializer(serializers.DocumentSerializer):
                     raise ValidationError(
                         {'pictures': 'Invalid picture format'}
                     )
-        # data['pictures'] = s3_urls
 
         # Timestamps
         data['created_at'] = timezone.now()
