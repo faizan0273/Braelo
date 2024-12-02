@@ -12,6 +12,8 @@ End points registry file.
 
 from . import views
 from django.urls import path
+
+from .api.devices import SaveDeviceToken
 from .api.user_interest import InterestListCreateView
 from .api import (
     LoginWithEmail,
@@ -67,4 +69,6 @@ urlpatterns = [
     path('public-profile', PublicProfile.as_view(), name='public_profile'),
     # Flip User Status
     path('user/flip-status', FlipUserStatus.as_view(), name='flip_user_status'),
+    # Add device Token
+    path('device/token', SaveDeviceToken.as_view()),
 ]
