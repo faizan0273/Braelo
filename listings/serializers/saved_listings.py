@@ -44,16 +44,23 @@ class SavedItemSerializer(serializers.DocumentSerializer):
 
         # Validate category
         category = data.get('category')
+        subcategory = data.get('subcategory')
         if category not in CATEGORIES:
             raise ValidationError(
                 {
                     'category': f'Invalid category. Available categories: {CATEGORIES.keys()}'
                 }
             )
+        if subcategory and subcategory not in CATEGORIES.get(category, []):
+            raise ValidationError(
+                {
+                    'subcategory': f'subcategories should be {CATEGORIES[category]}'
+                }
+            )
 
         # Ensure the listing exists
         validation_data = {
-            'id': data['id'],
+            'id': data['listing_id'],
             'title': data['title'],
             'price': data['price'],
             'location': data['location'],

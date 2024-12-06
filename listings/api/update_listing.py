@@ -12,6 +12,7 @@ Populate Listing and save listings endpoints.
 
 from bson import ObjectId
 from rest_framework import status
+from mongoengine.errors import DoesNotExist
 from rest_framework_mongoengine import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError
@@ -83,7 +84,7 @@ class UpdateListing(generics.UpdateAPIView):
             raise ValidationError({'pk': 'Invalid ObjectId format.'})
         try:
             return self.queryset.get(id=ObjectId(pk))
-        except self.queryset.model.DoesNotExist:
+        except DoesNotExist:
             raise ValidationError({'detail': 'Listing not found.'})
 
 

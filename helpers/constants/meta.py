@@ -81,7 +81,7 @@ SPORTS_HOBBY = [
     'Collected Items',
     'Games',
     'Camping',
-    'Outdoor Activities',
+    'Activities',
 ]
 
 

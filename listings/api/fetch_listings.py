@@ -13,9 +13,6 @@ Fetch User listings endpoints.
 from mongoengine import Q
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.pagination import PageNumberPagination
-
-from rest_framework.permissions import IsAuthenticated, AllowAny
 
 from helpers import ListSync
 from listings.api import MODEL_MAP
@@ -27,7 +24,6 @@ from rest_framework.exceptions import ValidationError
 from listings.serializers import (
     SavedItemSerializer,
     ListsyncSerializer,
-    Serializer,
 )
 
 
@@ -63,24 +59,6 @@ def get_user_recommendations(user_id):
         raise Exception('No Interest found')
 
 
-class Pagination(PageNumberPagination):
-    '''
-    Listing pagination configurations.
-    '''
-
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 50
-
-    def get_paginated_response(self, data):
-        paginated_data = super().get_paginated_response(data).data
-        return response(
-            status=status.HTTP_200_OK,
-            message='Recommendations fetched Successfully',
-            data=paginated_data,
-        )
-
-
 class SavedListing(generics.ListAPIView):
     '''
     Fetch User Saved listing.
@@ -102,11 +80,12 @@ class SavedListing(generics.ListAPIView):
         offset = int(request.query_params.get('offset', 0))
         listings = get_user_listings(SavedItem, user_id, offset, limit)
         serializer = SavedItemSerializer(listings, many=True)
+        saved_listings = {item['id']: item for item in serializer.data}
 
         return response(
             status=status.HTTP_200_OK,
             message='Saved items retrieved successfully',
-            data=serializer.data,
+            data=saved_listings,
         )
 
 
@@ -127,11 +106,12 @@ class UserListing(generics.CreateAPIView):
         offset = int(request.query_params.get('offset', 0))
         listings = get_user_listings(ListSync, user_id, offset, limit)
         serializer = ListsyncSerializer(listings, many=True)
+        user_listings = {item['id']: item for item in serializer.data}
 
         return response(
             status=status.HTTP_200_OK,
             message='Saved items retrieved successfully',
-            data=serializer.data,
+            data=user_listings,
         )
 
 
