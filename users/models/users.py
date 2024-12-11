@@ -75,8 +75,14 @@ class User(AbstractUser):
     is_business = models.BooleanField(default=False)
     role = models.CharField(max_length=255, choices=USER_ROLES)
 
-    # Limited only for normal user
-    allowed_listings = models.IntegerField(default=10, blank=True)
+    # Recent Searches
+    recent_searches = models.JSONField(blank=True, default=list)
+    # Count for normal & business user(Dashoard)
+    listings_count = models.IntegerField(default=0, blank=True)
+    # Business dashboard
+    listings_clicks = models.IntegerField(default=0, blank=True)
+    business_interactions = models.IntegerField(default=0, blank=True)
+    business_featured = models.IntegerField(default=0, blank=True)
     # personal information
     dob = models.CharField(max_length=15, null=True, blank=True)
     gender = models.CharField(max_length=15, null=True, blank=True)

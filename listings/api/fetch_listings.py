@@ -11,8 +11,11 @@ Fetch User listings endpoints.
 '''
 
 from mongoengine import Q
+from mongoengine.errors import DoesNotExist
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+
 
 from helpers import ListSync
 from listings.api import MODEL_MAP
@@ -56,7 +59,7 @@ def get_user_recommendations(user_id):
         interest = Interest.objects.get(user_id=user_id)
         return interest.tags
     except Interest.DoesNotExist:
-        raise Exception('No Interest found')
+        return []
 
 
 class SavedListing(generics.ListAPIView):
@@ -129,35 +132,40 @@ class LookupListing(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: Listing object. (dict)
         '''
-        user = request.user
-        user_id = user.id
-        category = request.data.get('category')
-        listing_id = request.data.get('listing_id')
-        if not category or not listing_id:
-            raise ValidationError(
-                'Category and listing_id are required parameters.'
+        try:
+            user = request.user
+            user_id = user.id
+            category = request.data.get('category')
+            listing_id = request.data.get('listing_id')
+            if not category or not listing_id:
+                raise ValidationError(
+                    'Category and listing_id are required parameters.'
+                )
+
+            # Validate category
+            if category not in MODEL_MAP:
+                raise ValidationError(
+                    {
+                        'category': f'Invalid category. Choose from {list(MODEL_MAP.keys())}.'
+                    }
+                )
+
+            # Fetch the corresponding model
+            model = MODEL_MAP[category]
+
+            listing = model.objects.get(id=listing_id, user_id=user_id)
+            listing_data = listing.to_mongo().to_dict()  # Convert to dict
+            listing_data.pop('_id', None)
+            if user.is_business:
+                user.listings_clicks += 1
+                user.save()
+            return response(
+                status=status.HTTP_200_OK,
+                message='Listing fetched successfully',
+                data=listing_data,
             )
-
-        # Validate category
-        if category not in MODEL_MAP:
-            raise ValidationError(
-                {
-                    'category': f'Invalid category. Choose from {list(MODEL_MAP.keys())}.'
-                }
-            )
-
-        # Fetch the corresponding model
-        model = MODEL_MAP[category]
-
-        listing = model.objects.get(id=listing_id, user_id=user_id)
-
-        listing_data = listing.to_mongo().to_dict()  # Convert to dict
-        listing_data.pop('_id', None)
-        return response(
-            status=status.HTTP_200_OK,
-            message='Listing fetched successfully',
-            data=listing_data,
-        )
+        except DoesNotExist:
+            raise ValidationError({'Listings': 'No listings found'})
 
 
 class Recent(generics.ListAPIView):
@@ -165,7 +173,7 @@ class Recent(generics.ListAPIView):
     pagination_class = Pagination
     queryset = ListSync.objects.all()
     serializer_class = ListsyncSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
 
 class Recommendations(generics.ListAPIView):
@@ -175,12 +183,14 @@ class Recommendations(generics.ListAPIView):
 
     pagination_class = Pagination
     serializer_class = ListsyncSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         user_id = self.request.user.id
         interests = get_user_recommendations(user_id)
         try:
+            if not interests:
+                return ListSync.objects.all()
             queryset = ListSync.objects.filter(
                 Q(category__in=interests) | Q(subcategory__in=interests)
             )

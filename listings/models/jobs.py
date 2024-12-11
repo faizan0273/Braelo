@@ -28,6 +28,7 @@ class JobsListing(Document):
     title = StringField(required=True)
     description = StringField(required=True)
     location = StringField(required=True)
+    keywords = ListField(StringField(required=True), required=True)
 
     # category based
     job_tittle = StringField(required=True)

@@ -35,6 +35,7 @@ class EventsListing(Document):
     title = StringField(required=True)
     description = StringField(required=True)
     location = StringField(required=True)
+    keywords = ListField(StringField(required=True), required=True)
 
     # category based
     event_type = StringField(required=True)

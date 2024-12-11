@@ -101,3 +101,8 @@ CATEGORIES = {
 
 # GENRALS
 CONFIRMATION = ['YES', 'NO']
+
+# For normal user
+USER_LISTINGS_THRESHOLD = 10
+# Listings keywords limit
+KEYWORDS_LIMIT = 10

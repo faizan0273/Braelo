@@ -10,7 +10,11 @@ __init__.py file for listing constants imports.
 ---------------------------------------------------
 '''
 
-from helpers.constants.meta import CATEGORIES
+from helpers.constants.meta import (
+    CATEGORIES,
+    USER_LISTINGS_THRESHOLD,
+    KEYWORDS_LIMIT,
+)
 from helpers.constants.jobs import JobsConstants
 from helpers.constants.kids import KidsConstants
 from helpers.constants.interests import INTERESTS

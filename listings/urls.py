@@ -62,6 +62,11 @@ from listings.api.saved_listing import (
     UnSaveListing,
     DeleteListing,
 )
+from listings.api.search import (
+    Search,
+    RecentSearches,
+    DeleteSearches,
+)
 
 urlpatterns = [
     path('jobs', JobsAPI.as_view()),
@@ -111,7 +116,12 @@ urlpatterns = [
     path('delete', DeleteListing.as_view()),
     # Recommendations
     path('recommendations', Recommendations.as_view()),
-    path('delete', DeleteListing.as_view()),
     # Recent
     path('recent', Recent.as_view()),
+    # Search
+    path('search', Search.as_view()),
+    # Recent Searches
+    path('recent/searches', RecentSearches.as_view()),
+    # Delete Recent Searches
+    path('delete/searches', DeleteSearches.as_view()),
 ]

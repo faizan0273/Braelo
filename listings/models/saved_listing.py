@@ -26,6 +26,7 @@ class SavedItem(Document):
     user_id = IntField()
     listing_id = ObjectIdField(required=True)
     category = StringField(required=True)
+    subcategory = StringField(required=True)
     title = StringField(required=True)
     location = StringField(required=True)
     price = DecimalField(required=True)

@@ -24,6 +24,7 @@ from listings.models import SavedItem
 from helpers.models import ListSync
 from listings.api.upsert_listing import Listing
 from listings.serializers import SavedItemSerializer
+from helpers.constants import USER_LISTINGS_THRESHOLD
 from helpers import handle_exceptions, response, ListSynchronize
 
 
@@ -95,7 +96,7 @@ class FlipListingStatus(generics.CreateAPIView):
             )
         listing_limit = User.objects.filter(id=user_id).first()
         if not listing_limit.is_business and listing_status:
-            if listing_limit.allowed_listings == 10:
+            if listing_limit.listings_count == USER_LISTINGS_THRESHOLD:
                 raise ValidationError(
                     {'Listing Limit': 'Cannot Exceed 10 For Normal User'}
                 )
@@ -110,10 +111,12 @@ class FlipListingStatus(generics.CreateAPIView):
         ListSynchronize.flip_status(
             listing_id=listing_id, status=listing_status, user_id=user_id
         )
-        # Only updates if user is Normal User
-        if not listing_limit.is_business:
-            listing_limit.allowed_listings += 1 if listing_status else -1
-            listing_limit.save()
+        #  updates the listings count for business & user
+        if listing_status:
+            listing_limit.listings_count += 1
+        elif not listing_limit.is_business and listing_limit.listings_count > 0:
+            listing_limit.listings_count -= 1
+        listing_limit.save()
 
         return response(
             status=status.HTTP_200_OK,
@@ -169,7 +172,7 @@ class DeleteListing(generics.RetrieveDestroyAPIView):
                     data={},
                 )
             User.objects.filter(id=user_id, is_business=False).update(
-                allowed_listings=F('allowed_listings') + 1
+                listings_count=F('listings_count') - 1
             )
 
         return response(

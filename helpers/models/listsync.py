@@ -28,6 +28,7 @@ class ListSync(Document):
     category = StringField(required=True)
     subcategory = StringField(required=True)
     title = StringField(required=True)
+    keywords = ListField(StringField(required=True), required=True)
     location = StringField(required=True)
     price = DecimalField(required=False)
     salary_range = StringField(required=False)

@@ -34,6 +34,7 @@ class KidsListing(Document):
     title = StringField(required=True)
     description = StringField(required=True)
     location = StringField(required=True)
+    keywords = ListField(StringField(required=True), required=True)
 
     # Price-related fields
     donation = StringField(choices=KC.DONATION, required=True)

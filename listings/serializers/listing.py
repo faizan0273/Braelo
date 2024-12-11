@@ -19,7 +19,11 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from users.models import User
 from rest_framework_mongoengine import serializers
 from rest_framework import serializers as SE
-from helpers.constants import CATEGORIES
+from helpers.constants import (
+    CATEGORIES,
+    USER_LISTINGS_THRESHOLD,
+    KEYWORDS_LIMIT,
+)
 from helpers.listsync import ListSynchronize
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
 from listings.models import (
@@ -59,7 +63,7 @@ class Serializer(serializers.DocumentSerializer):
 
         user = request.user
         # Assuming SavedItem has fields: `user_id` and `listing_id`
-        return bool(SavedItem.objects(user_id=user.id, id=obj.id))
+        return bool(SavedItem.objects(user_id=user.id, listing_id=obj.id))
 
     def upload_pictures(self, pictures, category, user):
         '''
@@ -146,16 +150,23 @@ class Serializer(serializers.DocumentSerializer):
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
+        keywords = data.get('keywords')
         status = data.get('is_active')
         user_status = user
         # Check if this is an update call
         is_update = self.context.get('is_update', False)
 
-        # If it's not an update, enforce the allowed_listings limit
-        if not is_update and not user_status.is_business:
-            if user_status.allowed_listings < 1:
+        # Check keywords limit
+        if len(keywords) > KEYWORDS_LIMIT:
+            raise ValidationError({'Keywords': 'Limit is 10'})
+        # If it's not an update, Increament in Listings Count
+        if not is_update:
+            if (
+                not user_status.is_business
+                and user_status.listings_count == USER_LISTINGS_THRESHOLD
+            ):
                 raise ValidationError({'Listings': 'Normal User Limit Reached'})
-            user_status.allowed_listings -= 1  # Decrement the count
+            user_status.listings_count += 1
             user_status.save()
         # Validate category and subcategory
         if category != self.Meta.category:

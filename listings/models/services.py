@@ -36,6 +36,7 @@ class ServicesListing(Document):
     title = StringField(required=True)
     description = StringField(required=True)
     location = StringField(required=True)
+    keywords = ListField(StringField(required=True), required=True)
 
     other = StringField(required=False)
     certifications = StringField(choices=SC.CERTIFICATION, required=False)

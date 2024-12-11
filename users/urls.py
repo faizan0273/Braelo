@@ -32,6 +32,7 @@ from .api import (
     DeactivateUser,
     PublicProfile,
     FlipUserStatus,
+    BusinessDashboard,
 )
 
 # todo import from separate files.
@@ -71,4 +72,6 @@ urlpatterns = [
     path('user/flip-status', FlipUserStatus.as_view(), name='flip_user_status'),
     # Add device Token
     path('device/token', SaveDeviceToken.as_view()),
+    # Business Dashboard
+    path('business/dashboard', BusinessDashboard.as_view()),
 ]
