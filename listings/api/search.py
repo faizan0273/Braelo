@@ -32,12 +32,11 @@ class Search(generics.ListAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
     serializer_class = ListsyncSerializer
 
-    @handle_exceptions
     def get_queryset(self):
         user_id = self.request.user.id
-        search = self.request.data.get('search').strip()
-        if len(search) < 5:
-            raise ValidationError({'Search': 'More than 5 characters Required'})
+        search = self.request.GET.get('search','').strip()
+        if len(search) < 3:
+            raise ValidationError({'Search': 'More than 3 characters Required'})
 
         if not search:
             raise ValidationError({'Search': 'Search cannot be empty'})
