@@ -27,3 +27,4 @@ helpers/__pycache__/
 helpers/constants/__pycache__/
 helpers/models/__pycache__/
 listings/migrations/__pycache__/
+credentials.json

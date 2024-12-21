@@ -19,4 +19,5 @@ urlpatterns = [
     path('auth/', include('users.urls')),
     path('listing/', include('listings.urls')),
     path('report/', include('feedbacks.urls')),
+    path('notifications/', include('notifications.urls')),
 ]

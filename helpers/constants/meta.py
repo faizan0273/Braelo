@@ -106,3 +106,7 @@ CONFIRMATION = ['YES', 'NO']
 USER_LISTINGS_THRESHOLD = 10
 # Listings keywords limit
 KEYWORDS_LIMIT = 10
+
+# Listing Count
+# For normal user
+LISTING_UPPER_THRESHOLD = 10

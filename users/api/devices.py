@@ -32,8 +32,8 @@ class SaveDeviceToken(generics.CreateAPIView):
         data = request.data
         data['user_id'] = request.user.id
         serializer = self.get_serializer(
-            data=request.data, context={'request': request}
-        )
+            data=data, context={'request': request}
+        ) 
         serializer.is_valid(raise_exception=True)
         resp = serializer.save()
         if not resp:
