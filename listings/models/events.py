@@ -47,14 +47,18 @@ class EventsListing(Document):
     negotiable = StringField(choices=EC.NEGOTIABLE, required=True)
 
     # Networking event
-    industry_focus = IntField(required=False)
-    speaker_list = FloatField(required=False)
+    industry_focus = StringField(required=False)
+    speaker_list = StringField(required=False)
     # Concert
     genre = StringField(required=False)
     # festivals
     no_of_days = IntField(required=False)
-    theme = IntField(required=False)
+    theme = StringField(required=False)
     major_attraction = StringField(required=False)
+
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
 
     # Timestamps
     created_at = DateTimeField()

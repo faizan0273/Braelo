@@ -146,6 +146,7 @@ class Serializer(serializers.DocumentSerializer):
         Ensures category and subcategory validation and user association.
         '''
         user = self.context['request'].user
+        data['from_business'] = user.is_business
         data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')

@@ -66,6 +66,10 @@ class ElectronicsListing(Document):
     part_type = StringField(required=False)
     compatible_model = StringField(required=False)
 
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
+
     # Timestamps
     created_at = DateTimeField()
     updated_at = DateTimeField()

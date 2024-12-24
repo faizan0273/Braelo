@@ -45,6 +45,10 @@ class SportsHobbyListing(Document):
     price = DecimalField(required=True)
     negotiable = StringField(choices=SHC.NEGOTIABLE, required=True)
 
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
+
     # Timestamps
     created_at = DateTimeField()
     updated_at = DateTimeField()

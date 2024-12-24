@@ -33,6 +33,11 @@ from .api import (
     PublicProfile,
     FlipUserStatus,
     BusinessDashboard,
+    BussinessListing,
+    FetchBusinesses,
+    ScanBusinessQR,
+    DeactivateBusiness,
+    FetchListings,
 )
 
 # todo import from separate files.
@@ -74,4 +79,14 @@ urlpatterns = [
     path('device/token', SaveDeviceToken.as_view()),
     # Business Dashboard
     path('business/dashboard', BusinessDashboard.as_view()),
+    # Business Lisitng
+    path('business', BussinessListing.as_view()),
+    # fetch all Business
+    path('business/fetch', FetchBusinesses.as_view()),
+    # Deactive Business
+    path('business/deactivate', DeactivateBusiness.as_view()),
+    # Fetch Listings of Business
+    path('business/listings', FetchListings.as_view()),
+    # Fetch Business
+    path('business/<str:pk>', ScanBusinessQR.as_view()),
 ]

@@ -100,6 +100,10 @@ class RealEstateListing(Document):
         choices=REC.PREFERRED_OCCUPANTS, required=False
     )
 
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
+
     # Timestamps
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()

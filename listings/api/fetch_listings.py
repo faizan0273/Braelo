@@ -11,12 +11,13 @@ Fetch User listings endpoints.
 '''
 
 from mongoengine import Q
+from django.db import transaction
 from mongoengine.errors import DoesNotExist
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-
+from users.api import User
 from helpers import ListSync
 from listings.api import MODEL_MAP
 from listings.api.paginate_listing import Pagination
@@ -102,7 +103,8 @@ class UserListing(generics.CreateAPIView):
     @handle_exceptions
     def get(self, request):
         # Get the logged-in user's ID
-        user_id = request.user.id
+        user = request.user.id
+        user_id = user.id
 
         # Fetch all listings for the user across all categories
         limit = int(request.query_params.get('limit', 10))
@@ -113,7 +115,7 @@ class UserListing(generics.CreateAPIView):
 
         return response(
             status=status.HTTP_200_OK,
-            message='Saved items retrieved successfully',
+            message='User listings retrieved successfully',
             data=user_listings,
         )
 
@@ -133,8 +135,6 @@ class LookupListing(generics.CreateAPIView):
         :return: Listing object. (dict)
         '''
         try:
-            user = request.user
-            user_id = user.id
             category = request.data.get('category')
             listing_id = request.data.get('listing_id')
             if not category or not listing_id:
@@ -153,12 +153,23 @@ class LookupListing(generics.CreateAPIView):
             # Fetch the corresponding model
             model = MODEL_MAP[category]
 
-            listing = model.objects.get(id=listing_id, user_id=user_id)
+            listing = model.objects.get(id=listing_id)
+            if listing.from_business:
+                with transaction.atomic():
+                    update_user = User.objects.get(id=listing.user_id)
+                    listsync_listing = ListSync.objects.get(
+                        listing_id=listing_id
+                    )
+                    listing.listing_clicks += 1
+                    listsync_listing.listing_clicks += 1
+                    update_user.listings_clicks += 1
+                    listing.save()
+                    listsync_listing.save()
+                    update_user.save()
+
             listing_data = listing.to_mongo().to_dict()  # Convert to dict
             listing_data.pop('_id', None)
-            if user.is_business:
-                user.listings_clicks += 1
-                user.save()
+
             return response(
                 status=status.HTTP_200_OK,
                 message='Listing fetched successfully',

@@ -39,9 +39,9 @@ class FashionListing(Document):
     # category based
     # fashion attributes
     brand = StringField(required=True)
-    size = StringField(required=True)
-    color = StringField(required=True)
-    material_type = StringField(required=True)
+    size = StringField(required=False)
+    color = StringField(required=False)
+    material_type = StringField(required=False)
 
     gender = StringField(required=False)
     # todo why two sizes
@@ -64,6 +64,10 @@ class FashionListing(Document):
     # Jewelry
     metal_type = StringField(required=False)
     gem_stone = StringField(required=False)
+
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
 
     # Timestamps
     created_at = DateTimeField()

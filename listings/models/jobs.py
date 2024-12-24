@@ -62,6 +62,10 @@ class JobsListing(Document):
     car_needed = StringField(choices=JC.HELPER_CAR, required=False)
     helper_pay = StringField(choices=JC.HELPER_PAY, required=False)
 
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
+
     # Timestamps
     created_at = fields.DateTimeField()
     updated_at = fields.DateTimeField()

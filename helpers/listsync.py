@@ -67,6 +67,7 @@ class ListSynchronize:
             'keywords',
             'title',
             'location',
+            'from_business',
             'created_at',
         ]
         missing_fields = [
@@ -86,6 +87,7 @@ class ListSynchronize:
             'keywords': data['keywords'],
             'location': data['location'],
             'pictures': data['pictures'],
+            'from_business': data['from_business'],
             'created_at': data['created_at'],
         }
         price = (

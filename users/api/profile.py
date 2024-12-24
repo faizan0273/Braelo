@@ -159,11 +159,19 @@ class FlipUserStatus(generics.CreateAPIView):
     def post(self, request):
         user = request.user
         user_id = user.id
+        user_status = request.data.get('status')
+
+        if user_status not in ['user', 'business']:
+            raise ValidationError(
+                {'Status': 'Status must be either "user" or "business".'}
+            )
 
         update_status = User.objects.filter(id=user_id).first()
-        if update_status.is_business:
+        if user_status == 'business' and update_status.is_business:
             raise ValidationError({'User': 'User is already a Business User'})
-        update_status.is_business = True
+        if not user_status == 'business' and not update_status.is_business:
+            raise ValidationError({'User': 'User is already Normal User'})
+        update_status.is_business = user_status == 'business'
         update_status.save()
         return response(
             status=status.HTTP_201_CREATED,

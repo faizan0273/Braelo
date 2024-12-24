@@ -88,6 +88,7 @@ python-dotenv==1.0.1
 python-jose==3.3.0
 python-openid==2.2.5
 python3-openid==3.2.0
+python-slugify==5.0.0
 pytz==2024.2
 requests==2.32.3
 requests-oauthlib==2.0.0
@@ -107,3 +108,6 @@ uritemplate==4.1.1
 urllib3==1.26.20
 versioneer==0.29
 yarl==1.15.2
+qrcode==7.3.1
+
+

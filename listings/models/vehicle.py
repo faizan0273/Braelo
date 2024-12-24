@@ -55,12 +55,12 @@ class VehicleListing(Document):
     purpose = StringField(choices=VC.PURPOSE, required=False)
 
     # Truck
-    Load_capacity = IntField(required=False)
+    Load_capacity = IntField(required=False)  # issue discuss
 
     # Bike
     bike_type = StringField(required=False)
     # Boat
-    boat_length = IntField(required=False)
+    boat_length = IntField(required=False)  # issue discuss
     # Vans
     passenger_capacity = IntField(required=False)
     # Parts and Accessories
@@ -70,6 +70,10 @@ class VehicleListing(Document):
     rentals = StringField(choices=VC.RENTALS, required=False)
     vehicle_type = StringField(required=False)
     rental_duration = StringField(required=False)
+
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
 
     # Timestamps
     created_at = DateTimeField()

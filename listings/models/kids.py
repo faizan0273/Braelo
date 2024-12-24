@@ -76,6 +76,10 @@ class KidsListing(Document):
     activity_type = StringField(required=False)
     equipment_required = StringField(required=False)
 
+    # Business Checks
+    from_business = BooleanField(required=False, default=False)
+    listing_clicks = IntField(default=0, required=False)
+
     # Timestamps
     created_at = DateTimeField()
     updated_at = DateTimeField()

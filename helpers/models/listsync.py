@@ -33,6 +33,9 @@ class ListSync(Document):
     price = DecimalField(required=False)
     salary_range = StringField(required=False)
     pictures = ListField(required=True)
+    # Business Checks
+    from_business = BooleanField(required=True)
+    listing_clicks = IntField(default=0, required=False)
     created_at = DateTimeField()
 
     # Status
