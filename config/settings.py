@@ -87,6 +87,7 @@ DEFAULT_FROM_EMAIL = 'braelo.fl@gmail.com'
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -98,6 +99,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'users',
+    'chats',
     'listings',
     'notifications',
     'fcm_django',
@@ -139,10 +141,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    # 'applications.custom_authentication.middleware.JWTAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+CHANNEL_LAYERS = {
+    'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+}
 # S3 configurations
 AZURE_ACCOUNT_NAME = 'braelos3'
 AZURE_ACCOUNT_KEY = '5PkRWE5PK49PotcquKuVgZ6jLN261i8VNuqqdpTKJJekYcr2EWwrrlRyqV/s7a+mLOrV/YKBZDOX+AStNDj6pQ=='
@@ -178,8 +183,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'config.wsgi.application'
+# WSGI_APPLICATION = 'config.wsgi.application'
 
+ASGI_APPLICATION = 'config.asgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

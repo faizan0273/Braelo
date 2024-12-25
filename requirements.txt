@@ -8,6 +8,8 @@ asgiref==3.8.1
 astroid==3.2.4
 async-timeout==5.0.1
 attrs==24.2.0
+autobahn==23.1.2
+Automat==24.8.1
 azure-core==1.31.0
 azure-storage-blob==12.23.1
 backports.zoneinfo==0.2.1
@@ -20,14 +22,18 @@ CacheControl==0.14.1
 cachetools==5.5.0
 certifi==2024.8.30
 cffi==1.17.1
+channels==4.2.0
 charset-normalizer==3.3.2
 click==8.1.7
 condition==1.0.8
+constantly==23.10.4
 cryptography==43.0.1
+daphne==4.1.2
 defusedxml==0.8.0rc2
 dill==0.3.8
 Django==4.2.15
 django-allauth==64.2.0
+django-channels-jwt-auth-middleware==1.0.0
 django-cors-headers==4.4.0
 django-filter==24.3
 django-rest-framework-mongoengine==3.4.1
@@ -54,7 +60,9 @@ googleapis-common-protos==1.63.2
 grpcio==1.68.1
 grpcio-status==1.68.1
 httplib2==0.22.0
+hyperlink==21.0.0
 idna==3.8
+incremental==24.7.2
 isodate==0.7.2
 isort==5.13.2
 jmespath==1.0.1
@@ -81,6 +89,7 @@ pycparser==2.22
 PyJWT==2.9.0
 pylint==3.2.7
 pymongo==4.8.0
+pyOpenSSL==24.3.0
 pyotp==2.9.0
 pyparsing==3.1.4
 python-dateutil==2.9.0.post0
@@ -94,6 +103,8 @@ requests==2.32.3
 requests-oauthlib==2.0.0
 rsa==4.9
 s3transfer==0.10.3
+service-identity==24.2.0
+shortuuid==1.0.13
 six==1.16.0
 social-auth-core==4.5.4
 soupsieve==2.6
@@ -102,6 +113,8 @@ swapper==1.4.0
 tomli==2.0.1
 tomlkit==0.13.2
 twilio==9.3.7
+Twisted==24.11.0
+txaio==23.1.1
 typing_extensions==4.12.2
 tzdata==2024.2
 uritemplate==4.1.1
@@ -109,5 +122,4 @@ urllib3==1.26.20
 versioneer==0.29
 yarl==1.15.2
 qrcode==7.3.1
-
-
+zope.interface==7.2
