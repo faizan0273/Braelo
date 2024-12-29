@@ -16,6 +16,7 @@ from azure.storage.blob import BlobServiceClient
 from rest_framework.exceptions import ValidationError
 from django.core.files.uploadedfile import InMemoryUploadedFile
 
+from helpers import blob_service_client
 from users.models import User
 from rest_framework_mongoengine import serializers
 from rest_framework import serializers as SE
@@ -38,12 +39,6 @@ from listings.models import (
     VehicleListing,
     KidsListing,
     SavedItem,
-)
-
-blob_service_client = BlobServiceClient.from_connection_string(
-    'DefaultEndpointsProtocol=https;AccountName=braelos3;AccountKey=ODvt'
-    'b8NuHRyWRsNR54wyp2lP0a7YGlM//NnhbkQKKv+JhX9E9Z+JXUSX56/sY7q0OxYPjidA5'
-    'HL0+AStWzRAYA==;EndpointSuffix=core.windows.net'
 )
 
 

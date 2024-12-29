@@ -1,15 +1,27 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Chat endpoint file.
+---------------------------------------------------
+'''
+
 import shortuuid
 from django.utils import timezone
+from rest_framework.views import APIView
 from rest_framework import generics, status
-from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import NotFound, ValidationError
 
-from chats.models import Chat
+from chats.models import Chat, Message
 from chats.serializers.chat import ChatSerializer
 
-from rest_framework.pagination import PageNumberPagination
-
-from helpers import response
+from helpers import response, handle_exceptions
 
 
 class ChatroomPagination(PageNumberPagination):
@@ -24,8 +36,8 @@ class CreateChatroomApi(generics.CreateAPIView):
     The chatroom is identified by participants' user IDs.
     '''
 
-    permission_classes = [IsAuthenticated]
     serializer_class = ChatSerializer
+    permission_classes = [IsAuthenticated]
 
     def get_chatroom(self, user_id, second_user_id):
         '''
@@ -38,6 +50,7 @@ class CreateChatroomApi(generics.CreateAPIView):
             return chatroom.first()
         return None
 
+    @handle_exceptions
     def post(self, request, *args, **kwargs):
         '''
         Handle the creation or retrieval of a chatroom.
@@ -74,6 +87,53 @@ class CreateChatroomApi(generics.CreateAPIView):
         )
 
 
+class DeleteChatroomApi(APIView):
+    '''
+    API to delete a chatroom and its associated messages.
+    '''
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def delete(self, request, *args, **kwargs):
+        chatroom_id = kwargs.get('chat_id')
+        user_id = str(request.user.id)
+        if not chatroom_id:
+            return response(
+                status=status.HTTP_400_BAD_REQUEST,
+                message='Chatroom ID is required in query parameters.',
+                data={},
+            )
+        # Fetch the chatroom
+        chatroom = Chat.objects.filter(chat_id=chatroom_id).first()
+
+        if not chatroom:
+            return response(
+                status=status.HTTP_404_NOT_FOUND,
+                message='Chatroom not found.',
+                data={},
+            )
+
+        if user_id not in chatroom.participants:
+            return response(
+                status=status.HTTP_403_FORBIDDEN,
+                message='You are not authorized to delete this chatroom.',
+                data={},
+            )
+
+        # Delete all messages in the chatroom
+        Message.objects.filter(chat=chatroom).delete()
+
+        # Delete the chatroom
+        chatroom.delete()
+
+        return response(
+            status=status.HTTP_200_OK,
+            message='Chatroom and its messages deleted successfully.',
+            data={},
+        )
+
+
 class ChatroomListApi(generics.ListCreateAPIView):
 
     permission_classes = [IsAuthenticated]
@@ -93,7 +153,7 @@ class ChatroomDetailApi(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ChatSerializer
 
     def get_queryset(self):
-        chat_id = self.kwargs['chat_id']  # Retrieve chat_id from the URL
+        chat_id = self.kwargs['chat_id']
         return Chat.objects.filter(chat_id=chat_id)
 
     def get_object(self):
@@ -101,5 +161,5 @@ class ChatroomDetailApi(generics.RetrieveUpdateDestroyAPIView):
         user_id = str(self.request.user.id)
         chat = queryset.filter(participants__in=[user_id]).first()
         if not chat:
-            raise NotFound("Chat not found or you are not a participant")
+            raise NotFound('Chat not found or you are not a participant')
         return chat

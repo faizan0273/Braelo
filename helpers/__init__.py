@@ -10,6 +10,7 @@ __init__.py file for endpoints imports.
 ---------------------------------------------------
 '''
 
+from helpers.azure import *
 from helpers.models import *
 from helpers.helper import *
 from helpers.listsync import *

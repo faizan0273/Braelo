@@ -1,3 +1,15 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Chat model file.
+---------------------------------------------------
+'''
+
 import shortuuid
 from mongoengine import (
     Document,
@@ -17,6 +29,7 @@ class Chat(Document):
 
     chat_id = StringField(unique=True)
     participants = ListField(StringField(), required=True)
+    pair_key = StringField(required=True, unique=True)
     is_active = BooleanField(default=True)
     created_at = DateTimeField()
     updated_at = DateTimeField()
@@ -29,13 +42,17 @@ class Chat(Document):
                 'unique': True,
             },
             {
-                'fields': ['participants'],
+                'fields': ['pair_key'],
                 'unique': True,
             },
         ],
     }
 
     def save(self, *args, **kwargs):
+
+        self.participants = sorted(self.participants)
+        # Step 2: Generate pair_key by joining participants with '_'
+        self.pair_key = "_".join(self.participants)
         if not self.chat_id:
             self.chat_id = shortuuid.uuid()
         if not self.created_at:

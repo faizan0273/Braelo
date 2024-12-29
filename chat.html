@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatroom Test</title>
+  <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        background: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    #chat-container {
+        background: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        width: 400px;
+        max-width: 100%;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #header {
+        background: #4CAF50;
+        color: #fff;
+        padding: 15px;
+        font-size: 1.5rem;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    #messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        border-bottom: 1px solid #ddd;
+        background: #f9f9f9;
+        font-size: 0.9rem;
+    }
+
+    #messages div {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 5px;
+        background: #e0e0e0;
+        width: fit-content;
+        max-width: 75%;
+    }
+
+    #messages div.sent {
+        background: #4CAF50;
+        color: white;
+        align-self: flex-end;
+    }
+
+    #input-container {
+        display: flex;
+        padding: 10px;
+        background: #fff;
+    }
+
+    #message-input {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+
+    #send-button {
+        margin-left: 10px;
+        padding: 10px 15px;
+        background: #4CAF50;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s;
+    }
+
+    #send-button:disabled {
+        background: #a5d6a7;
+        cursor: not-allowed;
+    }
+
+    #send-button:hover:not(:disabled) {
+        background: #45a049;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #bbb;
+    }
+  </style>
+</head>
+<body>
+<div id="chat-container">
+  <div id="header">Chatroom</div>
+  <div id="messages"></div>
+  <div id="input-container">
+    <input id="message-input" type="text" placeholder="Type your message">
+    <button id="send-button" disabled>Send</button>
+  </div>
+</div>
+
+<script>
+  const chat_id = "4WPZLvH9udcbyBsDfqvLbt"; // Replace with your chatroom name or ID
+  const user_id = 1;
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzM1NDcyNjQwLCJpYXQiOjE3MzUyOTk4NDAsImp0aSI6ImM1MjNmMTk3NWIzNTRjN2NhYWNjYmFhYjNkNmY1NDc1IiwidXNlcl9pZCI6Mn0.k396nANIUHNVlOGrC7e66chaffty7vnWc6qSyWnXTPc";
+
+  const socket = new WebSocket(`ws://localhost:8000/chat_id/${chat_id}?token=${token}&user_id=${user_id}`);
+
+  socket.onmessage = function(event) {
+      const data = event.data;
+      const messagesDiv = document.getElementById('messages');
+      const newMessage = document.createElement('div');
+      newMessage.innerText = data;
+      newMessage.classList.add(user_id === 1 ? 'sent' : 'received');
+      messagesDiv.appendChild(newMessage);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  };
+
+  socket.onopen = function(event) {
+      console.log("WebSocket connection established");
+  };
+
+  socket.onerror = function(event) {
+      console.log("WebSocket error:", event);
+  };
+
+  socket.onclose = function(event) {
+      console.log("WebSocket connection closed");
+  };
+
+  const sendMessageButton = document.getElementById('send-button');
+  const messageInput = document.getElementById('message-input');
+
+  sendMessageButton.addEventListener('click', function() {
+      const messageContent = messageInput.value;
+      if (messageContent && socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({ message: messageContent }));
+          messageInput.value = '';
+      }
+  });
+
+  messageInput.addEventListener('input', function() {
+      sendMessageButton.disabled = messageInput.value.trim() === '';
+  });
+</script>
+</body>
+</html>

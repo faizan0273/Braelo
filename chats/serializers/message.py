@@ -1,14 +1,32 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+message serializer file.
+---------------------------------------------------
+'''
+
 from rest_framework_mongoengine import serializers
 from chats.models.message import Message
-from .chat import ChatSerializer
-
-# To include chat details if needed
 
 
 class MessageSerializer(serializers.DocumentSerializer):
-    # chat = ChatSerializer(read_only=True)
-    # sender_id = serializers.CharField()
 
     class Meta:
         model = Message
-        fields = ['chat', 'sender_id', 'content', 'read', 'created_at']
+        fields = [
+            'chat',
+            'sender_id',
+            'content',
+            'media_url',
+            'read',
+            'created_at',
+        ]
+        read_only_fields = ['id', 'chatroom', 'sender', 'created_at']
+
+    def create(self, validated_data):
+        return Message.objects.create(**validated_data)

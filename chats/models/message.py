@@ -1,3 +1,15 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Aug 14, 2024
+Author:         Hamid
+---------------------------------------------------
+
+Description:
+Message model file.
+---------------------------------------------------
+'''
+
 from django.utils import timezone
 from mongoengine import (
     Document,
@@ -15,10 +27,11 @@ class Message(Document):
     Message model to represent a single chat message.
     '''
 
-    chat = ReferenceField(Chat, required=True)  # Reference to the Chat document
-    sender_id = StringField(required=True)  # Sender's user ID from MySQL
-    content = StringField(required=True)  # Message content
-    read = BooleanField(default=False)  # Read status for the recipient
+    chat = ReferenceField(Chat, required=True)
+    sender_id = StringField(required=True)
+    content = StringField(required=True)
+    read = BooleanField(default=False)
+    media_url = StringField()
     created_at = DateTimeField()
 
     meta = {
@@ -32,3 +45,7 @@ class Message(Document):
             ),
         ],
     }
+
+    def save(self, *args, **kwargs):
+        self.created_at = timezone.now()
+        return super(Message, self).save(*args, **kwargs)
