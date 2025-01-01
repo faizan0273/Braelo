@@ -172,6 +172,7 @@ class FlipUserStatus(generics.CreateAPIView):
             and Business.objects(user_id=user_id).first()
         ):
             update_status.is_business = True
+            update_status.save()
             return response(
                 status=status.HTTP_200_OK,
                 message='Business Already Exists for User',
