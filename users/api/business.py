@@ -1,3 +1,16 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Dec 20, 2024
+Author:         Faizan
+---------------------------------------------------
+
+Description:
+Fetch Business  endpoints.
+---------------------------------------------------
+'''
+
+
 from rest_framework import status
 from mongoengine.errors import DoesNotExist
 from rest_framework_mongoengine import generics
@@ -18,8 +31,10 @@ from helpers import response, handle_exceptions
 from azure.storage.blob import BlobServiceClient
 from listings.serializers import ListsyncSerializer
 from listings.api.paginate_listing import Pagination
+from helpers.notifications import BUSSINESS_EVENT_DATA
 from users.serializers.business import BusinessSerailizer
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
+from notifications.serializers.events import EventNotificationSerializer
 
 
 blob_service_client = BlobServiceClient.from_connection_string(
@@ -30,6 +45,10 @@ blob_service_client = BlobServiceClient.from_connection_string(
 
 
 def generate_QR(business_id, user_id, business_type):
+    '''
+    Generating QR based on barelo url along with business id
+    converts img object into .png format
+    '''
     base_url = 'braelo-fug5gcb6c0hpbpdn.canadacentral-01.azurewebsites.net'
     business_url = f'{base_url}/auth/business/{business_id}'
     qr = qrcode.QRCode(
@@ -71,6 +90,9 @@ def upload_pictures(pictures, business_type, user_id):
 
 
 class BussinessListing(generics.CreateAPIView):
+    '''
+    API endpoint to handle business creation
+    '''
 
     queryset = Business.objects.all()
     permission_classes = [IsAuthenticated]
@@ -78,6 +100,14 @@ class BussinessListing(generics.CreateAPIView):
 
     @handle_exceptions
     def post(self, request):
+        '''
+        POST method to Creates a business listing with a unique QR code and URL.
+        :param request: request object. (dict)
+        :return: Business listings data. (json)
+        '''
+        if Business.objects(user_id=request.user.id).first():
+            raise ValidationError({'Business': 'Already exists for user'})
+
         serializer = self.get_serializer(
             data=request.data, context={'request': request}
         )
@@ -93,6 +123,18 @@ class BussinessListing(generics.CreateAPIView):
         instance.business_url = business_qr.get('unique_url')
         instance.save()
         serialized_data = BusinessSerailizer(instance).data
+        BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
+        BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
+            'business_type'
+        ]
+        BUSSINESS_EVENT_DATA['data']['user_id'] = serialized_data['user_id']
+        BUSSINESS_EVENT_DATA['user_id'] = [serialized_data['user_id']]
+
+        event_serializer = EventNotificationSerializer(
+            data=BUSSINESS_EVENT_DATA
+        )
+        event_serializer.is_valid(raise_exception=True)
+        event_serializer.save()
         return response(
             status=status.HTTP_201_CREATED,
             message='Business created successfully',
@@ -101,6 +143,10 @@ class BussinessListing(generics.CreateAPIView):
 
 
 class FetchBusinesses(generics.ListAPIView):
+    '''
+    Fetch all business from collection
+    returns data in pagination format
+    '''
 
     queryset = Business.objects.all()
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -109,10 +155,21 @@ class FetchBusinesses(generics.ListAPIView):
 
 
 class ScanBusinessQR(generics.ListAPIView):
+    '''
+    Get endpoint to fetch business data
+    will work when QR is scanned
+    '''
+
     permission_classes = [AllowAny]
 
     @handle_exceptions
     def get(self, request, **kwargs):
+        '''
+        GET method to trigger QR code.
+        :param : Primary Key. (Int)
+        :return: business data. (json)
+        '''
+
         business_id = self.kwargs['pk']
         business_listing = (
             Business.objects(id=business_id)
@@ -141,10 +198,18 @@ class ScanBusinessQR(generics.ListAPIView):
 
 
 class DeactivateBusiness(generics.CreateAPIView):
+    '''
+    API endpoint to deactive a user
+    '''
 
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        '''
+        POST method to Deactivate business.
+        :param request : reuqest object. (dict)
+        :return: Deactivation Message. (json)
+        '''
         try:
             user = request.user
             user_id = user.id
@@ -171,6 +236,10 @@ class DeactivateBusiness(generics.CreateAPIView):
 
 
 class FetchListings(generics.ListAPIView):
+    '''
+    Fetch user listings created from his business acc.
+    '''
+
     queryset = ListSync.objects.all()
     permission_classes = [IsAuthenticated]
     pagination_class = Pagination

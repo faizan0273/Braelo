@@ -1,3 +1,15 @@
+'''
+---------------------------------------------------
+Project:        Braelo
+Date:           Dec 20, 2024
+Author:         Faizan
+---------------------------------------------------
+
+Description:
+Fetch Business Serializers.
+---------------------------------------------------
+'''
+
 from django.utils import timezone
 from azure.storage.blob import BlobServiceClient
 from rest_framework.exceptions import ValidationError
@@ -24,32 +36,34 @@ def _validate_email(email, error_message):
         validate_email(email)
     except ValidationError:
         raise ValidationError({'email': error_message})
-    
+
 
 def validate_phone(phone):
-     try:
+    try:
         # Parsing phone number
         parsed_number = phonenumbers.parse(phone, None)
         # Checking if the parsed number is a valid number
         if not phonenumbers.is_valid_number(parsed_number):
-            raise ValidationError({'error':'This is not valid phone number.'})
-     except phonenumbers.NumberParseException:
-        raise ValidationError({'error':'This is not valid phone number.'})
-
+            raise ValidationError({'error': 'This is not valid phone number.'})
+    except phonenumbers.NumberParseException:
+        raise ValidationError({'error': 'This is not valid phone number.'})
 
 
 def validate_image(file, picture):
+    # validate image to be in correct format for saving
     if isinstance(file, InMemoryUploadedFile):
         if not file.name.endswith(('.jpg', '.jpeg', '.png')):
             raise ValidationError({picture: f'Invalid {picture} format'})
 
 
 class BusinessSerailizer(serializers.DocumentSerializer):
+    '''
+    Serailizer for business listings
+    '''
 
     class Meta:
         model = Business
         fields = '__all__'
-
 
     def upload_pictures(self, pictures, business_type, user):
         '''
@@ -72,6 +86,9 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         return s3_urls
 
     def create(self, validated_data):
+        '''
+        handles the creation of business after validating pictures
+        '''
         user = self.context['request'].user
         business_type = validated_data.get('business_type')
         bussines_logo = validated_data.get('business_logo', [])
@@ -92,9 +109,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
     def validate(self, data):
         user = self.context['request'].user
         if not user.is_business:
-            raise ValidationError(
-                {'User':'Not Business User'}
-            )
+            raise ValidationError({'User': 'Not Business User'})
         data['user_id'] = user.id
         owner_email = data.get('owner_email')
         business_email = data.get('business_email')
@@ -104,15 +119,15 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         business_logo = data.get('business_logo', [])
         business_images = data.get('business_images', [])
 
-        # validation checks for various fields
-        _validate_email(owner_email, 'Enter a valid owner email address')
-        _validate_email(business_email, 'Enter a valid business email address')
-        validate_phone(owner_phone)
-        validate_phone(business_number)
+        # validation checks for various fields of business
         if business_type not in BUSINESS_TYPE:
             raise ValidationError(
                 {'Business Type': f'Type must be in {BUSINESS_TYPE}.'}
             )
+        _validate_email(owner_email, 'Enter a valid owner email address')
+        _validate_email(business_email, 'Enter a valid business email address')
+        validate_phone(owner_phone)
+        validate_phone(business_number)
         validate_image(business_logo, 'Logo')
         validate_image(business_images, 'Images')
 

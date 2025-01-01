@@ -59,7 +59,6 @@ from listings.api.paginate_listing import (
 from listings.api.saved_listing import (
     SaveListing,
     FlipListingStatus,
-    UnSaveListing,
     DeleteListing,
 )
 from listings.api.search import (
@@ -105,7 +104,6 @@ urlpatterns = [
     # Saved items
     path('save', SaveListing.as_view()),
     path('get-save', SavedListing.as_view()),
-    path('unsave', UnSaveListing.as_view()),
     # Searching
     # User own listings & Look up
     path('user/all', UserListing.as_view()),

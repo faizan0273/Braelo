@@ -11,12 +11,15 @@ Serializer file for saved item Listings based endpoints
 '''
 
 from bson import ObjectId
+from helpers import response, status
 from bson.errors import InvalidId
 from django.utils import timezone
 from listings.models import SavedItem
 from helpers.constants import CATEGORIES
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist
+
 
 from listings.api import MODEL_MAP
 
@@ -45,6 +48,7 @@ class SavedItemSerializer(serializers.DocumentSerializer):
         # Validate category
         category = data.get('category')
         subcategory = data.get('subcategory')
+        listing_id = data.get('listing_id')
         if category not in CATEGORIES:
             raise ValidationError(
                 {
@@ -60,17 +64,19 @@ class SavedItemSerializer(serializers.DocumentSerializer):
 
         # Ensure the listing exists
         validation_data = {
-            'id': data['listing_id'],
+            'id': listing_id,
+            'category': category,
+            'subcategory': subcategory,
             'title': data['title'],
             'price': data['price'],
             'location': data['location'],
+            'pictures': data['pictures'],
         }
         model = MODEL_MAP.get(category)
         if not model.objects.filter(**validation_data):
             raise ValidationError(
                 {'listings': 'Data Invalid or no matching listings found'}
             )
-
         # Add `saved_at` timestamp
         data['saved_at'] = timezone.now()
         return data
@@ -79,4 +85,9 @@ class SavedItemSerializer(serializers.DocumentSerializer):
         '''
         Create a SavedItem document.
         '''
+        listing_id = validated_data['listing_id']
+        user_id = validated_data['user_id']
+        if SavedItem.objects(listing_id=listing_id, user_id=user_id).first():
+            raise ValidationError({'listings': 'Already Saved'})
+
         return SavedItem.objects.create(**validated_data)

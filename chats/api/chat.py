@@ -29,6 +29,14 @@ class ChatroomPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+    def get_paginated_response(self, data):
+        paginated_data = super().get_paginated_response(data).data
+        return response(
+            status=status.HTTP_200_OK,
+            message='chatrooms fetched Successfully',
+            data=paginated_data,
+        )
+
 
 class CreateChatroomApi(generics.CreateAPIView):
     '''

@@ -29,13 +29,13 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
         Validates the required fields.
         Ensures that the `type`, `title`, `body` are provided, and `data` is a valid dictionary.
         '''
-        type = data.get('type')
+        notify_type = data.get('type')
         title = data.get('title')
         body = data.get('body')
         user_id = data.get('user_id')
         # data = data.get('data', {})
 
-        if not type:
+        if not notify_type:
             raise ValidationError({'type': 'Valid type is required.'})
         if not title:
             raise ValidationError({'title': 'Title is required.'})
@@ -46,44 +46,34 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
 
         return data
 
-    def save(self):
+    def create(self, validated_data):
         '''
         Save notification for event-triggered notifications like chat, listing interactions.
         '''
-        validated_data = self.validated_data
-        type = validated_data['type']
         title = validated_data['title']
         body = validated_data['body']
-        data = validated_data['data']
         user_id = validated_data['user_id']
 
-        # Create the notification for each user
-        notifications = []
-        existing_notification = Notification.objects.filter(
-            user_id=user_id, type=type, title=title, body=body
-        ).first()
+        # Create the notification object and save it
+        notification = Notification.objects.create(**validated_data)
 
-        if existing_notification:
-            # Skip creating a duplicate notification
-            raise ValidationError(
-                {'user_id': 'Notification already exists for user_id.'}
-            )
-
-        # Create a new notification
-        notification = Notification(
-            user_id=user_id, type=type, title=title, body=body, data=data
-        )
-        # Fetch the device token for the user
+        # Get device tokens
         device_tokens = self.get_device_token(user_id)
         if not device_tokens:
             raise ValidationError(
                 {'user_id': 'No device token found for user_id.'}
             )
-        notification.save()
-        # Send the Firebase notifications
-        self.send_fcm_notification(device_tokens, title, body, data)
 
-        return notifications
+        # Add notification_id to the data dictionary after the notification is saved
+        notification.data['notification_id'] = str(notification.id)
+        notification.save()
+
+        # Send the Firebase notifications
+        self.send_fcm_notification(
+            device_tokens, title, body, notification.data
+        )
+
+        return notification
 
     def send_fcm_notification(self, device_tokens, title, body, data):
         '''
@@ -107,11 +97,10 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
         )
 
         # Send notification using Firebase SDK
-        try:
-            response = messaging.send_each_for_multicast(message)
-            print(f'Successfully sent message: {response.success_count}.')
-        except Exception as e:
-            print(f'Error sending notification: {e}')
+
+        response = messaging.send_each_for_multicast(message)
+        if response.success_count < 1:
+            raise ValidationError('Notification not sent')
 
     def get_device_token(self, user_ids):
         '''

@@ -13,6 +13,9 @@ Populate Listing and save listings endpoints.
 from rest_framework import status
 from rest_framework_mongoengine import generics
 from rest_framework.permissions import IsAuthenticated
+from helpers.notifications import LISTINGS_EVENT_DATA
+from notifications.serializers.events import EventNotificationSerializer
+
 
 from listings.models import (
     ElectronicsListing,
@@ -61,6 +64,13 @@ class Listing(generics.CreateAPIView):
         # Validate and create the listing if valid
         serializer.is_valid(raise_exception=True)
         serializer.save()
+        LISTINGS_EVENT_DATA['data']['lisitng_id'] = serializer.data['id']
+        LISTINGS_EVENT_DATA['data']['category'] = serializer.data['category']
+        LISTINGS_EVENT_DATA['data']['user_id'] = serializer.data['user_id']
+        LISTINGS_EVENT_DATA['user_id'] = [serializer.data['user_id']]
+        event_serializer = EventNotificationSerializer(data=LISTINGS_EVENT_DATA)
+        event_serializer.is_valid(raise_exception=True)
+        event_serializer.save()
         return response(
             status=status.HTTP_201_CREATED,
             message='Listing created successfully',

@@ -58,7 +58,11 @@ class SignUpWithEmail(generics.CreateAPIView):
         # Generate JWT token after user creation
         token = get_token(user)
         # Combine user data with token data
-        data = {'email': user.email, 'token': token}
+        data = {
+            'email': user.email,
+            'token': token,
+            'user_status': user.is_business,
+        }
         return response(
             status=status.HTTP_201_CREATED,
             message='User Signed Up',
@@ -93,6 +97,7 @@ class SignUpWithPhone(generics.CreateAPIView):
         data = {
             'phone': user.phone_number,
             'token': token,
+            'user_status': user.is_business,
         }
         return response(
             status=status.HTTP_201_CREATED,

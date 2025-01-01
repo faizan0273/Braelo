@@ -22,13 +22,16 @@ from rest_framework_mongoengine import generics
 from listings.api import MODEL_MAP
 from listings.models import SavedItem
 from helpers.models import ListSync
+from helpers.notifications import SAVED_EVENT_DATA
 from listings.api.upsert_listing import Listing
 from listings.serializers import SavedItemSerializer
 from helpers.constants import USER_LISTINGS_THRESHOLD
 from helpers import handle_exceptions, response, ListSynchronize
 
+from notifications.serializers.events import EventNotificationSerializer
 
-class SaveListing(Listing):
+
+class SaveListing(generics.CreateAPIView):
     '''
     Save user listed listing.
     '''
@@ -37,23 +40,41 @@ class SaveListing(Listing):
     permission_classes = [IsAuthenticated]
     serializer_class = SavedItemSerializer
 
+    def create(self, request, *args, **kwargs):
+        save_param = request.GET.get('save')
 
-class UnSaveListing(generics.RetrieveDestroyAPIView):
-    '''
-    Delete a listing from the saved listing collection.
-    '''
+        if save_param is None or save_param not in ['True', 'False']:
+            raise ValidationError(
+                {'Correct Param Required': '"save" should be True or False'}
+            )
 
-    permission_classes = [IsAuthenticated]
+        if save_param == 'True':
+            serializer = self.get_serializer(
+                data=request.data, context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            SAVED_EVENT_DATA['data']['listing_id'] = request.data.get(
+                'listing_id'
+            )
+            SAVED_EVENT_DATA['user_id'] = [request.user.id]
+            event_serializer = EventNotificationSerializer(
+                data=SAVED_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
 
-    @handle_exceptions
-    def delete(self, request):
+            return response(
+                status=status.HTTP_201_CREATED,
+                message='Listings Saved Successfully',
+                data=serializer.data,
+            )
+        # Unsave functionality if PARAM is False
         req = request.data
         listing_id = req.get('listing_id')
         if not listing_id:
             raise ValidationError('listing_id is required.')
-        deleted_count, _ = SavedItem.objects.filter(
-            listing_id=listing_id
-        ).delete()
+        deleted_count = SavedItem.objects.filter(listing_id=listing_id).delete()
         if deleted_count == 0:
             return response(
                 status=status.HTTP_204_NO_CONTENT,

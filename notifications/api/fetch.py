@@ -13,8 +13,11 @@ get notifications endpoints.
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_mongoengine import generics
+from rest_framework import status
+
 
 from notifications.models import Notification
+from helpers import response
 from notifications.serializers.fetch import NotificationSerializer
 
 
@@ -22,6 +25,14 @@ class Pagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 50
+
+    def get_paginated_response(self, data):
+        paginated_data = super().get_paginated_response(data).data
+        return response(
+            status=status.HTTP_200_OK,
+            message='notifications fetched Successfully',
+            data=paginated_data,
+        )
 
 
 class FetchNotificationsAPI(generics.ListAPIView):

@@ -37,7 +37,11 @@ class LoginWithEmail(generics.CreateAPIView):
         user.is_valid(raise_exception=True)
         user = user.validated_data
         token = get_token(user)
-        response_data = {'email': user.email, 'token': token}
+        response_data = {
+            'email': user.email,
+            'token': token,
+            'user_status': user.is_business,
+        }
         return response(
             status=status.HTTP_200_OK,
             message='user Logged in',

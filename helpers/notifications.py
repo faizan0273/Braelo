@@ -117,3 +117,30 @@
 #         notification.mark_as_sent()
 #
 #     return success_count
+
+SAVED_EVENT_DATA = {
+    'type': 'chat',
+    'title': 'New message received',
+    'body': 'Listings saved succesfully',
+    'data': {'listing_id': ''},
+    'user_id': [],
+}
+
+BUSSINESS_EVENT_DATA = {
+    'type': 'chat',
+    'title': 'New message received',
+    'body': 'Listings created succesfully',
+    'data': {'business_id': '', 'business_type': '', 'user_id': ''},
+    'user_id': [],
+}
+LISTINGS_EVENT_DATA = {
+    'type': 'chat',
+    'title': 'New message received',
+    'body': 'Listings created succesfully',
+    'data': {
+        # 'listing_id':'',
+        'category': '',
+        'user_id': '',
+    },
+    'user_id': [],
+}

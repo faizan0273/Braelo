@@ -22,6 +22,7 @@ from users.serializers import (
     DeactivateUserSerializer,
 )
 from helpers import handle_exceptions, response, ListSync
+from users.models.business import Business
 
 
 class UpdateProfile(generics.CreateAPIView):
@@ -164,6 +165,15 @@ class FlipUserStatus(generics.CreateAPIView):
         if user_status not in ['user', 'business']:
             raise ValidationError(
                 {'Status': 'Status must be either "user" or "business".'}
+            )
+        if (
+            user_status == 'business'
+            and Business.objects(user_id=user_id).first()
+        ):
+            return response(
+                status=status.HTTP_200_OK,
+                message='Business Already Exists for User',
+                data={},
             )
 
         update_status = User.objects.filter(id=user_id).first()
