@@ -68,9 +68,15 @@ class Listing(generics.CreateAPIView):
         LISTINGS_EVENT_DATA['data']['category'] = serializer.data['category']
         LISTINGS_EVENT_DATA['data']['user_id'] = serializer.data['user_id']
         LISTINGS_EVENT_DATA['user_id'] = [serializer.data['user_id']]
-        event_serializer = EventNotificationSerializer(data=LISTINGS_EVENT_DATA)
-        event_serializer.is_valid(raise_exception=True)
-        event_serializer.save()
+        try:
+            event_serializer = EventNotificationSerializer(
+                data=LISTINGS_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
+        except Exception:
+            pass
+
         return response(
             status=status.HTTP_201_CREATED,
             message='Listing created successfully',

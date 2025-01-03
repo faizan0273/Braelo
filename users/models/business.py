@@ -46,6 +46,7 @@ class Business(Document):
     business_url = StringField(required=False)
     is_active = BooleanField(required=True, default=True)
     created_at = DateTimeField()
+    updated_at = DateTimeField()
 
     meta = {
         'collection': 'business_listings',

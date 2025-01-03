@@ -162,31 +162,44 @@ class FlipUserStatus(generics.CreateAPIView):
         user_id = user.id
         user_status = request.data.get('status')
 
+        # Validate user_status
         if user_status not in ['user', 'business']:
             raise ValidationError(
                 {'Status': 'Status must be either "user" or "business".'}
             )
-        update_status = User.objects.filter(id=user_id).first()
-        if (
-            user_status == 'business'
-            and Business.objects(user_id=user_id).first()
-        ):
-            update_status.is_business = True
-            update_status.save()
-            return response(
-                status=status.HTTP_200_OK,
-                message='Business Already Exists for User',
-                data={},
-            )
 
-        if user_status == 'business' and update_status.is_business:
-            raise ValidationError({'User': 'User is already a Business User'})
-        if not user_status == 'business' and not update_status.is_business:
-            raise ValidationError({'User': 'User is already Normal User'})
-        update_status.is_business = user_status == 'business'
-        update_status.save()
+        # Handle 'business' status cases
+        if user_status == 'business':
+            if user.previous_business and Business.objects(
+                user_id=user_id, is_active=True
+            ):
+                user.is_business = True
+                user.save()
+                return response(
+                    status=status.HTTP_200_OK,
+                    message='Business Already Exists for User',
+                    data={},
+                )
+            if Business.objects(user_id=user_id, is_active=False).first():
+                return response(
+                    status=status.HTTP_200_OK,
+                    message='Business Already Exists for User. Business is Deactivated, Please Activate.',
+                    data={},
+                )
+            if user.is_business:
+                raise ValidationError(
+                    {'User': 'User is already a Business User'}
+                )
+
+        # Handle 'user' status cases
+        if user_status == 'user' and not user.is_business:
+            raise ValidationError({'User': 'User is already a Normal User'})
+
+        # Flip user status
+        user.is_business = user_status == 'business'
+        user.save()
         return response(
             status=status.HTTP_201_CREATED,
-            message='Flipped User Status Succesfully',
+            message='Flipped User Status Successfully',
             data={},
         )

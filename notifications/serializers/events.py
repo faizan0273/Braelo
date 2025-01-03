@@ -98,9 +98,7 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
 
         # Send notification using Firebase SDK
 
-        response = messaging.send_each_for_multicast(message)
-        if response.success_count < 1:
-            raise ValidationError('Notification not sent')
+        messaging.send_each_for_multicast(message)
 
     def get_device_token(self, user_ids):
         '''

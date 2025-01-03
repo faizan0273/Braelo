@@ -27,8 +27,8 @@ helpers/__pycache__/
 helpers/constants/__pycache__/
 helpers/models/__pycache__/
 listings/migrations/__pycache__/
-credentials.json
- chats/__pycache__/
+config/credentials.json
+chats/__pycache__/
 chats/api/__pycache__/
 chats/migrations/__pycache__/
 chats/models/__pycache__/

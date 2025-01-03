@@ -22,6 +22,7 @@ from chats.api.message import (
     MessageListCreateApi,
     MarkMessagesReadApi,
     DeleteMessageApi,
+    SendChatNotification,
 )
 
 Base_url = 'chats/'
@@ -43,6 +44,11 @@ urlpatterns = [
     path('<str:chat_id>/messages/read', MarkMessagesReadApi.as_view()),
     # Deletes a message from a chatroom.
     path('delete/<str:chat_id>/<str:message_id>', DeleteMessageApi.as_view()),
+    # notify user for new chat
+    path(
+        'notification/<str:chat_id>/<str:message_id>',
+        SendChatNotification.as_view(),
+    ),
 ]
 
 # 3. Search Messages

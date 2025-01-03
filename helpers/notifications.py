@@ -129,7 +129,7 @@ SAVED_EVENT_DATA = {
 BUSSINESS_EVENT_DATA = {
     'type': 'chat',
     'title': 'New message received',
-    'body': 'Listings created succesfully',
+    'body': 'Business created succesfully',
     'data': {'business_id': '', 'business_type': '', 'user_id': ''},
     'user_id': [],
 }
@@ -141,6 +141,17 @@ LISTINGS_EVENT_DATA = {
         # 'listing_id':'',
         'category': '',
         'user_id': '',
+    },
+    'user_id': [],
+}
+CHAT_NOTIFICATION = {
+    'type': 'chat',
+    'title': 'New message received',
+    'body': 'You got a new message',
+    'data': {
+        'chatroom': '',
+        'sender_id': '',
+        'message_content': '',
     },
     'user_id': [],
 }

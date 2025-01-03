@@ -10,7 +10,6 @@ Fetch Business  endpoints.
 ---------------------------------------------------
 '''
 
-
 from rest_framework import status
 from mongoengine.errors import DoesNotExist
 from rest_framework_mongoengine import generics
@@ -121,7 +120,10 @@ class BussinessListing(generics.CreateAPIView):
         )
         instance.business_qr = business_qr.get('qr_image')
         instance.business_url = business_qr.get('unique_url')
+        user = request.user
+        user.previous_business = True
         instance.save()
+        user.save()
         serialized_data = BusinessSerailizer(instance).data
         BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
         BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
@@ -129,12 +131,15 @@ class BussinessListing(generics.CreateAPIView):
         ]
         BUSSINESS_EVENT_DATA['data']['user_id'] = serialized_data['user_id']
         BUSSINESS_EVENT_DATA['user_id'] = [serialized_data['user_id']]
+        try:
+            event_serializer = EventNotificationSerializer(
+                data=BUSSINESS_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
+        except Exception:
+            pass
 
-        event_serializer = EventNotificationSerializer(
-            data=BUSSINESS_EVENT_DATA
-        )
-        event_serializer.is_valid(raise_exception=True)
-        event_serializer.save()
         return response(
             status=status.HTTP_201_CREATED,
             message='Business created successfully',
@@ -258,3 +263,77 @@ class FetchListings(generics.ListAPIView):
             raise ValidationError(
                 {'ListSync': f'Error retrieving data: {str(exc)}'}
             )
+
+
+class UpdateBusiness(generics.UpdateAPIView):
+    '''
+    Base API endpoint to update a listing.
+    '''
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessSerailizer
+
+    @handle_exceptions
+    def put(self, request, *args, **kwargs):
+        '''
+        PUT method to update a listing.
+        :param request: request object. (dict)
+        :return: updated listing status. (json)
+        '''
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance,
+            data=request.data,
+            partial=partial,
+            context={'request': request},
+        )
+        # Validate and update the business if valid
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return response(
+            status=status.HTTP_200_OK,
+            message='Business updated successfully',
+            data=serializer.data,
+        )
+
+    def get_object(self):
+        '''
+        Override to fetch an object using a MongoDB ObjectId.
+        '''
+        pk = self.kwargs['pk']
+        if not ObjectId.is_valid(pk):
+            raise ValidationError({'pk': 'Invalid ObjectId format.'})
+        try:
+            return Business.objects.get(id=ObjectId(pk))
+        except DoesNotExist:
+            raise ValidationError({'detail': 'Business not found.'})
+
+
+class Activate_Business(generics.UpdateAPIView):
+    '''
+    Business API endpoint to activate a business
+    '''
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        '''
+        POST method to Activate a Business.
+        :return: Business Active Message
+        '''
+
+        user = request.user
+        user_id = user.id
+        business_status = Business.objects.filter(user_id=user_id).first()
+        if business_status.is_active:
+            raise ValidationError({'Business': 'Business is already active'})
+        business_status.is_active = True
+        user.is_business = True
+        business_status.save()
+        user.save()
+
+        return response(
+            status=status.HTTP_201_CREATED,
+            message='Business is now active',
+            data={},
+        )

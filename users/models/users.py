@@ -83,6 +83,7 @@ class User(AbstractUser):
     listings_clicks = models.IntegerField(default=0, blank=True)
     business_interactions = models.IntegerField(default=0, blank=True)
     business_featured = models.IntegerField(default=0, blank=True)
+    previous_business = models.BooleanField(default=False)
     # personal information
     dob = models.CharField(max_length=15, null=True, blank=True)
     gender = models.CharField(max_length=15, null=True, blank=True)

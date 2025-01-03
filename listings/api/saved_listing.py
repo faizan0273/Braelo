@@ -58,11 +58,14 @@ class SaveListing(generics.CreateAPIView):
                 'listing_id'
             )
             SAVED_EVENT_DATA['user_id'] = [request.user.id]
-            event_serializer = EventNotificationSerializer(
-                data=SAVED_EVENT_DATA
-            )
-            event_serializer.is_valid(raise_exception=True)
-            event_serializer.save()
+            try:
+                event_serializer = EventNotificationSerializer(
+                    data=SAVED_EVENT_DATA
+                )
+                event_serializer.is_valid(raise_exception=True)
+                event_serializer.save()
+            except Exception:
+                pass
 
             return response(
                 status=status.HTTP_201_CREATED,

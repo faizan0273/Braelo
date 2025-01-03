@@ -16,6 +16,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
 from chats.models import Message, Chat
+from helpers.notifications import CHAT_NOTIFICATION
+from rest_framework.exceptions import ValidationError
+from notifications.serializers.events import EventNotificationSerializer
 from chats.serializers import MessageSerializer
 
 from listings.api.paginate_listing import Pagination
@@ -195,4 +198,60 @@ class DeleteMessageApi(APIView):
             status=status.HTTP_200_OK,
             message='Message deleted successfully.',
             data={},
+        )
+
+
+class SendChatNotification(generics.ListAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, chat_id, message_id):
+        user_id = str(request.user.id)
+        print('id', user_id)
+        notify_users = request.data.get('notify_users')
+        if not notify_users:
+            raise ValidationError({'notify_users': 'Field is empty'})
+
+        # Fetch the chatroom
+        chatroom = Chat.objects.filter(chat_id=chat_id).first()
+        if chatroom is None:
+            return response(
+                status=status.HTTP_404_NOT_FOUND,
+                message='Chatroom not found.',
+                data={},
+            )
+
+        # Check if the user is a participant in the chatroom
+        if user_id not in chatroom.participants:
+            return response(
+                status=status.HTTP_401_UNAUTHORIZED,
+                message='You are not a participant in this chatroom.',
+                data=request.data,
+            )
+
+        # Fetch the message
+        message = Message.objects.filter(
+            id=message_id, chat=chatroom.id
+        ).first()
+        if not message:
+            return response(
+                status=status.HTTP_404_NOT_FOUND,
+                message='Message not found.',
+                data={},
+            )
+        CHAT_NOTIFICATION['data']['chatroom'] = chatroom
+        CHAT_NOTIFICATION['data']['sender_id'] = message.sender_id
+        CHAT_NOTIFICATION['data']['message_content'] = message.content
+        CHAT_NOTIFICATION['user_id'] = [notify_users]
+        try:
+            notification_serilaizer = EventNotificationSerializer(
+                data=CHAT_NOTIFICATION
+            )
+            notification_serilaizer.is_valid(raise_exception=True)
+            notification_serilaizer.save()
+        except Exception:
+            pass
+
+        return response(
+            status=status.HTTP_200_OK, message='Notification Sent', data={}
         )

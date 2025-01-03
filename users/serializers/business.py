@@ -106,6 +106,66 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         listing = Business.objects.create(**validated_data)
         return listing
 
+    def update(self, instance, validated_data):
+        '''
+        Handle the update of listings and related fields.
+        This method can be extended by child classes for custom logic.
+        '''
+        business_logo = validated_data.pop('business_logo', None)
+        user = self.context['request'].user
+        if business_logo:
+            # Delete already existed ones
+            if instance.business_logo:
+                for picture_url in instance.business_logo:
+                    # Extract the blob name from the URL
+                    blob_name = picture_url.split(f'{AZURE_CONTAINER_NAME}/')[
+                        -1
+                    ]
+                    blob_client = blob_service_client.get_blob_client(
+                        container=AZURE_CONTAINER_NAME, blob=blob_name
+                    )
+                    blob_client.delete_blob()
+                    # Upload New ones
+            s3_urls = self.upload_pictures(
+                business_logo, instance.business_type, user
+            )
+
+            # Replace existing picture URLs
+            validated_data['business_logo'] = s3_urls
+
+        business_images = validated_data.pop('business_images', None)
+        user = self.context['request'].user
+        if business_images:
+            # Delete already existed ones
+            if instance.business_images:
+                for picture_url in instance.business_images:
+                    # Extract the blob name from the URL
+                    blob_name = picture_url.split(f'{AZURE_CONTAINER_NAME}/')[
+                        -1
+                    ]
+                    blob_client = blob_service_client.get_blob_client(
+                        container=AZURE_CONTAINER_NAME, blob=blob_name
+                    )
+                    blob_client.delete_blob()
+                    # Upload New ones
+            s3_urls = self.upload_pictures(
+                business_images, instance.business_type, user
+            )
+
+            # Replace existing picture URLs
+            validated_data['business_images'] = s3_urls
+
+        # Update other fields
+        for attr, value in validated_data.items():
+            current_value = getattr(instance, attr, None)
+            if current_value != value:
+                setattr(instance, attr, value)
+
+        # Update timestamps
+        instance.updated_at = timezone.now()
+        instance.save()
+        return instance
+
     def validate(self, data):
         user = self.context['request'].user
         if not user.is_business:
@@ -132,6 +192,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         validate_image(business_images, 'Images')
 
         data['created_at'] = timezone.now()
+        data['updated_at'] = timezone.now()
         data['is_active'] = True
 
         return data
