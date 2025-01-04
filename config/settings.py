@@ -19,23 +19,27 @@ from dotenv import load_dotenv
 from firebase_admin import initialize_app, credentials
 from mongoengine import connect
 from django.core.exceptions import ValidationError
-
+# Load environment variables
 load_dotenv()
 
 FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
-project_root = Path(
-    __file__
-).parent.parent  # This assumes settings.py is inside the 'config' folder
+project_root = Path(__file__).parent.parent  # Assumes settings.py is inside 'config'
 cred_path = project_root / FIREBASE_CREDENTIALS
 
-# Initialize Firebase if the credentials file exists
-try:
-    cred = credentials.Certificate(cred_path)
-    initialize_app(cred)
-except Exception as e:
-    logging.error(f"Failed to initialize Firebase: {e}")
-    raise ValidationError({'Error': 'Failed to initialize Firebase'})
+# Log the credentials path
+# logging.info(f"Using Firebase credentials from: {cred_path}")
 
+# # Initialize Firebase
+# if not cred_path.exists():
+#     raise FileNotFoundError(f"Firebase credentials file not found at: {cred_path}")
+
+try:
+    cred = credentials.Certificate(str(cred_path))
+    initialize_app(cred)
+except Exception:
+    # logging.error(f"Failed to initialize Firebase: {e}")
+    # raise ValidationError({'Error': 'Failed to initialize Firebase'})
+    pass
 
 GOOGLE_OAUTH_CLIENT_ID = (
     "221272028067-cnm21hi90qmfp0jggj62148fetbv8qbn.apps.googleusercontent.com"
