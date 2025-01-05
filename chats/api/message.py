@@ -16,10 +16,10 @@ from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
 from chats.models import Message, Chat
+from chats.serializers import MessageSerializer
 from helpers.notifications import CHAT_NOTIFICATION
 from rest_framework.exceptions import ValidationError
 from notifications.serializers.events import EventNotificationSerializer
-from chats.serializers import MessageSerializer
 
 from listings.api.paginate_listing import Pagination
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
