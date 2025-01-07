@@ -31,7 +31,7 @@ class Notification(Document):
     is_read = BooleanField(default=False)
     sent = BooleanField(default=False)
     sent_at = DateTimeField()
-    created_at = DateTimeField(default=timezone.now())
+    created_at = DateTimeField()
 
     meta = {
         'collection': 'notifications',

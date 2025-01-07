@@ -31,7 +31,7 @@ from listings.serializers import (
 )
 
 
-def get_user_listings(collection, user_id, offset, limit):
+def get_user_listings(collection, user_id, offset, limit, sort):
     '''
     Retrieves listings from given collection.
     :param collection: CMongo db collection name. (Dict)
@@ -40,7 +40,6 @@ def get_user_listings(collection, user_id, offset, limit):
     :param limit: records to fetch from db. (int)
     :return:
     '''
-    sort = '-created_at'
     queryset = (
         collection.objects.filter(user_id=user_id)
         .order_by(sort)
@@ -78,11 +77,12 @@ class SavedListing(generics.ListAPIView):
         :return: saved items. (json)
         '''
         user_id = request.user.id
+        sort = '-saved_at'
 
         # Fetch all listings for the user across all categories
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
-        listings = get_user_listings(SavedItem, user_id, offset, limit)
+        listings = get_user_listings(SavedItem, user_id, offset, limit, sort)
         serializer = SavedItemSerializer(listings, many=True)
         saved_listings = {item['id']: item for item in serializer.data}
 
@@ -105,11 +105,12 @@ class UserListing(generics.CreateAPIView):
         # Get the logged-in user's ID
         user = request.user
         user_id = user.id
+        sort = '-created_at'
 
         # Fetch all listings for the user across all categories
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
-        listings = get_user_listings(ListSync, user_id, offset, limit)
+        listings = get_user_listings(ListSync, user_id, offset, limit, sort)
         serializer = ListsyncSerializer(listings, many=True)
         user_listings = {item['id']: item for item in serializer.data}
 

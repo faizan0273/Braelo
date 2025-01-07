@@ -10,6 +10,7 @@ notifications for events (like, saved) endpoints.
 ---------------------------------------------------
 '''
 
+from django.utils import timezone
 from firebase_admin import messaging
 from rest_framework_mongoengine import serializers
 from rest_framework.exceptions import ValidationError
@@ -33,6 +34,7 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
         title = data.get('title')
         body = data.get('body')
         user_id = data.get('user_id')
+        data['created_at'] = timezone.now()
         # data = data.get('data', {})
 
         if not notify_type:
@@ -66,6 +68,7 @@ class EventNotificationSerializer(serializers.DocumentSerializer):
 
         # Add notification_id to the data dictionary after the notification is saved
         notification.data['notification_id'] = str(notification.id)
+        # notification['created_at'] = timezone.now()
         notification.save()
 
         # Send the Firebase notifications
