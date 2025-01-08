@@ -218,17 +218,14 @@ class DeactivateBusiness(generics.CreateAPIView):
         try:
             user = request.user
             user_id = user.id
-            business_id = request.data.get('business_id')
 
             if not user.is_business:
                 raise ValidationError({'user': 'User Must be business'})
-            if not business_id or not ObjectId.is_valid(business_id):
-                raise ValidationError(
-                    {'id': 'business_id is missing or format not correct'}
-                )
             business_status = Business.objects.get(
-                id=business_id, user_id=user_id
+            user_id=user_id
             )
+            if not business_status.is_active:
+                raise ValidationError({'Business':'business is already deactivated'}) 
             business_status.is_active = False
             business_status.save()
             return response(
@@ -274,7 +271,7 @@ class UpdateBusiness(generics.UpdateAPIView):
     serializer_class = BusinessSerailizer
 
     @handle_exceptions
-    def put(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         '''
         PUT method to update a listing.
         :param request: request object. (dict)
