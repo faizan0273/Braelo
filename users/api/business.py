@@ -298,11 +298,9 @@ class UpdateBusiness(generics.UpdateAPIView):
         '''
         Override to fetch an object using a MongoDB ObjectId.
         '''
-        pk = self.kwargs['pk']
-        if not ObjectId.is_valid(pk):
-            raise ValidationError({'pk': 'Invalid ObjectId format.'})
+        user_id = self.request.user.id
         try:
-            return Business.objects.get(id=ObjectId(pk))
+            return Business.objects.get(user_id=user_id)
         except DoesNotExist:
             raise ValidationError({'detail': 'Business not found.'})
 

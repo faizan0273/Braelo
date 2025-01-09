@@ -92,7 +92,7 @@ urlpatterns = [
     # Activate business
     path('business/activate', Activate_Business.as_view()),
     # Update business
-    path('business/update/<str:pk>', UpdateBusiness.as_view()),
+    path('business/update', UpdateBusiness.as_view()),
     # Fetch Business
     path('business/<str:pk>', ScanBusinessQR.as_view()),
 ]

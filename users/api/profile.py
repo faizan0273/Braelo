@@ -201,5 +201,5 @@ class FlipUserStatus(generics.CreateAPIView):
         return response(
             status=status.HTTP_201_CREATED,
             message='Flipped User Status Successfully',
-            data={},
+            data={'user_status': user.is_business},
         )
