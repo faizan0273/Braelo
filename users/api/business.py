@@ -24,7 +24,6 @@ from rest_framework.permissions import (
 import qrcode
 from io import BytesIO
 from helpers import ListSync
-from bson import ObjectId
 from users.models.business import Business
 from helpers import response, handle_exceptions
 from azure.storage.blob import BlobServiceClient
@@ -116,7 +115,7 @@ class BussinessListing(generics.CreateAPIView):
         business_qr = generate_QR(
             str(instance.id),
             instance.user_id,
-            instance.business_type,
+            instance.business_category,
         )
         instance.business_qr = business_qr.get('qr_image')
         instance.business_url = business_qr.get('unique_url')
@@ -127,7 +126,7 @@ class BussinessListing(generics.CreateAPIView):
         serialized_data = BusinessSerailizer(instance).data
         BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
         BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
-            'business_type'
+            'business_category'
         ]
         BUSSINESS_EVENT_DATA['data']['user_id'] = serialized_data['user_id']
         BUSSINESS_EVENT_DATA['user_id'] = [serialized_data['user_id']]
@@ -221,17 +220,19 @@ class DeactivateBusiness(generics.CreateAPIView):
 
             if not user.is_business:
                 raise ValidationError({'user': 'User Must be business'})
-            business_status = Business.objects.get(
-            user_id=user_id
-            )
+            business_status = Business.objects.get(user_id=user_id)
             if not business_status.is_active:
-                raise ValidationError({'Business':'business is already deactivated'}) 
+                raise ValidationError(
+                    {'Business': 'business is already deactivated'}
+                )
             business_status.is_active = False
+            user.is_business = False
+            user.save()
             business_status.save()
             return response(
                 status=status.HTTP_204_NO_CONTENT,
-                message='Business Deleted Successfully',
-                data={},
+                message='Business Deactivated Successfully',
+                data={'user_status': user.is_business},
             )
         except DoesNotExist:
             raise ValidationError({'Business': 'Business not found'})
@@ -309,6 +310,7 @@ class Activate_Business(generics.UpdateAPIView):
     '''
     Business API endpoint to activate a business
     '''
+
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
@@ -330,5 +332,5 @@ class Activate_Business(generics.UpdateAPIView):
         return response(
             status=status.HTTP_201_CREATED,
             message='Business is now active',
-            data={},
+            data={'user_status': user.is_business},
         )

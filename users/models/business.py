@@ -20,8 +20,6 @@ from mongoengine.fields import (
     EmailField,
 )
 
-from helpers.constants import BUSINESS_TYPE
-
 
 class Business(Document):
     '''
@@ -29,17 +27,14 @@ class Business(Document):
     '''
 
     user_id = IntField(required=False)
-    owner_name = StringField(required=True)
-    owner_phone = StringField(required=True)
-    owner_email = EmailField(required=True)
-    owner_address = StringField(required=True)
     business_name = StringField(required=True)
     business_logo = ListField(required=True)
     business_address = StringField(required=True)
     business_website = StringField(required=False)
     business_number = StringField(required=True)
     business_email = EmailField(required=True)
-    business_type = StringField(required=True, choice=BUSINESS_TYPE)
+    business_category = StringField(required=True)
+    business_subcategory = StringField(required=True)
     business_images = ListField(required=True)
     business_goals = StringField(required=False)
     business_qr = ListField(required=False)
@@ -53,6 +48,7 @@ class Business(Document):
         'ordering': ['-created_at'],
         'indexes': [
             {'fields': ['business_name']},
-            {'fields': ['business_type']},
+            {'fields': ['business_category']},
+            {'fields': ['business_subcategory']},
         ],
     }

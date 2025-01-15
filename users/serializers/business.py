@@ -21,7 +21,7 @@ import phonenumbers
 from rest_framework_mongoengine import serializers
 from django.core.validators import validate_email
 from users.models.business import Business
-from helpers.constants import BUSINESS_TYPE
+from helpers.constants import CATEGORIES
 
 
 blob_service_client = BlobServiceClient.from_connection_string(
@@ -90,20 +90,24 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         handles the creation of business after validating pictures
         '''
         user = self.context['request'].user
-        business_type = validated_data.get('business_type')
+        business_category = validated_data.get('business_category')
         bussines_logo = validated_data.get('business_logo', [])
         business_images = validated_data.get('business_images', [])
         # Upload Logo
-        s3_logo_url = self.upload_pictures(bussines_logo, business_type, user)
+        s3_logo_url = self.upload_pictures(
+            bussines_logo, business_category, user
+        )
         # Upload Business Images
         s3_image_urls = self.upload_pictures(
-            business_images, business_type, user
+            business_images, business_category, user
         )
         # Add Urls to valdiated Fields
         validated_data['business_logo'] = s3_logo_url
         validated_data['business_images'] = s3_image_urls
 
         listing = Business.objects.create(**validated_data)
+        user.is_business = True
+        user.save()
         return listing
 
     def update(self, instance, validated_data):
@@ -127,7 +131,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
                     blob_client.delete_blob()
                     # Upload New ones
             s3_urls = self.upload_pictures(
-                business_logo, instance.business_type, user
+                business_logo, instance.business_category, user
             )
 
             # Replace existing picture URLs
@@ -149,7 +153,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
                     blob_client.delete_blob()
                     # Upload New ones
             s3_urls = self.upload_pictures(
-                business_images, instance.business_type, user
+                business_images, instance.business_category, user
             )
 
             # Replace existing picture URLs
@@ -168,25 +172,26 @@ class BusinessSerailizer(serializers.DocumentSerializer):
 
     def validate(self, data):
         user = self.context['request'].user
-        if not user.is_business:
-            raise ValidationError({'User': 'Not Business User'})
         data['user_id'] = user.id
-        owner_email = data.get('owner_email')
         business_email = data.get('business_email')
-        owner_phone = data.get('owner_phone')
         business_number = data.get('business_number')
-        business_type = data.get('business_type')
+        business_category = data.get('business_category')
+        business_subcategory = data.get('business_subcategory')
         business_logo = data.get('business_logo', [])
         business_images = data.get('business_images', [])
 
         # validation checks for various fields of business
-        if business_type not in BUSINESS_TYPE:
+        if business_category not in CATEGORIES:
             raise ValidationError(
-                {'Business Type': f'Type must be in {BUSINESS_TYPE}.'}
+                {'Business category': f'Type must be in {list(CATEGORIES)}.'}
             )
-        _validate_email(owner_email, 'Enter a valid owner email address')
+        if business_subcategory not in CATEGORIES.get(business_category, []):
+            raise ValidationError(
+                {
+                    'Business subcategory': f'Type must be in {CATEGORIES[business_category]}.'
+                }
+            )
         _validate_email(business_email, 'Enter a valid business email address')
-        validate_phone(owner_phone)
         validate_phone(business_number)
         validate_image(business_logo, 'Logo')
         validate_image(business_images, 'Images')

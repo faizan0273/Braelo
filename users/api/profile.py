@@ -178,12 +178,18 @@ class FlipUserStatus(generics.CreateAPIView):
                 return response(
                     status=status.HTTP_200_OK,
                     message='Business Already Exists for User',
-                    data={},
+                    data={'user_status': user.is_business},
                 )
             if Business.objects(user_id=user_id, is_active=False).first():
                 return response(
-                    status=status.HTTP_200_OK,
+                    status=status.HTTP_409_CONFLICT,
                     message='Business Already Exists for User. Business is Deactivated, Please Activate.',
+                    data={},
+                )
+            if not user.previous_business:
+                return response(
+                    status=status.HTTP_406_NOT_ACCEPTABLE,
+                    message='Please Create Business First',
                     data={},
                 )
             if user.is_business:

@@ -12,6 +12,7 @@ Message endpoints.
 
 from rest_framework.views import APIView
 from rest_framework import generics, status
+from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
@@ -52,24 +53,29 @@ class MessageListCreateApi(generics.ListCreateAPIView):
     @handle_exceptions
     def get_queryset(self):
         # todo: fix error code ig chatroom is wrong
-        chatroom_id = self.kwargs['chat_id']
-        user_id = str(self.request.user.id)
-        before = self.request.query_params.get('before')
-        chatroom = Chat.objects.get(chat_id=chatroom_id)
+        try:
+            chatroom_id = self.kwargs['chat_id']
+            user_id = str(self.request.user.id)
+            before = self.request.query_params.get('before')
+            chatroom = Chat.objects.get(chat_id=chatroom_id)
 
-        # Check if the user is a participant
-        participants = chatroom.participants
-        if user_id not in participants:
-            return response(
-                status=status.HTTP_401_UNAUTHORIZED,
-                message='You are not a participant in this chatroom.',
-                data={},
+            # Check if the user is a participant
+            participants = chatroom.participants
+            if user_id not in participants:
+                raise ValidationError(
+                    {
+                        'participant': 'You are not a participant in this chatroom.'
+                    }
+                )
+
+            queryset = Message.objects.filter(chat=chatroom.id).order_by(
+                '-created_at'
             )
-
-        queryset = Message.objects.filter(chat=chatroom).order_by('-created_at')
-        if before:
-            queryset = queryset.filter(created_at__lt=before)
-        return queryset
+            if before:
+                queryset = queryset.filter(created_at__lt=before)
+            return queryset
+        except Chat.DoesNotExist:
+            raise ValidationError({'chat': 'Chatroom not found'})
 
     @handle_exceptions
     def create(self, request, *args, **kwargs):

@@ -154,20 +154,23 @@ class ChatroomListApi(generics.ListCreateAPIView):
         return Chat.objects.filter(participants__in=[user_id])
 
 
-class ChatroomDetailApi(generics.RetrieveUpdateDestroyAPIView):
+class ChatroomDetailApi(generics.ListAPIView):
 
     queryset = Chat.objects.all()
     permission_classes = [IsAuthenticated]
     serializer_class = ChatSerializer
 
-    def get_queryset(self):
+    def get(self, request, **kwargs):
         chat_id = self.kwargs['chat_id']
-        return Chat.objects.filter(chat_id=chat_id)
-
-    def get_object(self):
-        queryset = self.get_queryset()
         user_id = str(self.request.user.id)
-        chat = queryset.filter(participants__in=[user_id]).first()
-        if not chat:
-            raise NotFound('Chat not found or you are not a participant')
-        return chat
+        chat = Chat.objects.filter(
+            chat_id=chat_id, participants__in=[user_id]
+        ).first()
+        chat_data = self.get_serializer(chat)
+
+        return response(
+            status=status.HTTP_200_OK,
+            message='Chatroom Fetched Successfully',
+            data=chat_data.data,
+        )
+
