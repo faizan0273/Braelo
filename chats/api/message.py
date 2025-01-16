@@ -50,7 +50,6 @@ class MessageListCreateApi(generics.ListCreateAPIView):
     pagination_class = Pagination
     permission_classes = [IsAuthenticated]
 
-    @handle_exceptions
     def get_queryset(self):
         # todo: fix error code ig chatroom is wrong
         try:
@@ -133,7 +132,7 @@ class MarkMessagesReadApi(generics.UpdateAPIView):
             read=False,
             sender_id__ne=user_id,
         )
-        if not messages_to_mark_as_read.exists():
+        if messages_to_mark_as_read.count() == 0:
             return response(
                 status=status.HTTP_200_OK,
                 message='No messages to mark as read.',
@@ -213,7 +212,6 @@ class SendChatNotification(generics.ListAPIView):
 
     def post(self, request, chat_id, message_id):
         user_id = str(request.user.id)
-        print('id', user_id)
         notify_users = request.data.get('notify_users')
         if not notify_users:
             raise ValidationError({'notify_users': 'Field is empty'})
@@ -260,4 +258,38 @@ class SendChatNotification(generics.ListAPIView):
 
         return response(
             status=status.HTTP_200_OK, message='Notification Sent', data={}
+        )
+
+
+class MessageCard(generics.ListAPIView):
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def get(self, request, **kwargs):
+        chat_id = self.kwargs['chat_id']
+        user = request.user
+        user_id = str(user.id)
+
+        chat = Chat.objects.filter(chat_id=chat_id).first()
+        if user_id not in chat.participants:
+            raise ValidationError(
+                {'Participants': 'You are not Participant of this chatroom'}
+            )
+        messages = Message.objects.filter(
+            chat=chat, read=False, sender_id__ne=user_id
+        )
+        messages_count = messages.count()
+        last_message = messages.filter().first()
+        message_card = {
+            'unread_messages': messages_count,
+            'last_message': last_message.content,
+            'user_picture': user.profile_picture,
+            'user_name': user.name,
+            'created_at': last_message.created_at,
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='Message Card Fetched Successfully',
+            data=message_card,
         )

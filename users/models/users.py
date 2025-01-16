@@ -10,12 +10,25 @@ User model sql based.
 ---------------------------------------------------
 '''
 
-from datetime import timedelta
-
+import random
 from django.db import models
+from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+
+
+def get_random_profile_pic():
+    '''
+    assigns a user random pic upon signup
+    '''
+    PROFILE_PIC = [
+        "https://braelos3.blob.core.windows.net/braelo/business_listings/Vehicles/8/profile-1.png",
+        "https://braelos3.blob.core.windows.net/braelo/business_listings/Vehicles/8/profile-2.png",
+        "https://braelos3.blob.core.windows.net/braelo/business_listings/Vehicles/8/profile-3.png",
+        "https://braelos3.blob.core.windows.net/braelo/business_listings/Vehicles/8/profile-4.png",
+    ]
+    return random.choice(PROFILE_PIC)
 
 
 class CustomUserManager(BaseUserManager):
@@ -54,6 +67,7 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+
     USER_ROLES = (
         ('Admin', 'Admin'),
         ('Client', 'Client'),
@@ -61,6 +75,9 @@ class User(AbstractUser):
 
     email = models.EmailField(null=True, blank=True)
     password = models.CharField(max_length=255)
+    profile_picture = models.CharField(
+        max_length=255, default=get_random_profile_pic, blank=True
+    )
     phone_number = models.CharField(max_length=15, null=True, blank=True)
     name = models.CharField(max_length=50, null=True, blank=True)
     first_name = models.CharField(max_length=50, null=True, blank=True)

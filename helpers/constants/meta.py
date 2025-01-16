@@ -110,16 +110,3 @@ KEYWORDS_LIMIT = 10
 # Listing Count
 # For normal user
 LISTING_UPPER_THRESHOLD = 10
-
-BUSINESS_TYPE = [
-    'Vehicles',
-    'Real Estate',
-    'Services',
-    'Events',
-    'Jobs',
-    'Electronics',
-    'Furniture',
-    'Fashion',
-    'Kids',
-    'Sports & Hobby',
-]

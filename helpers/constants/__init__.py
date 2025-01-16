@@ -14,7 +14,6 @@ from helpers.constants.meta import (
     CATEGORIES,
     USER_LISTINGS_THRESHOLD,
     KEYWORDS_LIMIT,
-    BUSINESS_TYPE,
 )
 from helpers.constants.jobs import JobsConstants
 from helpers.constants.kids import KidsConstants

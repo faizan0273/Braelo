@@ -119,10 +119,7 @@ class BussinessListing(generics.CreateAPIView):
         )
         instance.business_qr = business_qr.get('qr_image')
         instance.business_url = business_qr.get('unique_url')
-        user = request.user
-        user.previous_business = True
         instance.save()
-        user.save()
         serialized_data = BusinessSerailizer(instance).data
         BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
         BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
@@ -334,3 +331,26 @@ class Activate_Business(generics.UpdateAPIView):
             message='Business is now active',
             data={'user_status': user.is_business},
         )
+
+
+class FetchSingleBusiness(generics.ListAPIView):
+
+    permission_classes = [IsAuthenticated]
+    serializer_class = BusinessSerailizer
+
+    def get(self, request):
+        try:
+            user_id = request.user.id
+            business = Business.objects.get(user_id=user_id)
+            business_data = self.get_serializer(business)
+            return response(
+                status=status.HTTP_200_OK,
+                message='Business Fetched Successfully',
+                data=business_data.data,
+            )
+        except DoesNotExist:
+            return response(
+                status=status.HTTP_204_NO_CONTENT,
+                message='Business Not Found',
+                data={},
+            )

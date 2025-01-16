@@ -107,6 +107,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
 
         listing = Business.objects.create(**validated_data)
         user.is_business = True
+        user.previous_business = True
         user.save()
         return listing
 
