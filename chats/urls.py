@@ -23,7 +23,7 @@ from chats.api.message import (
     MarkMessagesReadApi,
     DeleteMessageApi,
     SendChatNotification,
-    MessageCard,
+
 )
 
 Base_url = 'chats/'
@@ -50,10 +50,7 @@ urlpatterns = [
         'notification/<str:chat_id>/<str:message_id>',
         SendChatNotification.as_view(),
     ),
-    path(
-        '<str:chat_id>/card',
-        MessageCard.as_view(),
-    ),
+   
 ]
 
 # 3. Search Messages

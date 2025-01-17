@@ -29,6 +29,7 @@ class Business(Document):
     user_id = IntField(required=False)
     business_name = StringField(required=True)
     business_logo = ListField(required=True)
+    business_banner = ListField(required=True)
     business_address = StringField(required=True)
     business_website = StringField(required=False)
     business_number = StringField(required=True)

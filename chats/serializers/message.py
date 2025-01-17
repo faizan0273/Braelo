@@ -19,6 +19,7 @@ class MessageSerializer(serializers.DocumentSerializer):
     class Meta:
         model = Message
         fields = [
+            'id',
             'chat',
             'sender_id',
             'content',

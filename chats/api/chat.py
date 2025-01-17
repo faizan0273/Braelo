@@ -11,6 +11,7 @@ Chat endpoint file.
 '''
 
 import shortuuid
+from users.models import User
 from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework import generics, status
@@ -30,7 +31,36 @@ class ChatroomPagination(PageNumberPagination):
     max_page_size = 100
 
     def get_paginated_response(self, data):
+        user = self.request.user
+        user_id = str(user.id)
+
         paginated_data = super().get_paginated_response(data).data
+        paginate_results = paginated_data.get('results')
+
+        for record in paginate_results:
+            messages = Message.objects.filter(
+                chat=record.get('id'), read=False, sender_id__ne=user_id
+            )
+            participants = record.get('participants')
+            second_user_id = next(val for val in participants if val != user_id)
+            second_user = User.objects.filter(id=second_user_id).first()
+            messages_count = messages.count()
+            last_message = messages.filter().first()
+
+            record['unread_messages'] = messages_count
+            record['user_picture'] = (
+                second_user.profile_picture if second_user else []
+            )
+            record['user_name'] = second_user.name if second_user else []
+            record['message_created_at'] = (
+                last_message.created_at if last_message else []
+            )
+            record['last_message'] = (
+                last_message.content if last_message else []
+            )
+
+        paginated_data['results'] = paginate_results
+
         return response(
             status=status.HTTP_200_OK,
             message='chatrooms fetched Successfully',
@@ -68,6 +98,10 @@ class CreateChatroomApi(generics.CreateAPIView):
 
         if not second_user_id:
             raise ValidationError({'detail': 'Second user ID is required.'})
+
+        user_exist = User.objects.filter(id=second_user_id).exists()
+        if not user_exist:
+            raise ValidationError({'id': 'User does not exists'})
 
         chatroom = self.get_chatroom(user_id, second_user_id)
 
@@ -173,4 +207,3 @@ class ChatroomDetailApi(generics.ListAPIView):
             message='Chatroom Fetched Successfully',
             data=chat_data.data,
         )
-

@@ -10,6 +10,7 @@ Fetch Business Serializers.
 ---------------------------------------------------
 '''
 
+import uuid
 from django.utils import timezone
 from azure.storage.blob import BlobServiceClient
 from rest_framework.exceptions import ValidationError
@@ -72,8 +73,9 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         '''
         s3_urls = []
         for picture in pictures:
+            unique_name = f"{uuid.uuid4()}_{picture.name}"
             file_name = (
-                f'business_listings/{business_type}/{user.id}/{picture.name}'
+                f'business_listings/{business_type}/{user.id}/{unique_name}'
             )
             blob_client = blob_service_client.get_blob_client(
                 container=AZURE_CONTAINER_NAME, blob=file_name
@@ -85,6 +87,24 @@ class BusinessSerailizer(serializers.DocumentSerializer):
 
         return s3_urls
 
+    def update_media(self, instance, business_type, business_media, user):
+
+        # Delete already existed ones
+        for picture_url in instance:
+            # Extract the blob name from the URL
+            blob_name = picture_url.split(f'/{AZURE_CONTAINER_NAME}/')[-1]
+            blob_client = blob_service_client.get_blob_client(
+                container=AZURE_CONTAINER_NAME, blob=blob_name
+            )
+            blob_client.delete_blob()
+            # Upload New ones
+        s3_urls = self.upload_pictures(
+            business_media,
+            business_type,
+            user,
+        )
+        return s3_urls
+
     def create(self, validated_data):
         '''
         handles the creation of business after validating pictures
@@ -93,6 +113,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         business_category = validated_data.get('business_category')
         bussines_logo = validated_data.get('business_logo', [])
         business_images = validated_data.get('business_images', [])
+        business_banner = validated_data.get('business_banner', [])
         # Upload Logo
         s3_logo_url = self.upload_pictures(
             bussines_logo, business_category, user
@@ -101,11 +122,17 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         s3_image_urls = self.upload_pictures(
             business_images, business_category, user
         )
+        # Upload banner
+        s3_banner_urls = self.upload_pictures(
+            business_banner, business_category, user
+        )
         # Add Urls to valdiated Fields
         validated_data['business_logo'] = s3_logo_url
         validated_data['business_images'] = s3_image_urls
+        validated_data['business_banner'] = s3_banner_urls
 
         listing = Business.objects.create(**validated_data)
+        # updating fields so normal user can become business user
         user.is_business = True
         user.previous_business = True
         user.save()
@@ -116,49 +143,29 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         Handle the update of listings and related fields.
         This method can be extended by child classes for custom logic.
         '''
+        user = self.context['request'].user
         business_logo = validated_data.pop('business_logo', None)
-        user = self.context['request'].user
-        if business_logo:
-            # Delete already existed ones
-            if instance.business_logo:
-                for picture_url in instance.business_logo:
-                    # Extract the blob name from the URL
-                    blob_name = picture_url.split(f'{AZURE_CONTAINER_NAME}/')[
-                        -1
-                    ]
-                    blob_client = blob_service_client.get_blob_client(
-                        container=AZURE_CONTAINER_NAME, blob=blob_name
-                    )
-                    blob_client.delete_blob()
-                    # Upload New ones
-            s3_urls = self.upload_pictures(
-                business_logo, instance.business_category, user
-            )
-
-            # Replace existing picture URLs
-            validated_data['business_logo'] = s3_urls
-
         business_images = validated_data.pop('business_images', None)
-        user = self.context['request'].user
-        if business_images:
-            # Delete already existed ones
-            if instance.business_images:
-                for picture_url in instance.business_images:
-                    # Extract the blob name from the URL
-                    blob_name = picture_url.split(f'{AZURE_CONTAINER_NAME}/')[
-                        -1
-                    ]
-                    blob_client = blob_service_client.get_blob_client(
-                        container=AZURE_CONTAINER_NAME, blob=blob_name
-                    )
-                    blob_client.delete_blob()
-                    # Upload New ones
-            s3_urls = self.upload_pictures(
-                business_images, instance.business_category, user
-            )
+        business_banner = validated_data.pop('business_banner', None)
 
-            # Replace existing picture URLs
-            validated_data['business_images'] = s3_urls
+        validated_data['business_logo'] = self.update_media(
+            instance.business_logo,
+            instance.business_category,
+            business_logo,
+            user,
+        )
+        validated_data['business_images'] = self.update_media(
+            instance.business_images,
+            instance.business_category,
+            business_images,
+            user,
+        )
+        validated_data['business_banner'] = self.update_media(
+            instance.business_banner,
+            instance.business_category,
+            business_banner,
+            user,
+        )
 
         # Update other fields
         for attr, value in validated_data.items():
@@ -179,6 +186,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         business_category = data.get('business_category')
         business_subcategory = data.get('business_subcategory')
         business_logo = data.get('business_logo', [])
+        business_banner = data.get('business_banner', [])
         business_images = data.get('business_images', [])
 
         # validation checks for various fields of business
@@ -196,6 +204,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         validate_phone(business_number)
         validate_image(business_logo, 'Logo')
         validate_image(business_images, 'Images')
+        validate_image(business_banner, 'Banner')
 
         data['created_at'] = timezone.now()
         data['updated_at'] = timezone.now()

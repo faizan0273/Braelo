@@ -12,7 +12,6 @@ Message endpoints.
 
 from rest_framework.views import APIView
 from rest_framework import generics, status
-from django.core.exceptions import ObjectDoesNotExist
 from rest_framework.permissions import IsAuthenticated
 
 from django.utils import timezone
@@ -20,9 +19,9 @@ from chats.models import Message, Chat
 from chats.serializers import MessageSerializer
 from helpers.notifications import CHAT_NOTIFICATION
 from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
 from notifications.serializers.events import EventNotificationSerializer
 
-from listings.api.paginate_listing import Pagination
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
 from helpers import response, handle_exceptions, blob_service_client
 
@@ -42,6 +41,24 @@ def upload_media(chatroom_id, file):
     # Generate URL to access the uploaded file
     media_url = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER_NAME}/{file_name}'
     return media_url
+
+
+class Pagination(PageNumberPagination):
+    '''
+    Listing pagination configurations.
+    '''
+
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+    def get_paginated_response(self, data):
+        paginated_data = super().get_paginated_response(data).data
+        return response(
+            status=status.HTTP_200_OK,
+            message='Recent Messages fetched Successfully',
+            data=paginated_data,
+        )
 
 
 class MessageListCreateApi(generics.ListCreateAPIView):
@@ -72,6 +89,7 @@ class MessageListCreateApi(generics.ListCreateAPIView):
             )
             if before:
                 queryset = queryset.filter(created_at__lt=before)
+
             return queryset
         except Chat.DoesNotExist:
             raise ValidationError({'chat': 'Chatroom not found'})
@@ -257,39 +275,7 @@ class SendChatNotification(generics.ListAPIView):
             pass
 
         return response(
-            status=status.HTTP_200_OK, message='Notification Sent', data={}
-        )
-
-
-class MessageCard(generics.ListAPIView):
-
-    permission_classes = [IsAuthenticated]
-
-    @handle_exceptions
-    def get(self, request, **kwargs):
-        chat_id = self.kwargs['chat_id']
-        user = request.user
-        user_id = str(user.id)
-
-        chat = Chat.objects.filter(chat_id=chat_id).first()
-        if user_id not in chat.participants:
-            raise ValidationError(
-                {'Participants': 'You are not Participant of this chatroom'}
-            )
-        messages = Message.objects.filter(
-            chat=chat, read=False, sender_id__ne=user_id
-        )
-        messages_count = messages.count()
-        last_message = messages.filter().first()
-        message_card = {
-            'unread_messages': messages_count,
-            'last_message': last_message.content,
-            'user_picture': user.profile_picture,
-            'user_name': user.name,
-            'created_at': last_message.created_at,
-        }
-        return response(
             status=status.HTTP_200_OK,
-            message='Message Card Fetched Successfully',
-            data=message_card,
+            message='Notification Sent',
+            data={},
         )
