@@ -138,7 +138,7 @@ LISTINGS_EVENT_DATA = {
     'title': 'New message received',
     'body': 'Listings created succesfully',
     'data': {
-        # 'listing_id':'',
+        'listing_id': '',
         'category': '',
         'user_id': '',
     },

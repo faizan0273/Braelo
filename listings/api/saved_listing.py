@@ -40,6 +40,18 @@ class SaveListing(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = SavedItemSerializer
 
+    def send_notification(self, request):
+        SAVED_EVENT_DATA['data']['listing_id'] = request.data.get('listing_id')
+        SAVED_EVENT_DATA['user_id'] = [request.user.id]
+        try:
+            event_serializer = EventNotificationSerializer(
+                data=SAVED_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
+        except Exception:
+            pass
+
     def create(self, request, *args, **kwargs):
         save_param = request.GET.get('save')
 
@@ -54,18 +66,7 @@ class SaveListing(generics.CreateAPIView):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            SAVED_EVENT_DATA['data']['listing_id'] = request.data.get(
-                'listing_id'
-            )
-            SAVED_EVENT_DATA['user_id'] = [request.user.id]
-            try:
-                event_serializer = EventNotificationSerializer(
-                    data=SAVED_EVENT_DATA
-                )
-                event_serializer.is_valid(raise_exception=True)
-                event_serializer.save()
-            except Exception:
-                pass
+            self.send_notification(request)
 
             return response(
                 status=status.HTTP_201_CREATED,

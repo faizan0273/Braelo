@@ -51,6 +51,23 @@ class Listing(generics.CreateAPIView):
 
     permission_classes = [IsAuthenticated]
 
+    def send_notification(self, serializer):
+        try:
+            listing_id = serializer.data['id']
+            category = serializer.data['category']
+            user_id = serializer.data['user_id']
+            LISTINGS_EVENT_DATA['data']['listing_id'] = listing_id
+            LISTINGS_EVENT_DATA['data']['category'] = category
+            LISTINGS_EVENT_DATA['data']['user_id'] = user_id
+            LISTINGS_EVENT_DATA['user_id'] = [user_id]
+            event_serializer = EventNotificationSerializer(
+                data=LISTINGS_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
+        except Exception:
+            pass
+
     @handle_exceptions
     def post(self, request, **kwargs):
         '''
@@ -64,18 +81,7 @@ class Listing(generics.CreateAPIView):
         # Validate and create the listing if valid
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        LISTINGS_EVENT_DATA['data']['lisitng_id'] = serializer.data['id']
-        LISTINGS_EVENT_DATA['data']['category'] = serializer.data['category']
-        LISTINGS_EVENT_DATA['data']['user_id'] = serializer.data['user_id']
-        LISTINGS_EVENT_DATA['user_id'] = [serializer.data['user_id']]
-        try:
-            event_serializer = EventNotificationSerializer(
-                data=LISTINGS_EVENT_DATA
-            )
-            event_serializer.is_valid(raise_exception=True)
-            event_serializer.save()
-        except Exception:
-            pass
+        self.send_notification(serializer)
 
         return response(
             status=status.HTTP_201_CREATED,

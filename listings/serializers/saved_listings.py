@@ -68,7 +68,7 @@ class SavedItemSerializer(serializers.DocumentSerializer):
             'category': category,
             'subcategory': subcategory,
             'title': data['title'],
-            'price': data['price'],
+            # 'price': data['price'],
             'location': data['location'],
             'pictures': data['pictures'],
         }
@@ -77,6 +77,7 @@ class SavedItemSerializer(serializers.DocumentSerializer):
             raise ValidationError(
                 {'listings': 'Data Invalid or no matching listings found'}
             )
+
         # Add `saved_at` timestamp
         data['saved_at'] = timezone.now()
         return data

@@ -18,6 +18,8 @@ from mongoengine import (
     DateTimeField,
     ReferenceField,
     BooleanField,
+    DictField,
+    IntField,
 )
 from django.utils import timezone
 
@@ -29,6 +31,8 @@ class Chat(Document):
 
     chat_id = StringField(unique=True)
     participants = ListField(StringField(), required=True)
+    receiver = DictField(required=True)
+    sender = DictField(required=True)
     pair_key = StringField(required=True, unique=True)
     is_active = BooleanField(default=True)
     created_at = DateTimeField()

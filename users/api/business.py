@@ -96,6 +96,22 @@ class BussinessListing(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = BusinessSerailizer
 
+    def send_notification(self, serialized_data):
+        BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
+        BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
+            'business_category'
+        ]
+        BUSSINESS_EVENT_DATA['data']['user_id'] = serialized_data['user_id']
+        BUSSINESS_EVENT_DATA['user_id'] = [serialized_data['user_id']]
+        try:
+            event_serializer = EventNotificationSerializer(
+                data=BUSSINESS_EVENT_DATA
+            )
+            event_serializer.is_valid(raise_exception=True)
+            event_serializer.save()
+        except Exception:
+            pass
+
     @handle_exceptions
     def post(self, request):
         '''
@@ -121,21 +137,7 @@ class BussinessListing(generics.CreateAPIView):
         instance.business_url = business_qr.get('unique_url')
         instance.save()
         serialized_data = BusinessSerailizer(instance).data
-        BUSSINESS_EVENT_DATA['data']['business_id'] = serialized_data['id']
-        BUSSINESS_EVENT_DATA['data']['business_type'] = serialized_data[
-            'business_category'
-        ]
-        BUSSINESS_EVENT_DATA['data']['user_id'] = serialized_data['user_id']
-        BUSSINESS_EVENT_DATA['user_id'] = [serialized_data['user_id']]
-        try:
-            event_serializer = EventNotificationSerializer(
-                data=BUSSINESS_EVENT_DATA
-            )
-            event_serializer.is_valid(raise_exception=True)
-            event_serializer.save()
-        except Exception:
-            pass
-
+        self.send_notification(serialized_data)
         return response(
             status=status.HTTP_201_CREATED,
             message='Business created successfully',
