@@ -47,7 +47,7 @@ class Chat(Document):
             },
             {
                 'fields': ['pair_key'],
-                'unique': True,
+                'unique': False,
             },
         ],
     }

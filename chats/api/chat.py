@@ -105,31 +105,19 @@ class CreateChatroomApi(generics.CreateAPIView):
     serializer_class = ChatSerializer
     permission_classes = [IsAuthenticated]
 
-    def validate_ids(self, receiver, sender, user_id, second_user_id):
+    def assign_roles(self, user_id, user_type):
         '''
         validate and storing user and second user ids
         '''
-
-        required_key = 'user_type'
-        receiver['user_id'] = second_user_id
-        sender['user_id'] = user_id
-
-        if not isinstance(receiver, dict) or not isinstance(sender, dict):
+        if user_type not in {'true', 'false'}:
             raise ValidationError(
-                {'detail': 'receiver and sender must be valid dictionaries'}
+                {'detail': 'Invalid user_type. Must be "true" or "false".'}
             )
-        if str(receiver.get('user_id')) == user_id:
-            raise ValidationError({'detail': 'sender cannot be receiver'})
 
-        # Check if the key is missing in either receiver or sender
-        if required_key not in receiver:
-            raise ValidationError(
-                {'message_receiver': f'{required_key} is required in receiver'}
-            )
-        if required_key not in sender:
-            raise ValidationError(
-                {'message_receiver': f'{required_key} is required in sender'}
-            )
+        return {
+            'user_id': user_id,
+            'user_type': 'business' if user_type == 'true' else 'user',
+        }
 
     def get_chatroom(self, user_id, second_user_id, receiver_type, sender_type):
         '''
@@ -151,19 +139,14 @@ class CreateChatroomApi(generics.CreateAPIView):
         '''
         user_id = str(request.user.id)  # Get the current user's ID
         second_user_id = request.data.get('user_id')
-        # checking if data is received in dict
-        try:
-            receiver = json.loads(request.data.get('receiver'))
-            sender = json.loads(request.data.get('sender'))
-        except json.JSONDecodeError as exc:
-            raise ValidationError(
-                {'detail': 'Invalid JSON for receiver or sender.'}
-            ) from exc
+        receiver_type = request.data.get('receiver')
+        sender_type = request.data.get('sender')
 
         if not second_user_id:
             raise ValidationError({'detail': 'Second user ID is required.'})
 
-        self.validate_ids(receiver, sender, user_id, second_user_id)
+        receiver = self.assign_roles(second_user_id, receiver_type)
+        sender = self.assign_roles(user_id, sender_type)
         receiver_type = receiver.get('user_type')
         sender_type = sender.get('user_type')
 
@@ -258,7 +241,7 @@ class ChatroomListApi(generics.ListCreateAPIView):
         # Filter chatroom's where the user is a participant
         user_id = str(self.request.user.id)
         user_type = self.request.GET.get('user_type')
-        if not user_type:
+        if user_type not in ('user', 'business'):
             raise ValidationError(
                 {'user_type': 'Type must be user or business'}
             )

@@ -153,9 +153,19 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+REDIS_URL = os.getenv(
+    "REDIS_URL",
+    "redis://:dAKoxUPcF8yJniS5c4xb7UiAhB53LaaS@redis-12486.c251.east-us-mz.azure.redns.redis-cloud.com:12486/0",
+)
 CHANNEL_LAYERS = {
-    'default': {'BACKEND': 'channels.layers.InMemoryChannelLayer'}
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(REDIS_URL)],  # Replace with your Redis host and port
+        },
+    },
 }
+
 # S3 configurations
 AZURE_ACCOUNT_NAME = 'braelos3'
 AZURE_ACCOUNT_KEY = '5PkRWE5PK49PotcquKuVgZ6jLN261i8VNuqqdpTKJJekYcr2EWwrrlRyqV/s7a+mLOrV/YKBZDOX+AStNDj6pQ=='
