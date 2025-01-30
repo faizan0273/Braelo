@@ -33,7 +33,7 @@ class Chat(Document):
     participants = ListField(StringField(), required=True)
     receiver = DictField(required=True)
     sender = DictField(required=True)
-    pair_key = StringField(required=True, unique=True)
+    pair_key = StringField(required=True)
     is_active = BooleanField(default=True)
     created_at = DateTimeField()
     updated_at = DateTimeField()
@@ -45,10 +45,10 @@ class Chat(Document):
                 'fields': ['chat_id'],
                 'unique': True,
             },
-            {
-                'fields': ['pair_key'],
-                'unique': False,
-            },
+            # {
+            #     'fields': ['pair_key'],
+            #     'unique': False,
+            # },
         ],
     }
 
