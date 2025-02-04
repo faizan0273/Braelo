@@ -41,6 +41,7 @@ from .api import (
     UpdateBusiness,
     Activate_Business,
     FetchSingleBusiness,
+    ExploreBusiness,
 )
 
 # todo import from separate files.
@@ -96,6 +97,8 @@ urlpatterns = [
     path('business/update', UpdateBusiness.as_view()),
     # Fetch Single business
     path('business/fetch-single', FetchSingleBusiness.as_view()),
+    # Explore Business
+    path('business/explore', ExploreBusiness.as_view()),
     # Fetch Business
     path('business/<str:pk>', ScanBusinessQR.as_view()),
 ]

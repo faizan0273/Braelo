@@ -10,6 +10,7 @@ Fetch Business Serializers.
 ---------------------------------------------------
 '''
 
+import json
 import uuid
 from django.utils import timezone
 from azure.storage.blob import BlobServiceClient
@@ -114,6 +115,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         bussines_logo = validated_data.get('business_logo', [])
         business_images = validated_data.get('business_images', [])
         business_banner = validated_data.get('business_banner', [])
+
         # Upload Logo
         s3_logo_url = self.upload_pictures(
             bussines_logo, business_category, user
@@ -188,6 +190,7 @@ class BusinessSerailizer(serializers.DocumentSerializer):
         business_logo = data.get('business_logo', [])
         business_banner = data.get('business_banner', [])
         business_images = data.get('business_images', [])
+        business_coordinates = data.get('business_coordinates')
 
         # validation checks for various fields of business
         if business_category not in CATEGORIES:
@@ -200,6 +203,34 @@ class BusinessSerailizer(serializers.DocumentSerializer):
                     'Business subcategory': f'Type must be in {CATEGORIES[business_category]}.'
                 }
             )
+
+        if (
+            not isinstance(business_coordinates, list)
+            or len(business_coordinates) != 2
+        ):
+            raise ValidationError(
+                {
+                    'business_coordinates': 'business_coordinates must be a list with [longitude, latitude].'
+                }
+            )
+        lon, lat = business_coordinates
+        if not (
+            isinstance(lon, (int, float)) and isinstance(lat, (int, float))
+        ):
+            raise ValidationError(
+                {
+                    'business_coordinates': 'Longitude and latitude must be numbers.'
+                }
+            )
+
+        # Ensure values are within valid longitude/latitude range
+        if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+            raise ValidationError(
+                {
+                    'business_coordinates': 'Longitude must be between -180 and 180, latitude must be between -90 and 90.'
+                }
+            )
+
         _validate_email(business_email, 'Enter a valid business email address')
         validate_phone(business_number)
         validate_image(business_logo, 'Logo')

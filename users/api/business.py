@@ -20,7 +20,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 
-
+import json
 import qrcode
 from io import BytesIO
 from helpers import ListSync
@@ -122,8 +122,18 @@ class BussinessListing(generics.CreateAPIView):
         if Business.objects(user_id=request.user.id).first():
             raise ValidationError({'Business': 'Already exists for user'})
 
+        try:
+            business_coordinates = request.data.get('business_coordinates')
+            business_coordinates = json.loads(business_coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for business_coordinates.'
+            ) from exc
+
+        mutable_data = request.data.copy()
+        mutable_data['business_coordinates'] = business_coordinates
         serializer = self.get_serializer(
-            data=request.data, context={'request': request}
+            data=mutable_data, context={'request': request}
         )
         # Validate and create the listing if valid
         serializer.is_valid(raise_exception=True)
@@ -279,9 +289,19 @@ class UpdateBusiness(generics.UpdateAPIView):
         '''
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        try:
+            business_coordinates = request.data.get('business_coordinates')
+            business_coordinates = json.loads(business_coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for business_coordinates.'
+            ) from exc
+
+        mutable_data = request.data.copy()
+        mutable_data['business_coordinates'] = business_coordinates
         serializer = self.get_serializer(
             instance,
-            data=request.data,
+            data=mutable_data,
             partial=partial,
             context={'request': request},
         )
@@ -356,3 +376,55 @@ class FetchSingleBusiness(generics.ListAPIView):
                 message='Business Not Found',
                 data={},
             )
+
+
+class ExploreBusiness(generics.ListAPIView):
+
+    permission_classes = [AllowAny]
+    serializer_class = BusinessSerailizer
+
+    @handle_exceptions
+    def get(self, request):  # todo for category types
+
+        try:
+            coordinates = request.GET.get('coordinates')
+            coordinates = json.loads(coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for coordinates.'
+            ) from exc
+
+        if not coordinates:
+            raise ValidationError({'coordinates': 'Field is required'})
+        if not isinstance(coordinates, list) or len(coordinates) != 2:
+            raise ValidationError(
+                {
+                    'business_coordinates': 'business_coordinates must be a list with [longitude, latitude].'
+                }
+            )
+        lon, lat = coordinates
+        if not (
+            isinstance(lon, (int, float)) and isinstance(lat, (int, float))
+        ):
+            raise ValidationError(
+                {'coordinates': 'Longitude and latitude must be numbers.'}
+            )
+        if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+            raise ValidationError(
+                {
+                    'business_coordinates': 'Longitude must be between -180 and 180, latitude must be between -90 and 90.'
+                }
+            )
+
+        max_distance_meters = 10000  # 10km or 10000 meters
+        nearby_business = Business.objects.filter(
+            business_coordinates__near=[lon, lat],
+            business_coordinates__max_distance=max_distance_meters,
+        )
+        nearby_business_data = self.get_serializer(nearby_business, many=True)
+        businesses = {item['id']: item for item in nearby_business_data.data}
+        return response(
+            status=status.HTTP_200_OK,
+            message='Business Found Successfully',
+            data=businesses,
+        )
