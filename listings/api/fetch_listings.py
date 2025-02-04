@@ -136,8 +136,8 @@ class LookupListing(generics.CreateAPIView):
         :return: Listing object. (dict)
         '''
         try:
-            category = request.data.get('category')
-            listing_id = request.data.get('listing_id')
+            category = request.GET.get('category')
+            listing_id = request.GET.get('listing_id')
             if not category or not listing_id:
                 raise ValidationError(
                     'Category and listing_id are required parameters.'
@@ -180,7 +180,7 @@ class LookupListing(generics.CreateAPIView):
             raise ValidationError({'Listings': 'No listings found'})
 
 
-class Recent(generics.ListAPIView):
+class Recent(generics.ListAPIView):  # todo add location for recent listings
 
     pagination_class = Pagination
     queryset = ListSync.objects.all()
@@ -193,6 +193,7 @@ class Recommendations(generics.ListAPIView):
     Fetch listings based on user recommendation.
     '''
 
+    # todo add location for recent listings
     pagination_class = Pagination
     serializer_class = ListsyncSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]

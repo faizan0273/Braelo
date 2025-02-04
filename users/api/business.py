@@ -10,9 +10,13 @@ Fetch Business  endpoints.
 ---------------------------------------------------
 '''
 
+import json
+from io import BytesIO
+
 from rest_framework import status
 from mongoengine.errors import DoesNotExist
 from rest_framework_mongoengine import generics
+from azure.storage.blob import BlobServiceClient
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import (
     IsAuthenticated,
@@ -20,18 +24,17 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 
-import json
 import qrcode
-from io import BytesIO
 from helpers import ListSync
 from users.models.business import Business
 from helpers import response, handle_exceptions
-from azure.storage.blob import BlobServiceClient
 from listings.serializers import ListsyncSerializer
 from listings.api.paginate_listing import Pagination
 from helpers.notifications import BUSSINESS_EVENT_DATA
 from users.serializers.business import BusinessSerailizer
+from rest_framework.pagination import PageNumberPagination
 from config import AZURE_ACCOUNT_NAME, AZURE_CONTAINER_NAME
+from listings.api.fetch_listings import get_user_recommendations
 from notifications.serializers.events import EventNotificationSerializer
 
 
@@ -40,6 +43,23 @@ blob_service_client = BlobServiceClient.from_connection_string(
     'b8NuHRyWRsNR54wyp2lP0a7YGlM//NnhbkQKKv+JhX9E9Z+JXUSX56/sY7q0OxYPjidA5'
     'HL0+AStWzRAYA==;EndpointSuffix=core.windows.net'
 )
+
+
+class BusinessPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+    def get_paginated_response(self, data):
+        filtered_data = [
+            {'business_banner': obj.get('business_banner', [])} for obj in data
+        ]
+        paginated_data = super().get_paginated_response(filtered_data).data
+        return response(
+            status=status.HTTP_200_OK,
+            message='Business Banners fetched Successfully',
+            data=paginated_data,
+        )
 
 
 def generate_QR(business_id, user_id, business_type):
@@ -387,6 +407,7 @@ class ExploreBusiness(generics.ListAPIView):
     def get(self, request):  # todo for category types
 
         try:
+            category = request.GET.get('category')
             coordinates = request.GET.get('coordinates')
             coordinates = json.loads(coordinates)
         except json.JSONDecodeError as exc:
@@ -417,10 +438,15 @@ class ExploreBusiness(generics.ListAPIView):
             )
 
         max_distance_meters = 10000  # 10km or 10000 meters
-        nearby_business = Business.objects.filter(
-            business_coordinates__near=[lon, lat],
-            business_coordinates__max_distance=max_distance_meters,
-        )
+
+        search_business = {
+            'business_coordinates__near': [lon, lat],
+            'business_coordinates__max_distance': max_distance_meters,
+        }
+        if category:
+            search_business['business_category'] = category
+
+        nearby_business = Business.objects.filter(**search_business)
         nearby_business_data = self.get_serializer(nearby_business, many=True)
         businesses = {item['id']: item for item in nearby_business_data.data}
         return response(
@@ -428,3 +454,21 @@ class ExploreBusiness(generics.ListAPIView):
             message='Business Found Successfully',
             data=businesses,
         )
+
+
+class BusinessBanner(generics.ListAPIView):
+
+    permission_classes = [AllowAny]
+    pagination_class = BusinessPagination
+    serializer_class = BusinessSerailizer
+
+    def get_queryset(self):
+        user_id = self.request.user.id
+        interests = get_user_recommendations(user_id)
+        try:
+            if not interests:
+                return Business.objects.all()
+            queryset = Business.objects.filter(business_category=interests)
+        except Exception as exc:
+            raise ValidationError({'Business': str(exc)})
+        return queryset
