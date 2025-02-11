@@ -26,6 +26,7 @@ from rest_framework.permissions import (
 
 import qrcode
 from helpers import ListSync
+from helpers.constants import CATEGORIES
 from users.models.business import Business
 from helpers import response, handle_exceptions
 from listings.serializers import ListsyncSerializer
@@ -399,30 +400,40 @@ class FetchSingleBusiness(generics.ListAPIView):
 
 
 class ExploreBusiness(generics.ListAPIView):
-
     permission_classes = [AllowAny]
     serializer_class = BusinessSerailizer
 
     @handle_exceptions
-    def get(self, request):  # todo for category types
-
+    def get(self, request):
         try:
             category = request.GET.get('category')
-            coordinates = request.GET.get('coordinates')
-            coordinates = json.loads(coordinates)
+            business_coordinates = request.GET.get('coordinates', '')
+            if not category or not business_coordinates:
+                raise ValidationError(
+                    {
+                        'Field missing': 'category and coordinates both are required'
+                    }
+                )
+            coordinates = json.loads(business_coordinates)
         except json.JSONDecodeError as exc:
             raise ValidationError(
                 'Invalid JSON format for coordinates.'
             ) from exc
 
-        if not coordinates:
-            raise ValidationError({'coordinates': 'Field is required'})
+        if category not in CATEGORIES and category not in ('ALL', 'all'):
+            raise ValidationError(
+                {
+                    'category': f'Must be one of {list(CATEGORIES.keys())} OR "(ALL, all)"'
+                }
+            )
+
         if not isinstance(coordinates, list) or len(coordinates) != 2:
             raise ValidationError(
                 {
-                    'business_coordinates': 'business_coordinates must be a list with [longitude, latitude].'
+                    'business_coordinates': 'Must be a list with [longitude, latitude].'
                 }
             )
+
         lon, lat = coordinates
         if not (
             isinstance(lon, (int, float)) and isinstance(lat, (int, float))
@@ -430,6 +441,7 @@ class ExploreBusiness(generics.ListAPIView):
             raise ValidationError(
                 {'coordinates': 'Longitude and latitude must be numbers.'}
             )
+
         if not (-180 <= lon <= 180 and -90 <= lat <= 90):
             raise ValidationError(
                 {
@@ -437,18 +449,19 @@ class ExploreBusiness(generics.ListAPIView):
                 }
             )
 
-        max_distance_meters = 10000  # 10km or 10000 meters
-
         search_business = {
             'business_coordinates__near': [lon, lat],
-            'business_coordinates__max_distance': max_distance_meters,
+            'business_coordinates__max_distance': 10000,  # 10km or 10000 meters
+            'is_active': True,
         }
-        if category:
+
+        if category in CATEGORIES:
             search_business['business_category'] = category
 
         nearby_business = Business.objects.filter(**search_business)
         nearby_business_data = self.get_serializer(nearby_business, many=True)
         businesses = {item['id']: item for item in nearby_business_data.data}
+
         return response(
             status=status.HTTP_200_OK,
             message='Business Found Successfully',
@@ -472,3 +485,32 @@ class BusinessBanner(generics.ListAPIView):
         except Exception as exc:
             raise ValidationError({'Business': str(exc)})
         return queryset
+
+
+class BusinessDashboard(generics.CreateAPIView):
+    '''
+    API endpoint to get business dashboard info based on user_id
+    '''
+
+    permission_classes = [IsAuthenticated]
+
+    @handle_exceptions
+    def get(self, request):
+        '''
+        GET method to fetch business dashboard.
+        :return: business dashboard data.(json)
+        '''
+        user = request.user
+        if not user.is_business:
+            raise ValidationError({'User': 'Only Business Users Can Acesss'})
+        business_insights = {
+            'Clicks': user.listings_clicks,
+            'Interactions': user.business_interactions,
+            'Listing': user.listings_count,
+            'Featured': user.business_featured,
+        }
+        return response(
+            status=status.HTTP_200_OK,
+            message='Dashboard Fetched Successfully',
+            data=business_insights,
+        )
