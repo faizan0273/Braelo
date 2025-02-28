@@ -470,6 +470,7 @@ class ExploreBusiness(generics.ListAPIView):
 
 
 class BusinessBanner(generics.ListAPIView):
+    # todo for every category
 
     permission_classes = [AllowAny]
     pagination_class = BusinessPagination
@@ -477,8 +478,11 @@ class BusinessBanner(generics.ListAPIView):
 
     def get_queryset(self):
         user_id = self.request.user.id
-        interests = get_user_recommendations(user_id)
+        category = self.request.GET.get('category')
         try:
+            if category:
+                return Business.objects.filter(business_category=category)
+            interests = get_user_recommendations(user_id)
             if not interests:
                 return Business.objects.all()
             queryset = Business.objects.filter(business_category=interests)

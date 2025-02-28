@@ -11,7 +11,13 @@ Vehicle Listing model mongo based.
 '''
 
 from mongoengine import fields, Document
-from mongoengine.fields import IntField, StringField, ListField, BooleanField
+from mongoengine.fields import (
+    IntField,
+    StringField,
+    ListField,
+    BooleanField,
+    PointField,
+)
 
 from helpers import JobsConstants as JC
 
@@ -29,6 +35,7 @@ class JobsListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     # category based
     job_tittle = StringField(required=True)

@@ -18,9 +18,8 @@ from .api.user_interest import InterestListCreateView
 from .api import (
     LoginWithEmail,
     VerifyOTP,
-    GoogleCallback,
     SignUpWithEmail,
-    SignUpWithPhone,
+    LoginAuth,
     TokenRefresh,
     ForgotPassword,
     ChangePassword,
@@ -53,11 +52,13 @@ urlpatterns = [
     # Login end points
     path('login/email', LoginWithEmail.as_view(), name='email_login'),
     path('verifyotp', VerifyOTP.as_view(), name='phone_login'),
-    path('login/google', GoogleCallback.as_view(), name='google_login'),
+    # path('login/google', GoogleCallback.as_view(), name='google_login'), # to be removed
+    # path('login/apple', AppleCallback.as_view(), name='login_apple'), # to be removed
     # Sign up endpoints
     path('signup/email', SignUpWithEmail.as_view(), name='email_signup'),
-    path('signup/phone', SignUpWithPhone.as_view(), name='phone_signup'),
-    path('signup/google', GoogleCallback.as_view(), name='google_signup'),
+    path('login', LoginAuth.as_view(), name='google-apple-phone_login'),
+    # path('signup/phone', SignUpWithPhone.as_view(), name='phone_signup'),# to be removed
+    # path('signup/google', GoogleCallback.as_view(), name='google_signup'), # to be removed
     # Refresh token
     path('token/refresh', TokenRefresh.as_view(), name='token_refresh'),
     # Forgot password

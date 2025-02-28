@@ -10,8 +10,10 @@ Populate Listing and save listings endpoints.
 ---------------------------------------------------
 '''
 
+import json
 from rest_framework import status
 from rest_framework_mongoengine import generics
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from helpers.notifications import LISTINGS_EVENT_DATA
 from notifications.serializers.events import EventNotificationSerializer
@@ -75,8 +77,21 @@ class Listing(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: listing status. (json)
         '''
+        try:
+            listing_coordinates = request.data.get('listing_coordinates')
+            if not listing_coordinates:
+                raise ValidationError(
+                    {'listing_coordinates': 'field is required'}
+                )
+            listing_coordinates = json.loads(listing_coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for business_coordinates.'
+            ) from exc
+        mutable_data = request.data.copy()
+        mutable_data['listing_coordinates'] = listing_coordinates
         serializer = self.get_serializer(
-            data=request.data, context={'request': request}
+            data=mutable_data, context={'request': request}
         )
         # Validate and create the listing if valid
         serializer.is_valid(raise_exception=True)

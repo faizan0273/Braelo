@@ -19,6 +19,7 @@ from mongoengine.fields import (
     BooleanField,
     DateTimeField,
     DecimalField,
+    PointField,
 )
 
 
@@ -35,6 +36,7 @@ class SportsHobbyListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     # Specific fields for Sports & Hobby
     item_type = StringField(required=True)

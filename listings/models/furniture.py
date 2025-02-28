@@ -19,6 +19,7 @@ from mongoengine.fields import (
     BooleanField,
     DateTimeField,
     DecimalField,
+    PointField,
 )
 
 
@@ -35,6 +36,7 @@ class FurnitureListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     # category based
     material_type = StringField(required=True)

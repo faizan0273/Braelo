@@ -20,6 +20,7 @@ from mongoengine.fields import (
     DateTimeField,
     DecimalField,
     FloatField,
+    PointField,
 )
 
 
@@ -36,6 +37,7 @@ class EventsListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     # category based
     event_type = StringField(required=True)

@@ -10,8 +10,10 @@ User sign up end-points module.
 ---------------------------------------------------
 '''
 
+import phonenumbers
 from rest_framework import generics, status
 from rest_framework.permissions import AllowAny
+from django.core.validators import validate_email
 from rest_framework.exceptions import ValidationError
 from django.views.decorators.csrf import csrf_exempt
 
@@ -30,6 +32,10 @@ from helpers import (
     response,
     google_auth,
     get_error_details,
+)
+
+GOOGLE_OAUTH_CLIENT_ID = (
+    "440558817572-e0bjge0jme6oavdeuggfi0a4gukejk87.apps.googleusercontent.com"
 )
 
 
@@ -119,47 +125,101 @@ class GoogleCallback(generics.CreateAPIView):
         :param request: request object. (dict)
         :return: user's signed up status. (json)
         '''
-        token = request.data.get('credential')
         # Google User Details
-        g_user = google_auth(token)
-        _user = self.get_serializer(data=g_user)
-        try:
-            _user.is_valid(raise_exception=True)
-            # add username to the validated data
-            _user.validated_data['username'] = _user.validated_data['email']
-            _user = _user.create(_user.validated_data)
-            if not _user:
-                raise Exception('Cannot Add user to Database')
-            # No user is available for this email create new user to our db
-            # Generate JWT token after user creation
-            token = get_token(_user)
-            # Combine user data with token data
-            response_data = {'email': _user.email, 'token': token}
-            # return Response(response_data, status=status.HTTP_201_CREATED)
-            return response(
-                status=status.HTTP_201_CREATED,
-                message='User Signed Up',
-                data=response_data,
-            )
-        except ValidationError as err:
-            error = get_error_details(err.detail)
-            if not g_user:
-                return response(
-                    status=status.HTTP_400_BAD_REQUEST,
-                    message='Validation Error',
-                    data={},
-                    error=error,
-                )
+        data = request.data
+        required_fields = [
+            'email',
+            'google_id',
+            'name',
+            'first_name',
+            'last_name',
+            'is_email_verified',
+        ]
+        missing_fields = [
+            field for field in required_fields if field not in data
+        ]
 
-            # Email already exists
-            _user = _user.update(g_user)
-            token = get_token(_user)
-            response_data = {'email': _user.email, 'token': token}
+        if missing_fields:
+            raise ValidationError(
+                {field: f"{field} is required." for field in missing_fields}
+            )
+
+        email = data.get('email')
+        google_id = data.get('google_id')
+        validate_email(email)
+        g_user = {
+            'email': email,
+            'google_id': google_id,
+            'username': email,
+            'name': data.get('name'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+            'is_email_verified': data.get('is_email_verified'),
+        }
+
+        user = User.objects.filter(email=email).first()
+
+        if user:
+            if user.google_id != google_id:
+                raise ValidationError({'google_id': 'incorrect'})
+            # incase user ezists will only email
+            if not user.google_id:
+                user.google_id = google_id
+                user.save()
+            token = get_token(user)
+            response_data = {'email': user.email, 'token': token}
             return response(
                 status=status.HTTP_200_OK,
                 message='user logged in',
                 data=response_data,
             )
+        google_id_check = User.objects.filter(google_id=google_id).exists()
+        if google_id_check:
+            raise ValidationError(
+                {'google_id': 'Already exists for another user'}
+            )
+        new_user = User.objects.create(**g_user)
+        new_token = get_token(new_user)
+        response_data = {'email': new_user.email, 'token': new_token}
+        return response(
+            status=status.HTTP_200_OK,
+            message='user logged in',
+            data=response_data,
+        )
+
+        # user = self.get_serializer(data=data, context={'request':request})
+
+        # try:
+        #     user.is_valid(raise_exception=True)
+        #     user.save()
+        #     # Generate JWT token after user creation
+        #     token = get_token(user)
+        #     # Combine user data with token data
+        #     response_data = {'email': user.email, 'token': token}
+        #     # return Response(response_data, status=status.HTTP_201_CREATED)
+        #     return response(
+        #         status=status.HTTP_200_OK,
+        #         message='User Signed Up',
+        #         data=response_data,
+        #     )
+        # except ValidationError as err:
+        #     error = get_error_details(err.detail)
+        #     return response(
+        #             status=status.HTTP_400_BAD_REQUEST,
+        #             message='Validation Error',
+        #             data={},
+        #             error=error,
+        #         )
+
+        # Email already exists
+        # _user = _user.update(g_user)
+        # token = get_token(_user)
+        # response_data = {'email': _user.email, 'token': token}
+        # return response(
+        #     status=status.HTTP_200_OK,
+        #     message='user logged in',
+        #     data=response_data,
+        # )
 
 
 class AppleCallback(generics.CreateAPIView):
@@ -170,3 +230,135 @@ class AppleCallback(generics.CreateAPIView):
     @csrf_exempt
     def post(self, request):
         pass
+
+
+class LoginAuth(generics.CreateAPIView):
+    permission_classes = [AllowAny]
+
+    @staticmethod
+    def validate_phone_number(phone):
+        '''
+        Check if the phone number is valid.
+        '''
+        try:
+            # Parsing phone number
+            parsed_number = phonenumbers.parse(phone, None)
+            # Checking if the parsed number is a valid number
+            if not phonenumbers.is_valid_number(parsed_number):
+                raise ValidationError('This is not valid phone number.')
+        except phonenumbers.NumberParseException:
+            raise ValidationError('This is not valid phone number.')
+        return phone
+
+    @handle_exceptions
+    @csrf_exempt
+    def post(self, request):
+
+        login_type = request.GET.get('login_type')
+        if login_type not in ('google', 'apple', 'phone'):
+            raise ValidationError(
+                {'Type': 'Must be ["google","apple","phone"]'}
+            )
+        # if users logs in from google
+        if login_type == 'google':
+            data = request.data
+            required_fields = [
+                'email',
+                'google_id',
+                'name',
+                'first_name',
+                'last_name',
+                'is_email_verified',
+            ]
+            missing_fields = [
+                field for field in required_fields if field not in data
+            ]
+
+            if missing_fields:
+                raise ValidationError(
+                    {field: f"{field} is required." for field in missing_fields}
+                )
+
+            email = data.get('email')
+            google_id = data.get('google_id')
+            validate_email(email)
+            g_user = {
+                'email': email,
+                'google_id': google_id,
+                'username': email,
+                'name': data.get('name'),
+                'first_name': data.get('first_name'),
+                'last_name': data.get('last_name'),
+                'is_email_verified': data.get('is_email_verified'),
+            }
+
+            user = User.objects.filter(email=email).first()
+
+            if user:
+                if user.google_id != google_id:
+                    raise ValidationError({'google_id': 'incorrect'})
+                # incase user exists with only email
+                if not user.google_id:
+                    user.google_id = google_id
+                    user.save()
+                token = get_token(user)
+                response_data = {'email': user.email, 'token': token}
+                return response(
+                    status=status.HTTP_200_OK,
+                    message='user logged in',
+                    data=response_data,
+                )
+            google_id_check = User.objects.filter(google_id=google_id).exists()
+            if google_id_check:
+                raise ValidationError(
+                    {'google_id': 'Already exists for another user'}
+                )
+            new_user = User.objects.create(**g_user)
+            new_token = get_token(new_user)
+            response_data = {
+                'email': new_user.email,
+                'token': new_token,
+                'user_status': user.is_business,
+            }
+            return response(
+                status=status.HTTP_200_OK,
+                message='user logged in',
+                data=response_data,
+            )
+        # if user logs in from phone
+        if login_type == 'phone':
+            data = request.data
+            phone_number = data.get('phone_number')
+            if not phone_number:
+                raise ValidationError(
+                    {'phone_number': 'phone number is required.'}
+                )
+            self.validate_phone_number(phone_number)
+            # Check if the phone_number exists
+            user = User.objects.filter(phone_number=phone_number).first()
+            if user:
+                token = get_token(user)
+                data = {
+                    'phone': user.phone_number,
+                    'token': token,
+                    'user_status': user.is_business,
+                }
+                return response(
+                    status=status.HTTP_200_OK,
+                    message='User logged in',
+                    data=data,
+                )
+            new_user = User.objects.create(
+                username=phone_number, phone_number=phone_number
+            )
+            token = get_token(new_user)
+            data = {
+                'phone': new_user.phone_number,
+                'token': token,
+                'user_status': new_user.is_business,
+            }
+            return response(
+                status=status.HTTP_200_OK,
+                message='User logged in',
+                data=data,
+            )

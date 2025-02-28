@@ -136,6 +136,7 @@ class LookupListing(generics.CreateAPIView):
         :return: Listing object. (dict)
         '''
         try:
+            user = request.user
             category = request.GET.get('category')
             listing_id = request.GET.get('listing_id')
             if not category or not listing_id:
@@ -156,17 +157,21 @@ class LookupListing(generics.CreateAPIView):
 
             listing = model.objects.get(id=listing_id)
             if listing.from_business:
-                with transaction.atomic():
-                    update_user = User.objects.get(id=listing.user_id)
-                    listsync_listing = ListSync.objects.get(
-                        listing_id=listing_id
-                    )
-                    listing.listing_clicks += 1
-                    listsync_listing.listing_clicks += 1
-                    update_user.listings_clicks += 1
-                    listing.save()
-                    listsync_listing.save()
-                    update_user.save()
+                # Don't add clicks if users clicks his own listings
+                if listing.id != user.id:
+                    with transaction.atomic():
+                        update_user_clicks = User.objects.get(
+                            id=listing.user_id
+                        )
+                        listsync_listing = ListSync.objects.get(
+                            listing_id=listing_id
+                        )
+                        listing.listing_clicks += 1
+                        listsync_listing.listing_clicks += 1
+                        update_user_clicks.listings_clicks += 1
+                        listing.save()
+                        listsync_listing.save()
+                        update_user_clicks.save()
 
             listing_data = listing.to_mongo().to_dict()  # Convert to dict
             listing_data.pop('_id', None)

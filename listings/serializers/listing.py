@@ -41,6 +41,8 @@ from listings.models import (
     SavedItem,
 )
 
+from users.models import Business
+
 
 class Serializer(serializers.DocumentSerializer):
     is_saved = SE.SerializerMethodField()
@@ -141,24 +143,58 @@ class Serializer(serializers.DocumentSerializer):
         Ensures category and subcategory validation and user association.
         '''
         user = self.context['request'].user
-        data['from_business'] = user.is_business
+        data['from_business'] = data.get('from_business')
         data['user_id'] = user.id
         category = data.get('category')
         subcategory = data.get('subcategory')
         year = data.get('year')
         keywords = data.get('keywords')
         status = data.get('is_active')
+        listing_coordinates = data.get('listing_coordinates')
         user_status = user
+
         # Check if this is an update call
         is_update = self.context.get('is_update', False)
 
+        # coordinates validation
+        if (
+            not isinstance(listing_coordinates, list)
+            or len(listing_coordinates) != 2
+        ):
+            raise ValidationError(
+                {
+                    'listing_coordinates': 'listing_coordinates must be a list with [longitude, latitude].'
+                }
+            )
+        lon, lat = listing_coordinates
+        if not (
+            isinstance(lon, (int, float)) and isinstance(lat, (int, float))
+        ):
+            raise ValidationError(
+                {
+                    'listing_coordinates': 'Longitude and latitude must be numbers.'
+                }
+            )
+
+        # Ensure values are within valid longitude/latitude range
+        if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+            raise ValidationError(
+                {
+                    'listing_coordinates': 'Longitude must be between -180 and 180, latitude must be between -90 and 90.'
+                }
+            )
+        if data['from_business'] not in (True, False):
+            raise ValidationError({'is_business': 'Must be ("True","False")'})
+        if data['from_business']:
+            if not Business.objects.filter(user_id=user.id).first():
+                raise ValidationError({'Error': 'Create Business First'})
         # Check keywords limit
         if len(keywords) > KEYWORDS_LIMIT:
             raise ValidationError({'Keywords': 'Limit is 10'})
         # If it's not an update, Increament in Listings Count
         if not is_update:
             if (
-                not user_status.is_business
+                not data['from_business']
                 and user_status.listings_count == USER_LISTINGS_THRESHOLD
             ):
                 raise ValidationError({'Listings': 'Normal User Limit Reached'})

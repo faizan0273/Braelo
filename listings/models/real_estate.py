@@ -17,6 +17,7 @@ from mongoengine.fields import (
     ListField,
     BooleanField,
     FloatField,
+    PointField,
 )
 from helpers.constants import RealEstateConstants as REC
 
@@ -34,6 +35,7 @@ class RealEstateListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     # Common Start fields
     property_type = StringField(required=True)

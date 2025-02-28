@@ -21,6 +21,7 @@ from mongoengine.fields import (
     BooleanField,
     DateTimeField,
     DecimalField,
+    PointField,
 )
 
 
@@ -37,6 +38,7 @@ class ServicesListing(Document):
     description = StringField(required=True)
     location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
 
     other = StringField(required=False)
     certifications = StringField(choices=SC.CERTIFICATION, required=False)
