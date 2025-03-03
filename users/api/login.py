@@ -18,6 +18,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from helpers import handle_exceptions, get_token, response
 from users.serializers import EmailLogin, TokenBlacklistSerializer
 
+from users.models import Business
+
 # login part
 
 
@@ -37,8 +39,11 @@ class LoginWithEmail(generics.CreateAPIView):
         user.is_valid(raise_exception=True)
         user = user.validated_data
         token = get_token(user)
+        business = Business.objects.filter(user_id=user.id).first()
         response_data = {
             'email': user.email,
+            'name': user.name,
+            'business_name': business.business_name if business else None,
             'token': token,
             'user_status': user.is_business,
         }

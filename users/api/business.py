@@ -480,7 +480,7 @@ class BusinessBanner(generics.ListAPIView):
         user_id = self.request.user.id
         category = self.request.GET.get('category')
         try:
-            if category:
+            if category and category in CATEGORIES:
                 return Business.objects.filter(business_category=category)
             interests = get_user_recommendations(user_id)
             if not interests:

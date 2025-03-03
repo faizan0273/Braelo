@@ -14,12 +14,8 @@ from users.serializers.login import (
     TokenBlacklistSerializer,
     EmailLogin,
 )
-from users.serializers.signup import (
-    EmailSignup,
-    PhoneSignup,
-    GoogleSignup,
-    AppleSignup,
-)
+from users.serializers.signup import EmailSignup
+
 from users.serializers.password import (
     ChangePasswordSerializer,
     CreatePasswordSerializer,

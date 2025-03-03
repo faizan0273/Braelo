@@ -158,7 +158,7 @@ class LookupListing(generics.CreateAPIView):
             listing = model.objects.get(id=listing_id)
             if listing.from_business:
                 # Don't add clicks if users clicks his own listings
-                if listing.id != user.id:
+                if listing.user_id != user.id:
                     with transaction.atomic():
                         update_user_clicks = User.objects.get(
                             id=listing.user_id
