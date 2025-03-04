@@ -29,7 +29,6 @@ class ListSync(Document):
     subcategory = StringField(required=True)
     title = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
-    location = StringField(required=True)
     price = DecimalField(required=False)
     salary_range = StringField(required=False)
     pictures = ListField(required=True)
@@ -48,7 +47,6 @@ class ListSync(Document):
             {'fields': ['user_id']},
             {'fields': ['listing_id']},
             {'fields': ['category']},
-            {'fields': ['location']},
             {'fields': ['title']},
             # {'fields': ['user_id', 'listing_id']},
         ],

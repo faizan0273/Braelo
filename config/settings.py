@@ -155,7 +155,7 @@ MIDDLEWARE = [
 ]
 REDIS_URL = os.getenv(
     "REDIS_URL",
-    "redis://:dAKoxUPcF8yJniS5c4xb7UiAhB53LaaS@redis-12486.c251.east-us-mz.azure.redns.redis-cloud.com:12486/0",
+    "redis://:Ds5XpZYB6BUKreYFgRdrFKXYG4UGsojS@redis-15589.c53.west-us.azure.redns.redis-cloud.com:15589/0",
 )
 CHANNEL_LAYERS = {
     "default": {

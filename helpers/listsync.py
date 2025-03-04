@@ -66,7 +66,6 @@ class ListSynchronize:
             'subcategory',
             'keywords',
             'title',
-            'location',
             'from_business',
             'created_at',
         ]
@@ -85,7 +84,6 @@ class ListSynchronize:
             'subcategory': data['subcategory'],
             'title': data['title'],
             'keywords': data['keywords'],
-            'location': data['location'],
             'pictures': data['pictures'],
             'from_business': data['from_business'],
             'created_at': data['created_at'],

@@ -10,6 +10,7 @@ Populate Listing and save listings endpoints.
 ---------------------------------------------------
 '''
 
+import json
 from bson import ObjectId
 from rest_framework import status
 from mongoengine.errors import DoesNotExist
@@ -60,9 +61,19 @@ class UpdateListing(generics.UpdateAPIView):
         '''
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
+        try:
+            listing_coordinates = request.data.get('listing_coordinates')
+            listing_coordinates = json.loads(listing_coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for listing_coordinates.'
+            ) from exc
+
+        mutable_data = request.data.copy()
+        mutable_data['listing_coordinates'] = listing_coordinates
         serializer = self.get_serializer(
             instance,
-            data=request.data,
+            data=mutable_data,
             partial=partial,
             context={'request': request, 'is_update': True},
         )

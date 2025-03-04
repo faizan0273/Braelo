@@ -68,8 +68,6 @@ class SavedItemSerializer(serializers.DocumentSerializer):
             'category': category,
             'subcategory': subcategory,
             'title': data['title'],
-            # 'price': data['price'],
-            'location': data['location'],
             'pictures': data['pictures'],
         }
         model = MODEL_MAP.get(category)

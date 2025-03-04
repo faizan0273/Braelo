@@ -34,7 +34,6 @@ class VehicleListing(Document):
     pictures = ListField(required=True)
     title = StringField(required=True)
     description = StringField(required=True)
-    location = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
     listing_coordinates = PointField(required=True)
 
@@ -89,7 +88,6 @@ class VehicleListing(Document):
         'ordering': ['-created_at'],
         'indexes': [
             {'fields': ['title']},
-            {'fields': ['location']},
             {'fields': ['category']},
             {'fields': ['subcategory']},
         ],

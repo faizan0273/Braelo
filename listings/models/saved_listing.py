@@ -28,7 +28,6 @@ class SavedItem(Document):
     category = StringField(required=True)
     subcategory = StringField(required=True)
     title = StringField(required=True)
-    location = StringField(required=True)
     price = DecimalField(required=True)
     pictures = ListField(required=True)
     saved_at = DateTimeField(required=False)
@@ -43,7 +42,6 @@ class SavedItem(Document):
             {'fields': ['user_id']},
             {'fields': ['listing_id']},
             {'fields': ['category']},
-            {'fields': ['location']},
             {'fields': ['title']},
             {'fields': ['user_id', 'listing_id']},
         ],
