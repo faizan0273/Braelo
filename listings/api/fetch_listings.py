@@ -10,6 +10,7 @@ Fetch User listings endpoints.
 ---------------------------------------------------
 '''
 
+import json
 from mongoengine import Q
 from django.db import transaction
 from mongoengine.errors import DoesNotExist
@@ -47,6 +48,29 @@ def get_user_listings(collection, user_id, offset, limit, sort):
         .limit(limit)
     )
     return list(queryset)
+
+
+def coordinates_format(coordinates):
+    if not isinstance(coordinates, list) or len(coordinates) != 2:
+        raise ValidationError(
+            {
+                'business_coordinates': 'Must be a list with [longitude, latitude].'
+            }
+        )
+
+    lon, lat = coordinates
+    if not (isinstance(lon, (int, float)) and isinstance(lat, (int, float))):
+        raise ValidationError(
+            {'coordinates': 'Longitude and latitude must be numbers.'}
+        )
+
+    if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+        raise ValidationError(
+            {
+                'business_coordinates': 'Longitude must be between -180 and 180, latitude must be between -90 and 90.'
+            }
+        )
+    return lon, lat
 
 
 def get_user_recommendations(user_id):
@@ -184,13 +208,37 @@ class LookupListing(generics.CreateAPIView):
         except DoesNotExist:
             raise ValidationError({'Listings': 'No listings found'})
 
+    def get_queryset(self):
+        return super().get_queryset()
 
-class Recent(generics.ListAPIView):  # todo add location for recent listings
+
+class Recent(generics.ListAPIView):
 
     pagination_class = Pagination
     queryset = ListSync.objects.all()
     serializer_class = ListsyncSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        coordinates = self.request.GET.get('listing_coordinates')
+        if not coordinates:
+            queryset = super().get_queryset()
+            return queryset.filter(is_active=True)
+
+        try:
+            coordinates = json.loads(coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for coordinates.'
+            ) from exc
+
+        lon, lat = coordinates_format(coordinates)
+        search_listings = {
+            'listing_coordinates__near': [lon, lat],
+            'listing_coordinates__max_distance': 10000,  # 10km or 10000 meters
+            'is_active': True,
+        }
+        return ListSync.objects.filter(**search_listings)
 
 
 class Recommendations(generics.ListAPIView):
@@ -198,7 +246,6 @@ class Recommendations(generics.ListAPIView):
     Fetch listings based on user recommendation.
     '''
 
-    # todo add location for recent listings
     pagination_class = Pagination
     serializer_class = ListsyncSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -206,12 +253,29 @@ class Recommendations(generics.ListAPIView):
     def get_queryset(self):
         user_id = self.request.user.id
         interests = get_user_recommendations(user_id)
+        coordinates = self.request.GET.get('listing_coordinates')
+        if not coordinates:
+            try:
+                if not interests:
+                    return ListSync.objects.all()
+                queryset = ListSync.objects.filter(
+                    Q(category__in=interests) | Q(subcategory__in=interests)
+                )
+            except Exception as exc:
+                raise ValidationError({'Listsync': str(exc)})
+            return queryset
+
         try:
-            if not interests:
-                return ListSync.objects.all()
-            queryset = ListSync.objects.filter(
-                Q(category__in=interests) | Q(subcategory__in=interests)
-            )
-        except Exception as exc:
-            raise ValidationError({'Listsync': str(exc)})
-        return queryset
+            coordinates = json.loads(coordinates)
+        except json.JSONDecodeError as exc:
+            raise ValidationError(
+                'Invalid JSON format for coordinates.'
+            ) from exc
+
+        lon, lat = coordinates_format(coordinates)
+        search_listings = {
+            'listing_coordinates__near': [lon, lat],
+            'listing_coordinates__max_distance': 10000,  # 10km or 10000 meters
+            'is_active': True,
+        }
+        return ListSync.objects.filter(**search_listings)

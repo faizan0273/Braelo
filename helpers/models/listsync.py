@@ -19,6 +19,7 @@ from mongoengine.fields import (
     DateTimeField,
     DecimalField,
     ObjectIdField,
+    PointField,
 )
 
 
@@ -29,6 +30,7 @@ class ListSync(Document):
     subcategory = StringField(required=True)
     title = StringField(required=True)
     keywords = ListField(StringField(required=True), required=True)
+    listing_coordinates = PointField(required=True)
     price = DecimalField(required=False)
     salary_range = StringField(required=False)
     pictures = ListField(required=True)
