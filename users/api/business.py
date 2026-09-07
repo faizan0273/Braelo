@@ -32,7 +32,6 @@ from helpers import upload_pictures
 from helpers.notifications import business_created_event
 from helpers import response, handle_exceptions
 from admin_panel.models import AdminBusinessBanner
-from listings.api.fetch_listings import get_user_recommendations
 from notifications.serializers.events import EventNotificationSerializer
 from users.serializers.business import BusinessSerailizer, BannerSearilizer
 from users.services.business_analytics import (
@@ -364,8 +363,7 @@ class BusinessBanner(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
     def get_queryset(self):
-        user_id = self.request.user.id
-        category = self.request.GET.get('category')
+        category = (self.request.GET.get('category') or '').strip()
         try:
             if category:
                 canonical_category = resolve_category(category)
@@ -373,15 +371,14 @@ class BusinessBanner(generics.ListCreateAPIView):
                     return AdminBusinessBanner.objects.filter(
                         business_category=canonical_category, is_active=True
                     )
-            interests = get_user_recommendations(user_id)
-            if not interests:
-                return AdminBusinessBanner.objects.filter(is_active=True)
-            queryset = AdminBusinessBanner.objects.filter(
-                business_category=interests, is_active=True
-            )
+            # Home / empty category must match the public Chrome response:
+            # all active banners. Do not filter by user interests here —
+            # interest tags (Cars, Motorcycle, …) do not match banner
+            # categories (Vehicles, electronics, …), so logged-in clients
+            # were getting an empty carousel.
+            return AdminBusinessBanner.objects.filter(is_active=True)
         except Exception as exc:
             raise ValidationError({'Business': str(exc)})
-        return queryset
 
     @handle_exceptions
     def delete(self, request):
