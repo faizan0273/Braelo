@@ -1,0 +1,33 @@
+name: Purge Mongo listings
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - devel
+    paths:
+      - scripts/purge_mongo_listings.py
+      - .github/workflows/purge-mongo.yml
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install pymongo
+        run: pip install pymongo==4.10.1
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Delete Mongo listings
+        run: python scripts/purge_mongo_listings.py
