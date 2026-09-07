@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import smtplib
 from dataclasses import dataclass
 
 from django.conf import settings
@@ -10,6 +11,18 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 
 logger = logging.getLogger('notifications.email')
+
+SAFE_DELIVERY_MESSAGE = (
+    'Unable to send email right now. Please try again later.'
+)
+
+
+class EmailDeliveryError(Exception):
+    """SMTP/email failure with a client-safe message (never leak SMTP internals)."""
+
+    def __init__(self, message: str = SAFE_DELIVERY_MESSAGE):
+        super().__init__(message)
+
 
 BRAND_NAME = 'Braelo'
 BRAND_COLOR = '#CD9403'
@@ -115,6 +128,15 @@ class EmailService:
 
         subject, html, text = self.templates.render(template_key, context)
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or None
+        if not _smtp_backend_ready():
+            logger.error(
+                'SMTP credentials missing; cannot send template=%s to=%s',
+                template_key,
+                recipients,
+            )
+            if fail_silently:
+                return False
+            raise EmailDeliveryError()
         message = EmailMultiAlternatives(
             subject=subject,
             body=text,
@@ -125,6 +147,17 @@ class EmailService:
         try:
             message.send(fail_silently=False)
             return True
+        except (smtplib.SMTPException, OSError, EmailDeliveryError) as exc:
+            logger.exception(
+                'Failed to send email template=%s to=%s',
+                template_key,
+                recipients,
+            )
+            if fail_silently:
+                return False
+            if isinstance(exc, EmailDeliveryError):
+                raise
+            raise EmailDeliveryError() from exc
         except Exception:
             logger.exception(
                 'Failed to send email template=%s to=%s',
@@ -133,7 +166,7 @@ class EmailService:
             )
             if fail_silently:
                 return False
-            raise
+            raise EmailDeliveryError()
 
     def send_best_effort(self, *, to, template_key: str, context: dict | None = None) -> bool:
         return self.send(
@@ -142,6 +175,15 @@ class EmailService:
             context=context,
             fail_silently=True,
         )
+
+
+def _smtp_backend_ready() -> bool:
+    backend = (getattr(settings, 'EMAIL_BACKEND', '') or '').lower()
+    if any(token in backend for token in ('locmem', 'console', 'dummy', 'inmemory')):
+        return True
+    user = (getattr(settings, 'EMAIL_HOST_USER', '') or '').strip()
+    password = (getattr(settings, 'EMAIL_HOST_PASSWORD', '') or '').strip()
+    return bool(user and password)
 
 
 def _as_recipients(value) -> list[str]:

@@ -14,7 +14,11 @@ from helpers.notifications import (
     support_reply_event,
 )
 from notifications.api.operations import _user_can_access
-from notifications.services.email import EmailTemplateService
+from notifications.services.email import (
+    EmailDeliveryError,
+    EmailTemplateService,
+    email_service,
+)
 from notifications.services.preferences import (
     EVENT_TO_PREFERENCE,
     is_preference_enabled,
@@ -244,3 +248,36 @@ class DeviceTokenApiTests(TestCase):
         body = response.json()
         self.assertEqual(body.get('status'), 200)
         mock_device.objects.assert_called_with(user_id=self.user.id)
+
+
+class EmailDeliveryTests(TestCase):
+    def test_smtp_auth_failure_is_sanitized(self):
+        import smtplib
+
+        from django.test.utils import override_settings
+
+        refused = smtplib.SMTPSenderRefused(
+            530,
+            b'5.7.0 Authentication Required. gsmtp',
+            'braelo.fl@gmail.com',
+        )
+        with override_settings(
+            EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
+            EMAIL_HOST_USER='braelo.fl@gmail.com',
+            EMAIL_HOST_PASSWORD='app-password',
+            DEFAULT_FROM_EMAIL='braelo.fl@gmail.com',
+        ):
+            with patch(
+                'notifications.services.email.EmailMultiAlternatives'
+            ) as mock_msg:
+                mock_msg.return_value.send.side_effect = refused
+                with self.assertRaises(EmailDeliveryError) as ctx:
+                    email_service.send(
+                        to='ch1@gmail.com',
+                        template_key='password_reset',
+                        context={'name': 'Test', 'otp': '123456', 'ttl_minutes': 10},
+                    )
+        message = str(ctx.exception)
+        self.assertNotIn('530', message)
+        self.assertNotIn('gsmtp', message)
+        self.assertNotIn('Authentication Required', message)

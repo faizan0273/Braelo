@@ -11,6 +11,7 @@ from config.environment import (
     resolve_django_env,
     resolve_public_backend_url,
     resolve_secret_key,
+    sanitize_smtp_password,
 )
 from users.models import User
 from users.services.firebase_identity import (
@@ -82,6 +83,13 @@ class EnvironmentResolutionTests(TestCase):
             ),
             "https://api.example.com",
         )
+
+    def test_gmail_app_password_spaces_are_stripped(self):
+        self.assertEqual(
+            sanitize_smtp_password("kgpv txaa anwb bvke"),
+            "kgpvtxaaanwbbvke",
+        )
+        self.assertEqual(sanitize_smtp_password("  abcd  "), "abcd")
 
 
 class DebugEndpointTests(TestCase):
@@ -555,3 +563,48 @@ class AdminAuthorizationTests(TestCase):
         body = response.json()
         self.assertEqual(body.get("status"), 200)
         self.assertEqual(body["data"]["role"], "admin")
+
+
+class ForgotPasswordEmailTests(TestCase):
+    def setUp(self):
+        reset_rate_limits()
+        self.user = User.objects.create_user(
+            username="ch1@gmail.com",
+            email="ch1@gmail.com",
+            name="Test",
+            password="pass12345",
+            is_email_verified=True,
+        )
+
+    @patch("users.api.password.email_service.send")
+    def test_forgot_password_sends_otp(self, mock_send):
+        mock_send.return_value = True
+        response = self.client.post(
+            "/auth/forgot/password",
+            data={"email": "ch1@gmail.com"},
+            content_type="application/json",
+        )
+        body = response.json()
+        self.assertEqual(body.get("status"), 200)
+        self.assertEqual(body.get("message"), "OTP sent to your email.")
+        mock_send.assert_called_once()
+
+    @patch("users.api.password.email_service.send")
+    def test_smtp_failure_does_not_leak_gmail_error(self, mock_send):
+        import json
+
+        from notifications.services.email import EmailDeliveryError
+
+        mock_send.side_effect = EmailDeliveryError()
+        response = self.client.post(
+            "/auth/forgot/password",
+            data={"email": "ch1@gmail.com"},
+            content_type="application/json",
+        )
+        body = response.json()
+        payload = json.dumps(body)
+        self.assertEqual(body.get("status"), 400)
+        self.assertEqual(body.get("error"), "email_delivery_failed")
+        self.assertNotIn("530", payload)
+        self.assertNotIn("gsmtp", payload)
+        self.assertNotIn("Authentication Required", payload)

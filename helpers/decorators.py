@@ -17,6 +17,7 @@ from pymongo.errors import PyMongoError
 from rest_framework.exceptions import ValidationError
 from sqlite3 import OperationalError as SQLITE_ERROR
 from helpers import get_error_details, response
+from notifications.services.email import EmailDeliveryError
 from users.services.rate_limit import RateLimitExceeded
 
 
@@ -41,6 +42,13 @@ def handle_exceptions(func):
                 error=str(err),
                 http_status=429,
                 retry_after=err.retry_after,
+            )
+        except EmailDeliveryError as err:
+            return response(
+                status=status.HTTP_400_BAD_REQUEST,
+                message=str(err),
+                data=_safe_request_data(args[1]),
+                error='email_delivery_failed',
             )
         except ValidationError as err:
             error = get_error_details(err.detail)

@@ -100,6 +100,11 @@ def resolve_cors_allow_all(
     return bool(debug)
 
 
+def sanitize_smtp_password(raw: str | None) -> str:
+    """Gmail App Passwords are shown with spaces; SMTP AUTH requires none."""
+    return "".join(str(raw or "").split())
+
+
 def resolve_public_backend_url(
     env: dict | None = None,
     django_env: str | None = None,
