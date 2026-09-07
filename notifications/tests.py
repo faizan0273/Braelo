@@ -319,7 +319,7 @@ class EmailDeliveryTests(TestCase):
                 )
         self.assertTrue(sent)
 
-    def test_acs_retries_gmail_alias_after_suppression(self):
+    def test_acs_sends_gmail_plus_alias(self):
         from django.test.utils import override_settings
 
         class _Poller:
@@ -347,7 +347,7 @@ class EmailDeliveryTests(TestCase):
             def begin_send(self, message):
                 dest = [item['address'] for item in message['recipients']['to']]
                 self.calls.append(dest)
-                return _Poller(ok='Gmail.com' in dest[0])
+                return _Poller(ok='+' in dest[0])
 
         _Client.calls = []
         with override_settings(
@@ -365,5 +365,5 @@ class EmailDeliveryTests(TestCase):
                     context={'name': 'Test', 'otp': '123456', 'ttl_minutes': 10},
                 )
         self.assertTrue(sent)
-        self.assertGreaterEqual(len(_Client.calls), 2)
-        self.assertEqual(_Client.calls[0], ['ch1@gmail.com'])
+        self.assertTrue(_Client.calls)
+        self.assertEqual(_Client.calls[0], ['ch1+braelo@gmail.com'])

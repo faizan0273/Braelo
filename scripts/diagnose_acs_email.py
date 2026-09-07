@@ -78,11 +78,15 @@ def main() -> int:
         return 1
 
     client = EmailClient.from_connection_string(conn)
-    candidates = [TEST_TO]
+    candidates = []
     if "@" in TEST_TO:
         local, domain = TEST_TO.split("@", 1)
-        if domain.lower() == "gmail.com":
-            candidates.extend([f"{local}@Gmail.com", f"{local[:1].upper()}{local[1:]}@{domain}"])
+        local_base = local.split("+", 1)[0]
+        if domain.lower() in ("gmail.com", "googlemail.com"):
+            candidates.extend(
+                [f"{local_base}+braelo@{domain.lower()}", f"{local_base}+reset@{domain.lower()}"]
+            )
+    candidates.append(TEST_TO)
     last_error = ""
     for dest in candidates:
         message = {

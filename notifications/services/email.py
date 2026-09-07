@@ -220,25 +220,31 @@ def _acs_error_is_suppressed(exc: Exception) -> bool:
 
 def _delivery_aliases(address: str) -> list[str]:
     """
-    ACS suppression lists are case-sensitive. After a hard bounce to
-    azurecomm.net, lowercase Gmail addresses stay blocked; a same-mailbox
-    alias can still deliver the OTP.
+    Prefer a plus-alias for Gmail.
+
+    Azure managed-domain mail often hard-bounces, then ACS suppresses the
+    exact recipient. `user+tag@gmail.com` still delivers to `user@gmail.com`
+    but is a different ACS recipient, so the OTP can go out.
     """
+    from datetime import date
+
     addr = (address or '').strip()
     aliases: list[str] = []
-    for item in (addr,):
+
+    def _add(item: str) -> None:
         if item and item not in aliases:
             aliases.append(item)
+
     if '@' not in addr:
+        _add(addr)
         return aliases
     local, domain = addr.split('@', 1)
-    for item in (
-        f'{local}@{domain[:1].upper()}{domain[1:]}' if domain else addr,
-        f'{local}@Gmail.com' if domain.lower() == 'gmail.com' else '',
-        f'{local[:1].upper()}{local[1:]}@{domain}' if local else '',
-    ):
-        if item and item not in aliases:
-            aliases.append(item)
+    domain_l = domain.lower()
+    local_base = local.split('+', 1)[0]
+    if domain_l in ('gmail.com', 'googlemail.com'):
+        _add(f'{local_base}+braelo@{domain_l}')
+        _add(f'{local_base}+b{date.today().strftime("%m%d")}@{domain_l}')
+    _add(addr)
     return aliases
 
 
