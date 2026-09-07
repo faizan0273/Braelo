@@ -616,6 +616,8 @@ class ForgotPasswordEmailTests(TestCase):
         body = response.json()
         self.assertEqual(body.get("status"), 200)
         self.assertEqual(body.get("message"), "OTP sent to your email.")
+        self.assertEqual(body.get("data", {}).get("email"), "ch1@gmail.com")
+        self.assertEqual(len(body.get("data", {}).get("otp") or ""), 6)
         mock_send.assert_called_once()
 
     @patch("users.api.password.email_service.send")

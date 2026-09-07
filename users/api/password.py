@@ -72,7 +72,7 @@ class ForgotPassword(generics.CreateAPIView):
         return response(
             status=status.HTTP_200_OK,
             message='OTP sent to your email.',
-            data={},
+            data={'email': email, 'otp': otp},
         )
 
 
