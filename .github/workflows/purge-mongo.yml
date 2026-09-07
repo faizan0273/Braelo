@@ -2,12 +2,6 @@ name: Purge Mongo listings
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - devel
-    paths:
-      - scripts/purge_mongo_listings.py
-      - .github/workflows/purge-mongo.yml
 
 jobs:
   purge:
