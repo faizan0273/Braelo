@@ -281,3 +281,40 @@ class EmailDeliveryTests(TestCase):
         self.assertNotIn('530', message)
         self.assertNotIn('gsmtp', message)
         self.assertNotIn('Authentication Required', message)
+
+    def test_acs_send_does_not_require_gmail_smtp(self):
+        from django.test.utils import override_settings
+
+        class _Poller:
+            def result(self):
+                return {'status': 'Succeeded'}
+
+        class _Client:
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+            @classmethod
+            def from_connection_string(cls, *_args, **_kwargs):
+                return cls()
+
+            def begin_send(self, _message):
+                return _Poller()
+
+        with override_settings(
+            EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
+            EMAIL_HOST_USER='',
+            EMAIL_HOST_PASSWORD='',
+            AZURE_COMMUNICATION_CONNECTION_STRING='endpoint=https://example.communication.azure.com/;accessKey=fake',
+            ACS_EMAIL_SENDER='DoNotReply@example.azurecomm.net',
+            DEFAULT_FROM_EMAIL='DoNotReply@example.azurecomm.net',
+        ):
+            with patch(
+                'azure.communication.email.EmailClient',
+                _Client,
+            ):
+                sent = email_service.send(
+                    to='ch1@gmail.com',
+                    template_key='password_reset',
+                    context={'name': 'Test', 'otp': '123456', 'ttl_minutes': 10},
+                )
+        self.assertTrue(sent)

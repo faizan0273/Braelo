@@ -237,20 +237,29 @@ if SENTRY_DSN:
 
 # Email backend
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# for testing
-# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
+).strip()
 
-# SMTP server settings
+# SMTP server settings (Gmail from Azure IPs is often blocked; ACS is preferred).
 EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
 EMAIL_PORT = _env_int("EMAIL_PORT", 587)
-EMAIL_USE_TLS = _env_bool("EMAIL_USE_TLS", default=True)
+EMAIL_USE_SSL = _env_bool("EMAIL_USE_SSL", default=EMAIL_PORT == 465)
+EMAIL_USE_TLS = _env_bool("EMAIL_USE_TLS", default=not EMAIL_USE_SSL)
+EMAIL_TIMEOUT = _env_int("EMAIL_TIMEOUT", 30)
 
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "").strip()
 EMAIL_HOST_PASSWORD = sanitize_smtp_password(os.getenv("EMAIL_HOST_PASSWORD", ""))
+
+AZURE_COMMUNICATION_CONNECTION_STRING = (
+    os.getenv("AZURE_COMMUNICATION_CONNECTION_STRING", "").strip()
+    or os.getenv("COMMUNICATION_SERVICES_CONNECTION_STRING", "").strip()
+)
+ACS_EMAIL_SENDER = os.getenv("ACS_EMAIL_SENDER", "").strip()
+
 DEFAULT_FROM_EMAIL = os.getenv(
     "DEFAULT_FROM_EMAIL",
-    EMAIL_HOST_USER or "noreply@example.com",
+    ACS_EMAIL_SENDER or EMAIL_HOST_USER or "noreply@example.com",
 ).strip()
 
 # Application definition

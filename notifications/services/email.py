@@ -128,23 +128,32 @@ class EmailService:
 
         subject, html, text = self.templates.render(template_key, context)
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', None) or None
-        if not _smtp_backend_ready():
+        if not _email_backend_ready():
             logger.error(
-                'SMTP credentials missing; cannot send template=%s to=%s',
+                'Email backend missing; cannot send template=%s to=%s',
                 template_key,
                 recipients,
             )
             if fail_silently:
                 return False
             raise EmailDeliveryError()
-        message = EmailMultiAlternatives(
-            subject=subject,
-            body=text,
-            from_email=from_email,
-            to=recipients,
-        )
-        message.attach_alternative(html, 'text/html')
         try:
+            if _acs_backend_ready():
+                _send_via_acs(
+                    subject=subject,
+                    html=html,
+                    text=text,
+                    recipients=recipients,
+                    from_email=from_email,
+                )
+                return True
+            message = EmailMultiAlternatives(
+                subject=subject,
+                body=text,
+                from_email=from_email,
+                to=recipients,
+            )
+            message.attach_alternative(html, 'text/html')
             message.send(fail_silently=False)
             return True
         except (smtplib.SMTPException, OSError, EmailDeliveryError) as exc:
@@ -177,6 +186,12 @@ class EmailService:
         )
 
 
+def _acs_backend_ready() -> bool:
+    connection = (getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING', '') or '').strip()
+    sender = (getattr(settings, 'ACS_EMAIL_SENDER', '') or '').strip()
+    return bool(connection and sender)
+
+
 def _smtp_backend_ready() -> bool:
     backend = (getattr(settings, 'EMAIL_BACKEND', '') or '').lower()
     if any(token in backend for token in ('locmem', 'console', 'dummy', 'inmemory')):
@@ -184,6 +199,42 @@ def _smtp_backend_ready() -> bool:
     user = (getattr(settings, 'EMAIL_HOST_USER', '') or '').strip()
     password = (getattr(settings, 'EMAIL_HOST_PASSWORD', '') or '').strip()
     return bool(user and password)
+
+
+def _email_backend_ready() -> bool:
+    return _acs_backend_ready() or _smtp_backend_ready()
+
+
+def _send_via_acs(*, subject: str, html: str, text: str, recipients: list[str], from_email: str | None) -> None:
+    try:
+        from azure.communication.email import EmailClient
+    except Exception as exc:  # pragma: no cover - import environment
+        logger.warning('azure-communication-email unavailable: %s', exc)
+        raise EmailDeliveryError() from exc
+
+    sender = (
+        (getattr(settings, 'ACS_EMAIL_SENDER', '') or '').strip()
+        or (from_email or '').strip()
+    )
+    if not sender:
+        raise EmailDeliveryError()
+
+    client = EmailClient.from_connection_string(
+        getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING')
+    )
+    message = {
+        'senderAddress': sender,
+        'content': {
+            'subject': subject,
+            'plainText': text,
+            'html': html,
+        },
+        'recipients': {
+            'to': [{'address': addr} for addr in recipients],
+        },
+    }
+    poller = client.begin_send(message)
+    poller.result()
 
 
 def _as_recipients(value) -> list[str]:
