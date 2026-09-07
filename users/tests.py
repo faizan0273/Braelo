@@ -14,6 +14,7 @@ from config.environment import (
     sanitize_smtp_password,
 )
 from users.models import User
+from config.firebase_admin_init import parse_firebase_credentials
 from users.services.firebase_identity import (
     extract_id_token,
     phone_from_firebase_claims,
@@ -121,6 +122,34 @@ class FirebaseIdentityTests(TestCase):
     def test_phone_required_on_claims(self):
         with self.assertRaises(ValidationError):
             phone_from_firebase_claims({"uid": "x"})
+
+    def test_parse_credentials_accepts_json_and_base64(self):
+        raw = '{"type": "service_account", "project_id": "braelo-app"}'
+        self.assertEqual(
+            parse_firebase_credentials(raw)["project_id"], "braelo-app"
+        )
+        encoded = __import__("base64").b64encode(raw.encode("utf-8")).decode("ascii")
+        self.assertEqual(
+            parse_firebase_credentials(encoded)["project_id"], "braelo-app"
+        )
+
+    def test_google_auth_fallback_when_admin_rejects(self):
+        with patch(
+            "users.services.firebase_identity._verify_with_firebase_admin",
+            return_value=ValueError("The default Firebase app does not exist."),
+        ):
+            with patch(
+                "users.services.firebase_identity._verify_with_google_auth",
+                return_value={
+                    "uid": "firebase-uid-1",
+                    "sub": "firebase-uid-1",
+                    "email": "user@example.com",
+                    "email_verified": True,
+                },
+            ):
+                claims = verify_firebase_id_token("firebase-id-token")
+        self.assertEqual(claims["uid"], "firebase-uid-1")
+        self.assertEqual(claims["email"], "user@example.com")
 
     def test_expired_token_message(self):
         import sys
