@@ -139,14 +139,22 @@ class EmailService:
             raise EmailDeliveryError()
         try:
             if _acs_backend_ready():
-                _send_via_acs(
-                    subject=subject,
-                    html=html,
-                    text=text,
-                    recipients=recipients,
-                    from_email=from_email,
-                )
-                return True
+                try:
+                    _send_via_acs(
+                        subject=subject,
+                        html=html,
+                        text=text,
+                        recipients=recipients,
+                        from_email=from_email,
+                    )
+                    return True
+                except Exception as acs_exc:
+                    logger.warning(
+                        'ACS send failed (%s); falling back if another backend is ready',
+                        type(acs_exc).__name__,
+                    )
+                    if not _smtp_backend_ready():
+                        raise EmailDeliveryError() from acs_exc
             message = EmailMultiAlternatives(
                 subject=subject,
                 body=text,
@@ -205,6 +213,35 @@ def _email_backend_ready() -> bool:
     return _acs_backend_ready() or _smtp_backend_ready()
 
 
+def _acs_error_is_suppressed(exc: Exception) -> bool:
+    blob = f'{type(exc).__name__} {exc}'.lower()
+    return 'suppressed' in blob
+
+
+def _delivery_aliases(address: str) -> list[str]:
+    """
+    ACS suppression lists are case-sensitive. After a hard bounce to
+    azurecomm.net, lowercase Gmail addresses stay blocked; a same-mailbox
+    alias can still deliver the OTP.
+    """
+    addr = (address or '').strip()
+    aliases: list[str] = []
+    for item in (addr,):
+        if item and item not in aliases:
+            aliases.append(item)
+    if '@' not in addr:
+        return aliases
+    local, domain = addr.split('@', 1)
+    for item in (
+        f'{local}@{domain[:1].upper()}{domain[1:]}' if domain else addr,
+        f'{local}@Gmail.com' if domain.lower() == 'gmail.com' else '',
+        f'{local[:1].upper()}{local[1:]}@{domain}' if local else '',
+    ):
+        if item and item not in aliases:
+            aliases.append(item)
+    return aliases
+
+
 def _send_via_acs(*, subject: str, html: str, text: str, recipients: list[str], from_email: str | None) -> None:
     try:
         from azure.communication.email import EmailClient
@@ -222,19 +259,39 @@ def _send_via_acs(*, subject: str, html: str, text: str, recipients: list[str], 
     client = EmailClient.from_connection_string(
         getattr(settings, 'AZURE_COMMUNICATION_CONNECTION_STRING')
     )
-    message = {
-        'senderAddress': sender,
-        'content': {
-            'subject': subject,
-            'plainText': text,
-            'html': html,
-        },
-        'recipients': {
-            'to': [{'address': addr} for addr in recipients],
-        },
-    }
-    poller = client.begin_send(message)
-    poller.result()
+    attempts = (
+        _delivery_aliases(recipients[0])
+        if len(recipients) == 1
+        else [recipients]
+    )
+    last_exc: Exception | None = None
+    for attempt in attempts:
+        dest = attempt if isinstance(attempt, list) else [attempt]
+        message = {
+            'senderAddress': sender,
+            'content': {
+                'subject': subject,
+                'plainText': text,
+                'html': html,
+            },
+            'recipients': {
+                'to': [{'address': addr} for addr in dest],
+            },
+        }
+        try:
+            client.begin_send(message).result()
+            return
+        except Exception as exc:
+            last_exc = exc
+            if not _acs_error_is_suppressed(exc):
+                raise
+            logger.warning(
+                'ACS suppressed recipient=%s; retrying with a mailbox alias',
+                dest,
+            )
+    if last_exc is not None:
+        raise last_exc
+    raise EmailDeliveryError()
 
 
 def _as_recipients(value) -> list[str]:

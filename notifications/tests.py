@@ -318,3 +318,52 @@ class EmailDeliveryTests(TestCase):
                     context={'name': 'Test', 'otp': '123456', 'ttl_minutes': 10},
                 )
         self.assertTrue(sent)
+
+    def test_acs_retries_gmail_alias_after_suppression(self):
+        from django.test.utils import override_settings
+
+        class _Poller:
+            def __init__(self, ok: bool):
+                self.ok = ok
+
+            def result(self):
+                if self.ok:
+                    return {'status': 'Succeeded'}
+                raise RuntimeError(
+                    'EmailDroppedAllRecipientsSuppressed: Message dropped '
+                    'because all recipients were suppressed'
+                )
+
+        class _Client:
+            calls: list[list[str]] = []
+
+            def __init__(self, *_args, **_kwargs):
+                pass
+
+            @classmethod
+            def from_connection_string(cls, *_args, **_kwargs):
+                return cls()
+
+            def begin_send(self, message):
+                dest = [item['address'] for item in message['recipients']['to']]
+                self.calls.append(dest)
+                return _Poller(ok='Gmail.com' in dest[0])
+
+        _Client.calls = []
+        with override_settings(
+            EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend',
+            EMAIL_HOST_USER='',
+            EMAIL_HOST_PASSWORD='',
+            AZURE_COMMUNICATION_CONNECTION_STRING='endpoint=https://example.communication.azure.com/;accessKey=fake',
+            ACS_EMAIL_SENDER='DoNotReply@example.azurecomm.net',
+            DEFAULT_FROM_EMAIL='DoNotReply@example.azurecomm.net',
+        ):
+            with patch('azure.communication.email.EmailClient', _Client):
+                sent = email_service.send(
+                    to='ch1@gmail.com',
+                    template_key='password_reset',
+                    context={'name': 'Test', 'otp': '123456', 'ttl_minutes': 10},
+                )
+        self.assertTrue(sent)
+        self.assertGreaterEqual(len(_Client.calls), 2)
+        self.assertEqual(_Client.calls[0], ['ch1@gmail.com'])

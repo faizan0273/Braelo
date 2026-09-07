@@ -78,29 +78,39 @@ def main() -> int:
         return 1
 
     client = EmailClient.from_connection_string(conn)
-    message = {
-        "senderAddress": sender,
-        "content": {
-            "subject": "Braelo email diagnostic",
-            "plainText": "ACS diagnostic send from GitHub Actions.",
-        },
-        "recipients": {"to": [{"address": TEST_TO}]},
-    }
-    try:
-        result = client.begin_send(message).result()
-    except Exception as exc:
-        text = str(exc)
-        for secret in (conn, conn.split("accessKey=")[-1] if "accessKey=" in conn else ""):
-            if secret:
-                text = text.replace(secret, "***")
-        print(f"::error::ACS send failed {type(exc).__name__}: {text[:500]}")
-        return 1
+    candidates = [TEST_TO]
+    if "@" in TEST_TO:
+        local, domain = TEST_TO.split("@", 1)
+        if domain.lower() == "gmail.com":
+            candidates.extend([f"{local}@Gmail.com", f"{local[:1].upper()}{local[1:]}@{domain}"])
+    last_error = ""
+    for dest in candidates:
+        message = {
+            "senderAddress": sender,
+            "content": {
+                "subject": "Braelo email diagnostic",
+                "plainText": "ACS diagnostic send from GitHub Actions.",
+            },
+            "recipients": {"to": [{"address": dest}]},
+        }
+        try:
+            result = client.begin_send(message).result()
+        except Exception as exc:
+            text = str(exc)
+            for secret in (conn, conn.split("accessKey=")[-1] if "accessKey=" in conn else ""):
+                if secret:
+                    text = text.replace(secret, "***")
+            last_error = f"{type(exc).__name__}: {text[:500]}"
+            print(f"ACS attempt to={dest} failed {last_error}")
+            continue
+        status = getattr(result, "status", None) or (
+            result.get("status") if isinstance(result, dict) else result
+        )
+        print(f"ACS send status={status} sender={sender} to={dest}")
+        return 0
 
-    status = getattr(result, "status", None) or (
-        result.get("status") if isinstance(result, dict) else result
-    )
-    print(f"ACS send status={status} sender={sender} to={TEST_TO}")
-    return 0
+    print(f"::error::ACS send failed {last_error}")
+    return 1
 
 
 if __name__ == "__main__":
