@@ -101,9 +101,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Provision Azure email for Braelo-V1
-        run: bash scripts/provision_acs_email.sh
-
       # Do NOT migrate here: CI has no WEBSITE_SITE_NAME, so SQLite would be repo-local
       # and not the production file under /home/data. Migrations run in startup.sh on Azure.
 
@@ -115,3 +112,7 @@ jobs:
           # Oryx extracts the app to /tmp/…; only an archive stays under wwwroot. Use a
           # relative path so the script runs from the extracted app root (same dir as manage.py).
           startup-command: "bash startup.sh"
+
+      - name: Provision Azure email for Braelo-V1
+        continue-on-error: true
+        run: bash scripts/provision_acs_email.sh
