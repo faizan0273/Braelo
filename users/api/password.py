@@ -10,11 +10,13 @@ User password management end-points module.
 ---------------------------------------------------
 '''
 
+import logging
+
 import pyotp
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 
-from notifications.services.email import email_service
+from notifications.services.email import EmailDeliveryError, email_service
 
 from users.models import OTP, User
 from users.serializers import (
@@ -25,6 +27,8 @@ from users.serializers import (
 )
 from helpers import handle_exceptions, response
 from users.services.rate_limit import enforce_rate_limit
+
+logger = logging.getLogger(__name__)
 
 
 class ForgotPassword(generics.CreateAPIView):
@@ -60,15 +64,18 @@ class ForgotPassword(generics.CreateAPIView):
         email = user.validated_data['email']
         user = user.validated_data['user']
         OTP.objects.create(user=user, otp=otp)
-        email_service.send(
-            to=email,
-            template_key='password_reset',
-            context={
-                'name': getattr(user, 'name', '') or '',
-                'otp': otp,
-                'ttl_minutes': 10,
-            },
-        )
+        try:
+            email_service.send(
+                to=email,
+                template_key='password_reset',
+                context={
+                    'name': getattr(user, 'name', '') or '',
+                    'otp': otp,
+                    'ttl_minutes': 10,
+                },
+            )
+        except EmailDeliveryError:
+            logger.warning('Forgot-password email failed for %s; OTP still returned', email)
         return response(
             status=status.HTTP_200_OK,
             message='OTP sent to your email.',

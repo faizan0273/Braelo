@@ -226,6 +226,7 @@ def _delivery_aliases(address: str) -> list[str]:
     exact recipient. `user+tag@gmail.com` still delivers to `user@gmail.com`
     but is a different ACS recipient, so the OTP can go out.
     """
+    import secrets
     from datetime import date
 
     addr = (address or '').strip()
@@ -244,6 +245,7 @@ def _delivery_aliases(address: str) -> list[str]:
     if domain_l in ('gmail.com', 'googlemail.com'):
         _add(f'{local_base}+braelo@{domain_l}')
         _add(f'{local_base}+b{date.today().strftime("%m%d")}@{domain_l}')
+        _add(f'{local_base}+b{secrets.token_hex(2)}@{domain_l}')
     _add(addr)
     return aliases
 
