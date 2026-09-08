@@ -81,10 +81,22 @@ def healthz(request):
 
 def readyz(request):
     """Readiness: distinguish healthy / degraded / unavailable."""
+    channel_backend = ""
+    try:
+        layers = getattr(settings, "CHANNEL_LAYERS", {}) or {}
+        channel_backend = (
+            (layers.get("default") or {}).get("BACKEND", "") or ""
+        )
+    except Exception:
+        channel_backend = ""
     checks = {
         "sqlite": _check_sqlite(),
         "mongodb": _check_mongo(),
         "redis": _check_redis(),
+        "channel_layer": {
+            "status": "ok" if channel_backend else "unavailable",
+            "detail": channel_backend.split(".")[-1] or "unset",
+        },
     }
     required = checks["sqlite"]["status"]
     optional_down = [

@@ -143,12 +143,39 @@ class JWTAuthMiddleware(BaseMiddleware):
         return await super().__call__(scope, receive, send)
 
 
+class NativeClientOriginValidator:
+    '''
+    Allow WebSocket handshakes with no ``Origin`` header (Flutter / iOS /
+    Android ``dart:io`` clients), while still validating Origin when present
+    via ``AllowedHostsOriginValidator``.
+
+    Channels' stock validator denies ``Origin: missing``, which surfaces on
+    Azure as HTTP 403 during upgrade ("was not upgraded to websocket").
+    Auth remains enforced by ``JWTAuthMiddleware`` + the consumer.
+    '''
+
+    def __init__(self, application):
+        self.application = application
+        self._origin_validator = AllowedHostsOriginValidator(application)
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "websocket":
+            raise ValueError(
+                "NativeClientOriginValidator only supports websocket scopes"
+            )
+        headers = dict(scope.get("headers") or [])
+        if b"origin" not in headers:
+            return await self.application(scope, receive, send)
+        return await self._origin_validator(scope, receive, send)
+
+
 def JWTAuthMiddlewareStack(inner):
     '''
     Drop-in replacement for ``channels.auth.AuthMiddlewareStack``.
 
     Wraps the inner application with origin validation **and** JWT auth.
     Origin validation honours ``ALLOWED_HOSTS`` so the Azure custom
-    domain you already configured is accepted automatically.
+    domain you already configured is accepted automatically. Missing
+    Origin (native mobile) is allowed; browsers still get host checks.
     '''
-    return AllowedHostsOriginValidator(JWTAuthMiddleware(inner))
+    return NativeClientOriginValidator(JWTAuthMiddleware(inner))

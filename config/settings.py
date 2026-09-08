@@ -341,14 +341,50 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/0").strip()
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [(REDIS_URL)],  # Replace with your Redis host and port
+
+
+def _redis_reachable(url: str, timeout: float = 0.5) -> bool:
+    """Short startup probe so broken REDIS_URL does not brick WebSockets."""
+    if not url:
+        return False
+    force = os.getenv("BRAELO_CHANNEL_LAYER", "").strip().lower()
+    if force in {"memory", "inmemory", "local"}:
+        return False
+    if force in {"redis", "channels_redis"}:
+        return True
+    try:
+        import redis
+
+        client = redis.Redis.from_url(
+            url, socket_connect_timeout=timeout, socket_timeout=timeout
+        )
+        client.ping()
+        return True
+    except Exception as exc:  # noqa: BLE001 - any failure => fall back
+        _settings_log.warning(
+            "REDIS_URL unreachable (%s); using InMemoryChannelLayer. "
+            "Realtime chat works on a single App Service instance only until Redis is fixed.",
+            exc.__class__.__name__,
+        )
+        return False
+
+
+if _redis_reachable(REDIS_URL):
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                # URL string (not a 1-tuple) — channels_redis.decode_hosts expects it.
+                "hosts": [REDIS_URL],
+            },
         },
-    },
-}
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 # Azure Blob Storage (listings, chat media, business images)
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME", "").strip()

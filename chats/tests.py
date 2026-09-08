@@ -167,3 +167,47 @@ class MessageCursorTests(TestCase):
     def test_aware_datetime_passthrough(self):
         value = datetime(2026, 9, 5, 12, 0, tzinfo=dt_timezone.utc)
         self.assertEqual(parse_before_cursor(value), value)
+
+
+class NativeClientOriginValidatorTests(TestCase):
+    def test_missing_origin_reaches_inner_app(self):
+        import asyncio
+
+        from config.middleware import NativeClientOriginValidator
+
+        seen = {'called': False}
+
+        async def inner(scope, receive, send):
+            seen['called'] = True
+
+        async def run():
+            validator = NativeClientOriginValidator(inner)
+            await validator({'type': 'websocket', 'headers': []}, None, None)
+
+        asyncio.run(run())
+        self.assertTrue(seen['called'])
+
+    def test_present_origin_uses_host_validator(self):
+        import asyncio
+        from unittest.mock import AsyncMock, patch
+
+        from config.middleware import NativeClientOriginValidator
+
+        async def inner(scope, receive, send):
+            raise AssertionError('inner must not run when origin validator is used')
+
+        async def run():
+            validator = NativeClientOriginValidator(inner)
+            mock_validate = AsyncMock(return_value=None)
+            with patch.object(validator, '_origin_validator', mock_validate):
+                await validator(
+                    {
+                        'type': 'websocket',
+                        'headers': [(b'origin', b'https://evil.example')],
+                    },
+                    None,
+                    None,
+                )
+            mock_validate.assert_awaited_once()
+
+        asyncio.run(run())

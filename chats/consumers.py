@@ -173,9 +173,24 @@ class ChatroomConsumer(WebsocketConsumer):
             if len(self.chatroom.participants) > 2:
                 self.chat_type = "group"
 
-            async_to_sync(self.channel_layer.group_add)(
-                self.chat_id, self.channel_name
-            )
+            # Join the channel group before accept so we can still return a
+            # clean WebSocket close (5000) if Redis / the channel layer is down.
+            # Never raise StopConsumer without accept — that becomes HTTP 500
+            # on Azure ("was not upgraded to websocket").
+            try:
+                async_to_sync(self.channel_layer.group_add)(
+                    self.chat_id, self.channel_name
+                )
+            except (redis.exceptions.RedisError, OSError, TimeoutError):
+                logger.exception(
+                    "WS reject (5000): channel layer unavailable user=%s chat=%s",
+                    self.user_id,
+                    self.chat_id,
+                )
+                self.accept()
+                self.close(code=5000)
+                return
+
             self.accept()
             logger.info(
                 "WS accepted user=%s chat=%s type=%s",
@@ -184,13 +199,15 @@ class ChatroomConsumer(WebsocketConsumer):
                 self.chat_type,
             )
 
-        except redis.exceptions.ConnectionError:
-            logger.exception("WS reject (5000): redis connection error")
+        except Exception:
+            logger.exception(
+                "WS reject (5000): unexpected connect failure path=%s", path
+            )
             try:
-                self.send(json.dumps({"error": "Can't connect to Redis"}))
+                self.accept()
+                self.close(code=5000)
             except Exception:
-                pass
-            raise StopConsumer()
+                raise StopConsumer()
 
     def receive(self, text_data):
         '''
