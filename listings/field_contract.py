@@ -35,7 +35,6 @@ FIELD_ALIASES = {
     'address': 'location',
     'parking_availability_and_cost': 'parking_and_cost',
     'service_available': 'service_delivery_method',
-    'dimensions': 'dimension',
 }
 
 _CONTEXT_FIELD_ALIASES = {
