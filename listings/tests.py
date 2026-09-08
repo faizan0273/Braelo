@@ -164,6 +164,13 @@ class ListingFieldContractTests(TestCase):
         self.assertEqual(payload['transport_type'], 'Van')
         self.assertNotIn('cuisine_type', payload)
 
+    def test_helper_pay_task_alias(self):
+        payload = apply_field_aliases(
+            {'helper_pay': 'TASK'},
+            subcategory='Helper',
+        )
+        self.assertEqual(payload['helper_pay'], 'TASKS')
+
     def test_optional_int_placeholders_are_dropped(self):
         from listings.field_contract import coerce_optional_int_fields
 

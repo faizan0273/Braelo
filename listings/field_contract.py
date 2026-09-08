@@ -85,6 +85,7 @@ VALUE_ALIASES = {
     'long-distance': 'LONG-DISTANCE',
     'local-distance': 'LONG-DISTANCE',
     'clonial coffee': 'COLONIAL COFFEE',
+    'task': 'TASKS',
 }
 
 CHOICE_FIELDS = {
@@ -163,6 +164,10 @@ CHOICE_FIELDS = {
     'insurance_service',
     'homecare_service',
     'menu_customization',
+    'work_permit',
+    'own_tools',
+    'car_needed',
+    'helper_pay',
 }
 
 # Optional numeric fields Flutter used to send as "null/NOT specified".
@@ -179,6 +184,11 @@ OPTIONAL_INT_FIELDS = {
     'pricing_structure',
     'class_duration',
     'audience_size',
+    'expected_audience',
+    'no_of_days',
+    'working_hours',
+    'flexibility',
+    'contract_duration',
 }
 
 
