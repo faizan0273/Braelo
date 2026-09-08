@@ -316,8 +316,32 @@ class Serializer(serializers.DocumentSerializer):
                     )
 
         location = data.get('location')
-        if location not in (None, ''):
+        # DRF CharField rejects blank "" even when model location is optional.
+        if location is None or (
+            isinstance(location, str) and not location.strip()
+        ):
+            data.pop('location', None)
+        else:
             data['location'] = str(location).strip()
+
+        # Soft-parse optional date strings from Flutter free-text fields.
+        expiry = data.get('expiry_date')
+        if isinstance(expiry, str):
+            from django.utils.dateparse import parse_datetime, parse_date
+
+            text = expiry.strip()
+            if not text or text.lower() in {
+                'null/not specified',
+                'null/notspecified',
+                'not specified',
+            }:
+                data.pop('expiry_date', None)
+            else:
+                parsed = parse_datetime(text) or parse_date(text)
+                if parsed is None:
+                    data.pop('expiry_date', None)
+                else:
+                    data['expiry_date'] = parsed
 
         # Timestamps — never rewrite created_at on update
         data['updated_at'] = timezone.now()

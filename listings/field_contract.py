@@ -35,6 +35,7 @@ FIELD_ALIASES = {
     'address': 'location',
     'parking_availability_and_cost': 'parking_and_cost',
     'service_available': 'service_delivery_method',
+    'dimensions': 'dimension',
 }
 
 _CONTEXT_FIELD_ALIASES = {
@@ -43,10 +44,14 @@ _CONTEXT_FIELD_ALIASES = {
     'activities': {
         'activity': 'activity_type',
         'required': 'equipment_required',
+        # Kids Activities FE posts type under activities_offered
+        'activities_offered': 'activity_type',
         'processor': 'activity_type',
     },
     # FE sends vehicle type under cuisine_type for Transport Services
     'transportservices': {'cuisine_type': 'transport_type'},
+    # Electronics Appliances FE historically used plural `dimensions`
+    'appliances': {'dimensions': 'dimension'},
 }
 
 # Handyman FE overwrites service_type with the specific-services chip.
@@ -168,6 +173,8 @@ CHOICE_FIELDS = {
     'own_tools',
     'car_needed',
     'helper_pay',
+    'donation',
+    'mattress_included',
 }
 
 # Optional numeric fields Flutter used to send as "null/NOT specified".

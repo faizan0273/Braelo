@@ -171,6 +171,21 @@ class ListingFieldContractTests(TestCase):
         )
         self.assertEqual(payload['helper_pay'], 'TASKS')
 
+    def test_electronics_dimensions_alias(self):
+        payload = apply_field_aliases(
+            {'dimensions': '10x20'},
+            subcategory='appliances',
+        )
+        self.assertEqual(payload['dimension'], '10x20')
+        self.assertNotIn('dimensions', payload)
+
+    def test_kids_activities_offered_maps_to_activity_type(self):
+        payload = apply_field_aliases(
+            {'activities_offered': 'Soccer'},
+            subcategory='activities',
+        )
+        self.assertEqual(payload['activity_type'], 'Soccer')
+
     def test_optional_int_placeholders_are_dropped(self):
         from listings.field_contract import coerce_optional_int_fields
 
