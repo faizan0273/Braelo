@@ -47,7 +47,7 @@ class ServicesListing(Document):
 
     # category based
     service_type = StringField(required=False)
-    availability = IntField(required=True)
+    availability = StringField(required=True)
     pricing_structure = IntField(required=False)
     service_area = StringField(required=False)
 

@@ -119,6 +119,25 @@ class ListingFieldContractTests(TestCase):
         self.assertEqual(payload['condition'], 'NEW')
         self.assertNotIn('purpose', payload)
 
+    def test_services_chip_typos_are_normalized(self):
+        payload = apply_field_aliases(
+            {
+                'events_services': 'CATTERING',
+                'movers_services': 'LONG-DISTANCE',
+                'farm_services': 'CLONIAL COFFEE',
+                'initial_consultation': 'REMOTELY',
+                'handyman_services': 'CARPENTARY',
+                'service_available': 'REMOTE',
+            },
+            subcategory='Event Services',
+        )
+        self.assertEqual(payload['events_services'], 'CATERING')
+        self.assertEqual(payload['movers_services'], 'LONG-DISTANCE')
+        self.assertEqual(payload['farm_services'], 'COLONIAL COFFEE')
+        self.assertEqual(payload['initial_consultation'], 'REMOTELY')
+        self.assertEqual(payload['handyman_services'], 'CARPENTRY')
+        self.assertEqual(payload['service_delivery_method'], 'REMOTE')
+
     def test_optional_int_placeholders_are_dropped(self):
         from listings.field_contract import coerce_optional_int_fields
 

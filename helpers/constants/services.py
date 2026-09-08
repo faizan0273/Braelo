@@ -72,7 +72,12 @@ class ServicesConstants:
         'OTHER (SPECIFY)',
     ]
     REGULAR_MAINTENANCE = CONFIRMATION
-    SEASONAL_SERVICES = ['SEASONAL SERVICES', 'ONE-TIME SERVICES']
+    SEASONAL_SERVICES = [
+        'SEASONAL SERVICES',
+        'ONE-TIME SERVICES',
+        'SPRING CLEANUP',
+        'FALL CLEANUP',
+    ]
 
     # CONSULTANCY
     CONSULTANCY_SERVICES = [
@@ -81,7 +86,7 @@ class ServicesConstants:
         'FINANCE',
         'OTHER (SPECIFY)',
     ]
-    SERVICE_AVAILABLE = ['IN-PERSON', 'ONLINE', 'BOTH']
+    SERVICE_AVAILABLE = ['IN-PERSON', 'ONLINE', 'REMOTELY', 'BOTH']
 
     # HOME AUTOMATION
     AUTOMATION_SERVICES = [
@@ -123,7 +128,7 @@ class ServicesConstants:
         'HARDWARE REPAIR',
         'OTHER (SPECIFY)',
     ]
-    DELIVERY_METHOD = ['ON-SITE', 'REMOTELY', 'BOTH']
+    DELIVERY_METHOD = ['ON-SITE', 'REMOTE', 'REMOTELY', 'BOTH']
     ONGOING_SUPPORT = CONFIRMATION
 
     # IMMIGRATION & VISA
@@ -151,6 +156,7 @@ class ServicesConstants:
     # MOVING & PACKERS
     MOVING_SERVICE = [
         'LOCAL',
+        'LONG-DISTANCE',
         'LOCAL-DISTANCE',
         'RESIDENTIAL',
         'COMMERCIAL',
