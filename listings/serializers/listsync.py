@@ -33,8 +33,8 @@ class ListsyncSerializer(serializers.DocumentSerializer):
             return False
 
         user = request.user
-        # Assuming SavedItem has fields: `user_id` and `listing_id`
-        return bool(SavedItem.objects(user_id=user.id, id=obj.id))
+        listing_id = getattr(obj, 'listing_id', None) or obj.id
+        return bool(SavedItem.objects(user_id=user.id, listing_id=listing_id))
 
     def to_representation(self, instance):
         '''

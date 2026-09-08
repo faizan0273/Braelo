@@ -77,6 +77,63 @@ CHOICE_FIELDS = {
     'furnished',
 }
 
+# Optional numeric fields Flutter used to send as "null/NOT specified".
+OPTIONAL_INT_FIELDS = {
+    'mileage',
+    'Load_capacity',
+    'boat_length',
+    'passenger_capacity',
+}
+
+
+def is_placeholder_value(value):
+    '''True for empty / "null/Not specified" style client sentinels.'''
+    if value is None:
+        return True
+    if not isinstance(value, str):
+        return False
+    compact = ' '.join(value.strip().lower().split())
+    squeezed = compact.replace(' ', '').replace('/', '')
+    return compact in {
+        '',
+        'null',
+        'none',
+        'not specified',
+        'null/not specified',
+        'null/notspecified',
+        'no, chip selected',
+    } or squeezed in {'nullnotspecified', 'notspecified'}
+
+
+def coerce_optional_int_fields(payload):
+    '''Parse optional ints; drop placeholders / unparseable strings.'''
+    if not isinstance(payload, dict):
+        return payload
+    for field in OPTIONAL_INT_FIELDS:
+        if field not in payload:
+            continue
+        value = payload[field]
+        if is_placeholder_value(value):
+            payload.pop(field)
+            continue
+        if isinstance(value, bool):
+            payload.pop(field)
+            continue
+        if isinstance(value, int):
+            continue
+        try:
+            text = str(value).strip().replace(',', '')
+            payload[field] = int(float(text))
+        except (TypeError, ValueError):
+            payload.pop(field)
+    year = payload.get('year')
+    if year is not None and not isinstance(year, bool):
+        try:
+            payload['year'] = int(float(str(year).strip().replace(',', '')))
+        except (TypeError, ValueError):
+            pass
+    return payload
+
 
 def apply_field_aliases(payload, subcategory=None):
     '''Return a copy of ``payload`` with aliased keys/values normalized.'''
@@ -101,9 +158,12 @@ def apply_field_aliases(payload, subcategory=None):
         remapped[canonical or key] = value
 
     for field in CHOICE_FIELDS:
-        if field not in remapped or remapped[field] in (None, ''):
+        if field not in remapped:
             continue
         raw = remapped[field]
+        if is_placeholder_value(raw):
+            remapped.pop(field)
+            continue
         if not isinstance(raw, str):
             continue
         alias = VALUE_ALIASES.get(raw.strip().lower())

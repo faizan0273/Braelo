@@ -8,6 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from helpers.normalize import resolve_subcategory
 from listings.api.fetch_listings import Recent, Recommendations
 from listings.api.search import Search
+from listings.api.upsert_listing import _normalize_keywords
 from listings.field_contract import apply_field_aliases, extract_coordinates
 from listings.geo import parse_coordinates, parse_radius_meters
 from users.models import User
@@ -55,6 +56,16 @@ class SportsSubcategoryAliasTests(TestCase):
             'outdooractivities',
         )
 
+    def test_vehicle_parts_slug(self):
+        self.assertEqual(
+            resolve_subcategory('Vehicles', 'Parts and Accessories'),
+            'partsandaccessories',
+        )
+        self.assertEqual(
+            resolve_subcategory('Vehicles', 'partsandaccessories'),
+            'partsandaccessories',
+        )
+
     def test_kids_activities_unchanged(self):
         self.assertEqual(resolve_subcategory('kids', 'activities'), 'activities')
 
@@ -95,6 +106,35 @@ class ListingFieldContractTests(TestCase):
         )
         self.assertEqual(payload['activity_type'], 'hiking')
 
+    def test_placeholder_choice_values_are_dropped(self):
+        payload = apply_field_aliases(
+            {
+                'transmission': 'null/NOT specified',
+                'condition': 'NEW',
+                'purpose': 'Not Specified',
+            },
+            subcategory='Cars',
+        )
+        self.assertNotIn('transmission', payload)
+        self.assertEqual(payload['condition'], 'NEW')
+        self.assertNotIn('purpose', payload)
+
+    def test_optional_int_placeholders_are_dropped(self):
+        from listings.field_contract import coerce_optional_int_fields
+
+        payload = coerce_optional_int_fields(
+            {
+                'mileage': 'null/NOT specified',
+                'Load_capacity': '1,000',
+                'boat_length': '12',
+                'year': '2020',
+            }
+        )
+        self.assertNotIn('mileage', payload)
+        self.assertEqual(payload['Load_capacity'], 1000)
+        self.assertEqual(payload['boat_length'], 12)
+        self.assertEqual(payload['year'], 2020)
+
     def test_extract_geojson_coordinates(self):
         self.assertEqual(
             extract_coordinates(
@@ -103,6 +143,20 @@ class ListingFieldContractTests(TestCase):
             [74.28, 31.45],
         )
         self.assertEqual(extract_coordinates([74.28, 31.45]), [74.28, 31.45])
+
+
+class KeywordsNormalizeTests(TestCase):
+    def test_comma_separated_string(self):
+        self.assertEqual(_normalize_keywords('toyota, honda'), ['toyota', 'honda'])
+
+    def test_dart_list_to_string(self):
+        self.assertEqual(
+            _normalize_keywords('[toyota, honda]'),
+            ['toyota', 'honda'],
+        )
+
+    def test_empty_dart_list(self):
+        self.assertEqual(_normalize_keywords('[]'), [])
 
 
 class AnonymousRecommendationTests(TestCase):

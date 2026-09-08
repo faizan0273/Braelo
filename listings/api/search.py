@@ -22,6 +22,7 @@ from helpers.normalize import resolve_category, resolve_subcategory
 from users.models.users import User
 from helpers import handle_exceptions, response
 from listings.api.paginate_listing import Pagination
+from listings.listing_read import HydratedListsyncListMixin
 from listings.geo import request_geo_filter
 from listings.visibility import exclude_blocked_owners
 from listings.serializers import ListsyncSerializer
@@ -55,7 +56,7 @@ def _apply_taxonomy_filters(queryset, request):
     return queryset.filter(subcategory=subcategory)
 
 
-class Search(generics.ListAPIView):
+class Search(HydratedListsyncListMixin, generics.ListAPIView):
 
     pagination_class = Pagination
     permission_classes = [IsAuthenticatedOrReadOnly]

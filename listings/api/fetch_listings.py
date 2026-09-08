@@ -24,14 +24,24 @@ from helpers.normalize import resolve_category
 from listings.api.paginate_listing import Pagination
 from listings.geo import request_geo_filter
 from listings.visibility import exclude_blocked_owners
+from listings.listing_read import (
+    HydratedListsyncListMixin,
+    serialize_listing,
+    serialize_listsync_rows,
+    serialize_saved_rows,
+)
 from listings.models import SavedItem
 from helpers import handle_exceptions, response
 from users.models import Interest, User
 from rest_framework.exceptions import ValidationError
-from listings.serializers import (
-    SavedItemSerializer,
-    ListsyncSerializer,
-)
+from listings.serializers import ListsyncSerializer
+
+
+def _account_listing_payload(item):
+    payload = dict(item)
+    if payload.get('price') is not None:
+        payload['price'] = str(payload['price'])
+    return payload
 
 
 def get_user_listings(collection, user_id, offset, limit, sort, is_active=None):
@@ -99,8 +109,12 @@ class SavedListing(generics.ListAPIView):
         limit = int(request.query_params.get('limit', 10))
         offset = int(request.query_params.get('offset', 0))
         listings = get_user_listings(SavedItem, user_id, offset, limit, sort)
-        serializer = SavedItemSerializer(listings, many=True)
-        saved_listings = {item['id']: item for item in serializer.data}
+        saved_payloads = serialize_saved_rows(listings, request)
+        saved_listings = {}
+        for item in saved_payloads:
+            key = str(item.get('listing_id') or item.get('id') or '')
+            if key:
+                saved_listings[key] = _account_listing_payload(item)
 
         return response(
             status=status.HTTP_200_OK,
@@ -136,8 +150,12 @@ class UserListing(generics.CreateAPIView):
         listings = get_user_listings(
             ListSync, user_id, offset, limit, sort, is_active
         )
-        serializer = ListsyncSerializer(listings, many=True)
-        user_listings = {item['id']: item for item in serializer.data}
+        user_payloads = serialize_listsync_rows(listings, request)
+        user_listings = {}
+        for item in user_payloads:
+            key = str(item.get('listing_id') or item.get('id') or '')
+            if key:
+                user_listings[key] = _account_listing_payload(item)
 
         return response(
             status=status.HTTP_200_OK,
@@ -207,8 +225,7 @@ class LookupListing(generics.CreateAPIView):
                         listing.user_id, user.id, listing_id
                     )
 
-            listing_data = listing.to_mongo().to_dict()  # Convert to dict
-            listing_data.pop('_id', None)
+            listing_data = serialize_listing(listing, request)
 
             return response(
                 status=status.HTTP_200_OK,
@@ -222,7 +239,7 @@ class LookupListing(generics.CreateAPIView):
         return super().get_queryset()
 
 
-class Recent(generics.ListAPIView):
+class Recent(HydratedListsyncListMixin, generics.ListAPIView):
 
     pagination_class = Pagination
     serializer_class = ListsyncSerializer
@@ -236,7 +253,7 @@ class Recent(generics.ListAPIView):
         )
 
 
-class Recommendations(generics.ListAPIView):
+class Recommendations(HydratedListsyncListMixin, generics.ListAPIView):
     '''
     Nearby + interest-ranked listings.
 

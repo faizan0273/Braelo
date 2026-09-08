@@ -70,6 +70,14 @@ class Serializer(serializers.DocumentSerializer):
         # Assuming SavedItem has fields: `user_id` and `listing_id`
         return bool(SavedItem.objects(user_id=user.id, listing_id=obj.id))
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        pk = getattr(instance, 'id', None)
+        if pk is not None:
+            data['id'] = str(pk)
+            data['listing_id'] = str(pk)
+        return data
+
     def upload_pictures(self, pictures, category, user):
         '''
         Handles the uploading of pictures to Azure Blob Storage.
@@ -268,13 +276,22 @@ class Serializer(serializers.DocumentSerializer):
                 )
             subcategory = canonical_subcategory
             data['subcategory'] = canonical_subcategory
-        if year:
+        if year is not None:
+            try:
+                year = int(year)
+            except (TypeError, ValueError):
+                raise ValidationError({'year': 'Year must be a number.'})
+            data['year'] = year
             current_year = timezone.now().year
             if year < 1886 or year > current_year:
                 raise ValidationError(
                     {'year': f'Year must be between 1886 and {current_year}.'}
                 )
-        data['is_active'] = True if status else False
+        # Create defaults to active. `is_active` omitted used to become False
+        # (`None` is falsy), so new listings never appeared in paginate.
+        if status is None:
+            status = True
+        data['is_active'] = bool(status)
         # listings_count tracks *active* listings only. Creating a draft
         # (is_active=False) must not consume a slot; flip-to-active does.
         if not is_update and data['is_active']:

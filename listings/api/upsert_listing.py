@@ -31,7 +31,11 @@ from listings.models import (
     VehicleListing,
 )
 from helpers import response, handle_exceptions
-from listings.field_contract import apply_field_aliases, extract_coordinates
+from listings.field_contract import (
+    apply_field_aliases,
+    coerce_optional_int_fields,
+    extract_coordinates,
+)
 from listings.serializers import (
     RealEstateSerializer,
     ElectronicsSerializer,
@@ -56,36 +60,35 @@ def _normalize_keywords(raw):
     '''
     if raw is None:
         return []
+
+    def _unwrap_token(s):
+        s = str(s).strip()
+        if s.startswith('[') and s.endswith(']') and ',' in s:
+            s = s[1:-1].strip()
+        if (s.startswith("'") and s.endswith("'")) or (
+            s.startswith('"') and s.endswith('"')
+        ):
+            s = s[1:-1].strip()
+        return s.strip('[]').strip()
+
     parts = []
     if isinstance(raw, (list, tuple)):
         for item in raw:
-            s = str(item).strip()
+            s = _unwrap_token(item)
             if not s:
                 continue
-            if (s.startswith("'") and s.endswith("'")) or (
-                s.startswith('"') and s.endswith('"')
-            ):
-                s = s[1:-1].strip()
             if ',' in s:
-                parts.extend([x.strip() for x in s.split(',') if x.strip()])
+                parts.extend([_unwrap_token(x) for x in s.split(',') if _unwrap_token(x)])
             else:
                 parts.append(s)
     else:
-        text = str(raw).strip()
+        text = _unwrap_token(raw)
         if not text:
             return []
-        if (text.startswith("'") and text.endswith("'")) or (
-            text.startswith('"') and text.endswith('"')
-        ):
-            text = text[1:-1].strip()
-        parts = [s.strip() for s in text.split(',') if s.strip()]
+        parts = [_unwrap_token(s) for s in text.split(',') if _unwrap_token(s)]
     out = []
     for p in parts:
-        s = str(p).strip()
-        if len(s) >= 2 and (
-            (s[0] == s[-1] == "'") or (s[0] == s[-1] == '"')
-        ):
-            s = s[1:-1].strip()
+        s = _unwrap_token(p)
         if s:
             out.append(s)
     return out
@@ -103,6 +106,7 @@ def _listing_create_payload(request, listing_coordinates):
         if key in ('pictures', 'keywords', 'listing_coordinates'):
             continue
         payload[key] = qd.get(key)
+    payload.pop('access_token', None)
     payload['listing_coordinates'] = listing_coordinates
     file_list = request.FILES.getlist('pictures')
     if file_list:
@@ -114,10 +118,21 @@ def _listing_create_payload(request, listing_coordinates):
             '1',
             'yes',
         )
-    payload['keywords'] = _normalize_keywords(qd.get('keywords'))
-    return apply_field_aliases(
+    if hasattr(qd, 'getlist'):
+        kw_list = qd.getlist('keywords')
+        if len(kw_list) > 1:
+            raw_kw = kw_list
+        elif len(kw_list) == 1:
+            raw_kw = kw_list[0]
+        else:
+            raw_kw = qd.get('keywords')
+    else:
+        raw_kw = qd.get('keywords')
+    payload['keywords'] = _normalize_keywords(raw_kw)
+    payload = apply_field_aliases(
         payload, subcategory=payload.get('subcategory')
     )
+    return coerce_optional_int_fields(payload)
 
 
 class Listing(generics.CreateAPIView):
