@@ -270,6 +270,13 @@ def apply_field_aliases(payload, subcategory=None):
             canonical = _LENGTH_BY_SUBCATEGORY.get(sub_key, key)
         remapped[canonical or key] = value
 
+    # Kids Classes / Afterschool: never leave duration under rental_duration.
+    if sub_key in {'afterschoolprogram', 'classes'}:
+        if 'rental_duration' in remapped and not remapped.get('duration'):
+            remapped['duration'] = remapped.pop('rental_duration')
+        else:
+            remapped.pop('rental_duration', None)
+
     # Handyman: chip "Specific Services Offered" is posted as service_type.
     # Copy before choice normalization so CARPENTARY → CARPENTRY applies.
     if sub_key == 'handyman':

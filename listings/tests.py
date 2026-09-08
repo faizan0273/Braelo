@@ -100,6 +100,22 @@ class ListingFieldContractTests(TestCase):
         self.assertEqual(van['passenger_capacity'], '8')
         self.assertEqual(boat['boat_length'], '12')
 
+    def test_kids_duration_stays_duration(self):
+        for sub in ('afterschoolprogram', 'classes', 'Afterschool Program'):
+            payload = apply_field_aliases(
+                {'duration': '2 hours', 'activities_offered': 'sports'},
+                subcategory=sub,
+            )
+            self.assertEqual(payload.get('duration'), '2 hours', sub)
+            self.assertNotIn('rental_duration', payload)
+
+    def test_rentals_duration_still_maps_to_rental_duration(self):
+        payload = apply_field_aliases(
+            {'duration': '1 week'}, subcategory='rentals'
+        )
+        self.assertEqual(payload.get('rental_duration'), '1 week')
+        self.assertNotIn('duration', payload)
+
     def test_outdoor_activity_field_alias(self):
         payload = apply_field_aliases(
             {'processor': 'hiking'}, subcategory='outdooractivities'
