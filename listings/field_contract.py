@@ -45,6 +45,18 @@ _CONTEXT_FIELD_ALIASES = {
         'required': 'equipment_required',
         'processor': 'activity_type',
     },
+    # FE sends vehicle type under cuisine_type for Transport Services
+    'transportservices': {'cuisine_type': 'transport_type'},
+}
+
+# Handyman FE overwrites service_type with the specific-services chip.
+_HANDYMAN_SERVICE_VALUES = {
+    'plumbing',
+    'electrical',
+    'carpentry',
+    'carpentary',
+    'general repairs',
+    'other specific services (specify)',
 }
 
 # Context-sensitive keys (depend on subcategory)
@@ -241,6 +253,16 @@ def apply_field_aliases(payload, subcategory=None):
             canonical = _LENGTH_BY_SUBCATEGORY.get(sub_key, key)
         remapped[canonical or key] = value
 
+    # Handyman: chip "Specific Services Offered" is posted as service_type.
+    # Copy before choice normalization so CARPENTARY → CARPENTRY applies.
+    if sub_key == 'handyman':
+        service_type = remapped.get('service_type')
+        if (
+            isinstance(service_type, str)
+            and service_type.strip().lower() in _HANDYMAN_SERVICE_VALUES
+        ):
+            remapped.setdefault('handyman_services', service_type)
+
     for field in CHOICE_FIELDS:
         if field not in remapped:
             continue
@@ -259,6 +281,15 @@ def apply_field_aliases(payload, subcategory=None):
     location = remapped.get('location') or remapped.get('listing_address')
     if location not in (None, ''):
         remapped['location'] = str(location).strip()
+
+    # Homemade Food FE swaps chip targets for these two fields.
+    if sub_key == 'homemadefood':
+        food_types = remapped.get('service_availability')
+        availability = remapped.get('homemade_service')
+        if food_types is not None or availability is not None:
+            remapped['homemade_service'] = food_types
+            remapped['service_availability'] = availability
+
     return remapped
 
 
