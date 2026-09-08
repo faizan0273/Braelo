@@ -29,7 +29,6 @@ FIELD_ALIASES = {
     'rentals': 'rentals',
     'Rentals': 'rentals',
     'vehicletype': 'vehicle_type',
-    'duration': 'rental_duration',
     'biketype': 'bike_type',
     'listing_address': 'location',
     'address': 'location',
@@ -39,6 +38,8 @@ FIELD_ALIASES = {
 
 _CONTEXT_FIELD_ALIASES = {
     'bike': {'type': 'bike_type'},
+    # Vehicle Rentals only — do not remap Kids Classes/Afterschool `duration`
+    'rentals': {'duration': 'rental_duration'},
     'outdooractivities': {'processor': 'activity_type'},
     'activities': {
         'activity': 'activity_type',
