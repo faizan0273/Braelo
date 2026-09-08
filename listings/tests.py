@@ -479,3 +479,25 @@ class FlipListingIdempotencyTests(TestCase):
         )
         self.assertFalse(changed)
         model.objects.return_value.update_one.assert_not_called()
+
+
+class CardPriceAliasTests(TestCase):
+    def test_service_fee_fills_price(self):
+        from listings.listing_read import ensure_card_price
+
+        payload = ensure_card_price({'service_fee': '250.0', 'price': None})
+        self.assertEqual(payload['price'], '250.0')
+
+    def test_ticket_price_fills_price(self):
+        from listings.listing_read import ensure_card_price
+
+        payload = ensure_card_price({'ticket_price': 40, 'price': None})
+        self.assertEqual(payload['price'], 40)
+
+    def test_existing_price_is_kept(self):
+        from listings.listing_read import ensure_card_price
+
+        payload = ensure_card_price(
+            {'price': 1000, 'service_fee': '250.0'}
+        )
+        self.assertEqual(payload['price'], 1000)

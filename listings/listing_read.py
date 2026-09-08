@@ -37,6 +37,28 @@ SERIALIZER_BY_CATEGORY = {
 }
 
 
+def ensure_card_price(data):
+    '''
+    Card UIs (recent/search/my listings/saved) read ``price``.
+
+    Category docs use different money fields:
+    Services → service_fee, Events → ticket_price, Jobs → salary_range.
+    Listsync historically mirrored those into ``price``; hydrated full docs
+    must do the same so Flutter never renders "$null".
+    '''
+    if not isinstance(data, dict):
+        return data
+    price = data.get('price')
+    if price not in (None, ''):
+        return data
+    for key in ('service_fee', 'ticket_price', 'salary_range'):
+        value = data.get(key)
+        if value not in (None, ''):
+            data['price'] = value
+            break
+    return data
+
+
 def serialize_listing(listing, request):
     '''Return the paginate-shaped dict for a category listing document.'''
     category = resolve_category(getattr(listing, 'category', None))
@@ -51,8 +73,11 @@ def serialize_listing(listing, request):
         if getattr(listing, 'id', None) is not None:
             data['id'] = str(listing.id)
             data['listing_id'] = str(listing.id)
-        return data
-    return serializer_cls(listing, context={'request': request}).data
+        return ensure_card_price(data)
+    data = serializer_cls(listing, context={'request': request}).data
+    if hasattr(data, 'copy'):
+        data = dict(data)
+    return ensure_card_price(data)
 
 
 def _docs_by_listing_id(rows, category_attr='category', id_attr='listing_id'):
